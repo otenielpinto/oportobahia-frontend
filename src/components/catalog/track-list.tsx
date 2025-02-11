@@ -33,7 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface TrackListProps {
   catalogId: string;
 }
-const LIMIT_PER_PAGE = 7;
+const LIMIT_PER_PAGE = 5;
 
 export function TrackList({ catalogId }: TrackListProps) {
   const [page, setPage] = useState(1);
@@ -64,6 +64,14 @@ export function TrackList({ catalogId }: TrackListProps) {
       toast.error("Falha ao excluir faixa");
     },
   });
+
+  const handleEditClick = (track: Track) => {
+    setEditingTrack({
+      ...track,
+      publishers: track.publishers || [], // Garantir que publishers existe
+    });
+    toggleEdit();
+  };
 
   if (isLoading) {
     return (
@@ -104,8 +112,7 @@ export function TrackList({ catalogId }: TrackListProps) {
             <TableHead>Nº da Faixa</TableHead>
             <TableHead>Obra</TableHead>
             <TableHead>Autores</TableHead>
-            <TableHead>Editora</TableHead>
-            <TableHead>Participação %</TableHead>
+            <TableHead>ISRC</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -115,8 +122,7 @@ export function TrackList({ catalogId }: TrackListProps) {
               <TableCell>{track.trackCode}</TableCell>
               <TableCell>{track.work}</TableCell>
               <TableCell>{track.authors}</TableCell>
-              <TableCell>{track.publisher}</TableCell>
-              <TableCell>{track.participationPercentage}%</TableCell>
+              <TableCell>{track.isrc}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Dialog open={isEdit} onOpenChange={toggleEdit}>
@@ -124,7 +130,7 @@ export function TrackList({ catalogId }: TrackListProps) {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => setEditingTrack(track)}
+                        onClick={() => handleEditClick(track)}
                       >
                         <Edit2Icon className="h-4 w-4" />
                       </Button>

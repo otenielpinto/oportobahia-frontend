@@ -20,8 +20,7 @@ export interface Track {
   isrc: string;
   work: string;
   authors: string;
-  publisher: string;
-  participationPercentage: number;
+  publishers: { name: string; participationPercentage: number }[];
   catalogId: string;
 }
 

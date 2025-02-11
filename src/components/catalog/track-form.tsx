@@ -25,6 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TrackFormProps {
   catalogId: string;
@@ -34,15 +38,17 @@ interface TrackFormProps {
 
 export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   const queryClient = useQueryClient();
+
+  // Atualizar defaultValues para incluir publishers explicitamente
   const form = useForm<TrackFormData>({
     resolver: zodResolver(trackSchema),
-    defaultValues: track || {
-      trackCode: "",
-      isrc: "",
-      work: "",
-      authors: "",
-      publisher: "",
-      participationPercentage: 0,
+    defaultValues: {
+      trackCode: track?.trackCode || "",
+      isrc: track?.isrc || "",
+      work: track?.work || "",
+      authors: track?.authors || "",
+      publishers: track?.publishers || [],
+      catalogId: catalogId,
     },
   });
 
@@ -82,9 +88,103 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     },
   });
 
+  const [selectedPublishers, setSelectedPublishers] = useState<
+    Array<{ name: string; participationPercentage: number }>
+  >(track?.publishers || []);
+  const [currentPublisher, setCurrentPublisher] = useState("");
+  const [currentPercentage, setCurrentPercentage] = useState<number>(0);
+  const [totalPercentage, setTotalPercentage] = useState(0);
+
+  useEffect(() => {
+    if (track?.publishers) {
+      setSelectedPublishers(track.publishers);
+    }
+  }, [track]);
+
+  useEffect(() => {
+    const total = selectedPublishers.reduce(
+      (sum, pub) => sum + pub.participationPercentage,
+      0
+    );
+    setTotalPercentage(total);
+  }, [selectedPublishers]);
+
+  // Atualizar estado do form quando selectedPublishers mudar
+  useEffect(() => {
+    const formValue = form.getValues();
+    form.setValue("publishers", selectedPublishers, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [selectedPublishers, form]);
+
+  const addPublisher = () => {
+    if (!currentPublisher || currentPercentage <= 0) {
+      toast.error("Selecione uma editora e defina um percentual maior que 0");
+      return;
+    }
+
+    if (totalPercentage + currentPercentage > 100) {
+      toast.error("O total de percentuais não pode exceder 100%");
+      return;
+    }
+
+    if (selectedPublishers.some((pub) => pub.name === currentPublisher)) {
+      toast.error("Esta editora já foi adicionada");
+      return;
+    }
+
+    const newPublisher = {
+      name: currentPublisher,
+      participationPercentage: currentPercentage,
+    };
+
+    // Atualizar tanto o estado local quanto o form
+    setSelectedPublishers((prev) => {
+      const updated = [...prev, newPublisher];
+      form.setValue("publishers", updated, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return updated;
+    });
+
+    setCurrentPublisher("");
+    setCurrentPercentage(0);
+  };
+
+  const removePublisher = (publisherName: string) => {
+    setSelectedPublishers((prev) => {
+      const updated = prev.filter((pub) => pub.name !== publisherName);
+      form.setValue("publishers", updated, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return updated;
+    });
+  };
+
   const onSubmit = async (data: TrackFormData) => {
+    if (selectedPublishers.length === 0) {
+      toast.error("Adicione pelo menos uma editora");
+      return;
+    }
+
+    if (totalPercentage !== 100) {
+      toast.error("O total de percentuais deve ser igual a 100%");
+      return;
+    }
+
     try {
-      await mutation.mutateAsync(data);
+      const submitData = {
+        ...data,
+        id: track?.id,
+        catalogId: catalogId,
+        // Garantir que os publishers estão sendo enviados
+        publishers: selectedPublishers,
+      };
+
+      await mutation.mutateAsync(submitData);
     } catch (error) {
       console.error("Erro no envio do formulário:", error);
     }
@@ -93,32 +193,34 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="trackCode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nº da Faixa</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="isrc"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>ISRC</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="BR-XXX-YY-NNNNN" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="trackCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nº da Faixa</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="isrc"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ISRC</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="BR-XXX-YY-NNNNN" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="work"
@@ -145,54 +247,87 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="publisher"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Editora</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger disabled={isLoadingPublishers}>
-                    <SelectValue
-                      placeholder={
-                        isLoadingPublishers
-                          ? "Carregando editoras..."
-                          : "Selecione a editora"
-                      }
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {publishers?.map((pub) => (
-                    <SelectItem key={pub.id} value={pub.name}>
-                      {pub.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="participationPercentage"
-            render={({ field }) => (
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2">
+              <FormItem>
+                <FormLabel>Editora</FormLabel>
+                <Select
+                  value={currentPublisher}
+                  onValueChange={setCurrentPublisher}
+                >
+                  <FormControl>
+                    <SelectTrigger disabled={isLoadingPublishers}>
+                      <SelectValue
+                        placeholder={
+                          isLoadingPublishers
+                            ? "Carregando editoras..."
+                            : "Selecione a editora"
+                        }
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {publishers?.map((pub) => (
+                      <SelectItem key={pub.id} value={pub.name}>
+                        {pub.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            </div>
+            <div>
               <FormItem>
                 <FormLabel>% de Participação</FormLabel>
-                <FormControl>
+                <div className="flex gap-2">
                   <Input
                     type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    min="0"
+                    max="100"
+                    value={currentPercentage || ""}
+                    onChange={(e) =>
+                      setCurrentPercentage(Number(e.target.value))
+                    }
                   />
-                </FormControl>
-                <FormMessage />
+                  <Button
+                    type="button"
+                    onClick={addPublisher}
+                    variant="outline"
+                    size="icon"
+                  >
+                    +
+                  </Button>
+                </div>
               </FormItem>
-            )}
-          />
+            </div>
+          </div>
+
+          <div className="border rounded-md p-2">
+            <ScrollArea className="h-24">
+              <div className="flex flex-wrap gap-2 p-1">
+                {selectedPublishers.map((pub) => (
+                  <Badge
+                    key={pub.name}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    {pub.name} ({pub.participationPercentage}%)
+                    <button
+                      type="button"
+                      onClick={() => removePublisher(pub.name)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </ScrollArea>
+            <div className="mt-2 text-sm text-muted-foreground">
+              Total: {totalPercentage}%
+            </div>
+          </div>
         </div>
         <div className="flex justify-end space-x-2">
           <Button

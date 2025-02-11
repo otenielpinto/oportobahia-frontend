@@ -193,7 +193,7 @@ export async function updateTrack(catalogId: string, data: any): Promise<any> {
       t.trackCode = data.trackCode;
       t.work = data.work;
       t.authors = data.authors;
-      t.publisher = data.publisher;
+      t.publishers = data.publishers;
       t.participationPercentage = data.participationPercentage;
       t.isrc = data.isrc;
     }
