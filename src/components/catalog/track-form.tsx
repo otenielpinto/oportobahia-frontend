@@ -57,13 +57,45 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     queryFn: () => getPublishers(),
   });
 
+  const validatePublishers = () => {
+    if (!selectedPublishers || selectedPublishers.length === 0) {
+      toast.error(
+        "É necessário adicionar pelo menos uma editora com seu percentual de participação"
+      );
+      return false;
+    }
+
+    if (totalPercentage !== 100) {
+      toast.error(
+        totalPercentage === 0
+          ? "É necessário informar o percentual de participação da editora"
+          : "O total de percentuais deve ser igual a 100%"
+      );
+      return false;
+    }
+
+    return true;
+  };
+
   const mutation = useMutation({
     mutationFn: async (data: TrackFormData) => {
+      // Validar publishers antes de qualquer operação
+      if (!validatePublishers()) {
+        throw new Error("Validação de editoras falhou");
+      }
+
       try {
         if (track) {
-          return await updateTrack(catalogId, data);
+          return await updateTrack(catalogId, {
+            ...data,
+            id: track.id,
+            publishers: selectedPublishers,
+          });
         } else {
-          return await createTrack(catalogId, data);
+          return await createTrack(catalogId, {
+            ...data,
+            publishers: selectedPublishers,
+          });
         }
       } catch (error) {
         console.error("Erro na mutação:", error);
@@ -165,26 +197,8 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   };
 
   const onSubmit = async (data: TrackFormData) => {
-    if (selectedPublishers.length === 0) {
-      toast.error("Adicione pelo menos uma editora");
-      return;
-    }
-
-    if (totalPercentage !== 100) {
-      toast.error("O total de percentuais deve ser igual a 100%");
-      return;
-    }
-
     try {
-      const submitData = {
-        ...data,
-        id: track?.id,
-        catalogId: catalogId,
-        // Garantir que os publishers estão sendo enviados
-        publishers: selectedPublishers,
-      };
-
-      await mutation.mutateAsync(submitData);
+      await mutation.mutateAsync(data);
     } catch (error) {
       console.error("Erro no envio do formulário:", error);
     }
