@@ -24,6 +24,7 @@ export interface Track {
   playLength: string;
   publishers: { name: string; participationPercentage: number }[];
   catalogId: string;
+  originalPublisher: string;
 }
 
 export type CatalogFormData = Omit<Catalog, "id">;

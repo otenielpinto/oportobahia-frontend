@@ -118,7 +118,6 @@ export async function createCatalog(data: CatalogFormData): Promise<Catalog> {
 }
 
 export async function updateCatalog(id: string, data: any): Promise<Catalog> {
-  
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
     const updatedCatalog = await clientdb
@@ -198,6 +197,7 @@ export async function updateTrack(catalogId: string, data: any): Promise<any> {
       t.participationPercentage = data.participationPercentage;
       t.isrc = data.isrc;
       t.playLength = data.playLength;
+      t.originalPublisher = data.originalPublisher;
     }
   }
 
