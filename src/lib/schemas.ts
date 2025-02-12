@@ -13,6 +13,7 @@ const mensagens = {
   authors: "Autores são obrigatórios",
   publisher: "Editora é obrigatória",
   majorGenre: "Gênero Principal é obrigatório",
+  playLength: "Duração deve estar no formato mm:ss",
 };
 
 export const catalogSchema = z.object({
@@ -41,6 +42,9 @@ export const trackSchema = z.object({
   isrc: z.string().min(1, "ISRC é obrigatório"),
   work: z.string().min(1, "Nome da obra é obrigatório"),
   authors: z.string().min(1, "Nome dos autores é obrigatório"),
+  playLength: z.string()
+    .min(1, mensagens.playLength)
+    .regex(/^([0-5][0-9]):([0-5][0-9])$/, mensagens.playLength),
   publishers: z
     .array(publisherSchema)
     .min(1, "Adicione pelo menos uma editora")

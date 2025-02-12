@@ -21,6 +21,7 @@ export interface Track {
   isrc: string;
   work: string;
   authors: string;
+  playLength: string;
   publishers: { name: string; participationPercentage: number }[];
   catalogId: string;
 }

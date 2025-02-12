@@ -49,6 +49,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       authors: track?.authors || "",
       publishers: track?.publishers || [],
       catalogId: catalogId,
+      playLength: track?.playLength || "",
     },
   });
 
@@ -204,6 +205,58 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     }
   };
 
+  const formatTimeInput = (value: string) => {
+    // Se vier vazio ou apenas ":", retorna vazio
+    if (!value || value === ':') return '';
+    
+    // Remove tudo exceto números
+    let numbers = value.replace(/\D/g, '');
+    
+    // Casos especiais para backspace e deleção
+    if (value.endsWith(':')) {
+      return value.slice(0, -1);
+    }
+    
+    // Se não houver números, retorna vazio
+    if (!numbers) return '';
+    
+    // Se for apenas um dígito
+    if (numbers.length === 1) {
+      // Se for maior que 5, adiciona 0 na frente
+      return parseInt(numbers) > 5 ? `0${numbers}:` : numbers;
+    }
+    
+    // Se forem dois dígitos
+    if (numbers.length === 2) {
+      // Se for maior que 59, limita a 59
+      numbers = parseInt(numbers) > 59 ? '59' : numbers;
+      return `${numbers}:`;
+    }
+    
+    // Se forem três dígitos
+    if (numbers.length === 3) {
+      const minutes = numbers.slice(0, 2);
+      const seconds = numbers.slice(2);
+      return `${minutes}:${seconds}`;
+    }
+    
+    // Se forem quatro dígitos
+    if (numbers.length >= 4) {
+      const minutes = numbers.slice(0, 2);
+      let seconds = numbers.slice(2, 4);
+      // Se os segundos forem maior que 59, limita a 59
+      seconds = parseInt(seconds) > 59 ? '59' : seconds;
+      return `${minutes}:${seconds}`;
+    }
+    
+    return value;
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatTimeInput(e.target.value);
+    form.setValue('playLength', formatted, { shouldValidate: true });
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -256,6 +309,24 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
               <FormLabel>Autores</FormLabel>
               <FormControl>
                 <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="playLength"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tempo</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field}
+                  placeholder="00:00"
+                  onChange={handleTimeChange}
+                  maxLength={5}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

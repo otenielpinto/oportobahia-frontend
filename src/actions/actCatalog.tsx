@@ -197,6 +197,7 @@ export async function updateTrack(catalogId: string, data: any): Promise<any> {
       t.publishers = data.publishers;
       t.participationPercentage = data.participationPercentage;
       t.isrc = data.isrc;
+      t.playLength = data.playLength;
     }
   }
 
