@@ -118,6 +118,7 @@ export async function createCatalog(data: CatalogFormData): Promise<Catalog> {
 }
 
 export async function updateCatalog(id: string, data: any): Promise<Catalog> {
+  
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
     const updatedCatalog = await clientdb

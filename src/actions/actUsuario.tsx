@@ -105,7 +105,7 @@ export const deleteUser = createServerAction()
     const data: any = await clientdb
       .collection("user")
       .deleteOne({ _id: new ObjectId(_id) });
-    console.log(data);
+    
     await TMongo.mongoDisconnect(client);
     return data;
   });

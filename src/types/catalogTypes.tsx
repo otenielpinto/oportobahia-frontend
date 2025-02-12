@@ -12,6 +12,7 @@ export interface Catalog {
   trackLimit: number;
   format: string;
   trackPercentage: number;
+  majorGenre: string;
 }
 
 export interface Track {

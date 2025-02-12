@@ -75,7 +75,7 @@ export async function POST(req: Request) {
   }
 
   let sort = sortField(q.order_by, { "itens.data_movto": 1 });
-  console.log(searchFilter);
+
 
   queryObject["$and"] = searchFilter;
   const rows = await clientdb

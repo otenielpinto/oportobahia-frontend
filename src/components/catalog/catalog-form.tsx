@@ -91,6 +91,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
       trackLimit: 1,
       format: "",
       trackPercentage: 0,
+      majorGenre : "",
     },
   });
 
@@ -177,7 +178,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="originalCode"
@@ -196,9 +197,22 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
             name="originalReleaseDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de Lançamento Original</FormLabel>
+                <FormLabel>Data Lanc. Original</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="majorGenre"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Gênero Principal</FormLabel>
+                <FormControl>
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
