@@ -2,7 +2,8 @@
 
 import { Track } from "@/types/catalogTypes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTracks, deleteTrack } from "@/actions/actCatalog";
+import { }
+
 import { toast } from "sonner";
 import {
   Table,
@@ -117,7 +118,7 @@ export function TrackList({ catalogId }: TrackListProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.data.map((track) => (
+          {data?.data.map((track: any) => (
             <TableRow key={track.trackCode}>
               <TableCell>{track.trackCode}</TableCell>
               <TableCell>{track.work}</TableCell>
