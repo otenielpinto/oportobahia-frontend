@@ -29,6 +29,12 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface TrackFormProps {
   catalogId: string;
@@ -39,7 +45,6 @@ interface TrackFormProps {
 export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   const queryClient = useQueryClient();
 
-  // Atualizar defaultValues para incluir publishers explicitamente
   const form = useForm<TrackFormData>({
     resolver: zodResolver(trackSchema),
     defaultValues: {
@@ -51,6 +56,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       catalogId: catalogId,
       playLength: track?.playLength || "",
       originalPublisher: track?.originalPublisher,
+      subTracks: track?.subTracks || [],
     },
   });
 
@@ -81,7 +87,6 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: TrackFormData) => {
-      // Validar publishers antes de qualquer operação
       if (!validatePublishers()) {
         throw new Error("Validação de editoras falhou");
       }
@@ -92,11 +97,13 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
             ...data,
             id: track.id,
             publishers: selectedPublishers,
+            subTracks: selectedSubTracks,
           });
         } else {
           return await createTrack(catalogId, {
             ...data,
             publishers: selectedPublishers,
+            subTracks: selectedSubTracks,
           });
         }
       } catch (error) {
@@ -122,6 +129,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     },
   });
 
+  // Estados para publishers
   const [selectedPublishers, setSelectedPublishers] = useState<
     Array<{ name: string; participationPercentage: number }>
   >(track?.publishers || []);
@@ -129,9 +137,22 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   const [currentPercentage, setCurrentPercentage] = useState<number>(0);
   const [totalPercentage, setTotalPercentage] = useState(0);
 
+  // Estados para subTracks
+  const [selectedSubTracks, setSelectedSubTracks] = useState<
+    Array<{ publisher: string; participationPercentage: number; work: string }>
+  >(track?.subTracks || []);
+  const [currentSubTrackPublisher, setCurrentSubTrackPublisher] = useState("");
+  const [currentSubTrackPercentage, setCurrentSubTrackPercentage] =
+    useState<number>(0);
+  const [currentSubTrackWork, setCurrentSubTrackWork] = useState("");
+  const [totalSubTrackPercentage, setTotalSubTrackPercentage] = useState(0);
+
   useEffect(() => {
     if (track?.publishers) {
       setSelectedPublishers(track.publishers);
+    }
+    if (track?.subTracks) {
+      setSelectedSubTracks(track.subTracks);
     }
   }, [track]);
 
@@ -143,14 +164,27 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     setTotalPercentage(total);
   }, [selectedPublishers]);
 
-  // Atualizar estado do form quando selectedPublishers mudar
   useEffect(() => {
-    const formValue = form.getValues();
+    const total = selectedSubTracks.reduce(
+      (sum, track) => sum + track.participationPercentage,
+      0
+    );
+    setTotalSubTrackPercentage(total);
+  }, [selectedSubTracks]);
+
+  useEffect(() => {
     form.setValue("publishers", selectedPublishers, {
       shouldValidate: true,
       shouldDirty: true,
     });
   }, [selectedPublishers, form]);
+
+  useEffect(() => {
+    form.setValue("subTracks", selectedSubTracks, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [selectedSubTracks, form]);
 
   const addPublisher = () => {
     if (!currentPublisher || currentPercentage <= 0) {
@@ -173,7 +207,6 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       participationPercentage: currentPercentage,
     };
 
-    // Atualizar tanto o estado local quanto o form
     setSelectedPublishers((prev) => {
       const updated = [...prev, newPublisher];
       form.setValue("publishers", updated, {
@@ -187,10 +220,66 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     setCurrentPercentage(0);
   };
 
+  const addSubTrack = () => {
+    if (!currentSubTrackPublisher || currentSubTrackPercentage <= 0) {
+      toast.error("Selecione uma editora e defina um percentual maior que 0");
+      return;
+    }
+
+    if (totalSubTrackPercentage + currentSubTrackPercentage > 100) {
+      toast.error("O total de percentuais não pode exceder 100%");
+      return;
+    }
+
+    if (
+      selectedSubTracks.some(
+        (track) => track.publisher === currentSubTrackPublisher
+      )
+    ) {
+      toast.error("Esta editora já foi adicionada");
+      return;
+    }
+
+    if (!currentSubTrackWork) {
+      toast.error("O nome da obra é obrigatório");
+      return;
+    }
+
+    const newSubTrack = {
+      publisher: currentSubTrackPublisher,
+      participationPercentage: currentSubTrackPercentage,
+      work: currentSubTrackWork,
+    };
+
+    setSelectedSubTracks((prev) => {
+      const updated = [...prev, newSubTrack];
+      form.setValue("subTracks", updated, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return updated;
+    });
+
+    setCurrentSubTrackPublisher("");
+    setCurrentSubTrackPercentage(0);
+    setCurrentSubTrackWork("");
+  };
+
   const removePublisher = (publisherName: string) => {
     setSelectedPublishers((prev) => {
       const updated = prev.filter((pub) => pub.name !== publisherName);
       form.setValue("publishers", updated, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      return updated;
+    });
+  };
+
+  const removeSubTrack = (publisherName: string) => {
+    setSelectedSubTracks((prev) => {
+      const updated = prev.filter((track) => track.publisher !== publisherName);
+      form.setValue("subTracks", updated, {
         shouldValidate: true,
         shouldDirty: true,
       });
@@ -207,49 +296,30 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   };
 
   const formatTimeInput = (value: string) => {
-    // Se vier vazio ou apenas ":", retorna vazio
     if (!value || value === ":") return "";
-
-    // Remove tudo exceto números
     let numbers = value.replace(/\D/g, "");
-
-    // Casos especiais para backspace e deleção
     if (value.endsWith(":")) {
       return value.slice(0, -1);
     }
-
-    // Se não houver números, retorna vazio
     if (!numbers) return "";
-
-    // Se for apenas um dígito
     if (numbers.length === 1) {
-      // Se for maior que 5, adiciona 0 na frente
       return parseInt(numbers) > 5 ? `0${numbers}:` : numbers;
     }
-
-    // Se forem dois dígitos
     if (numbers.length === 2) {
-      // Se for maior que 59, limita a 59
       numbers = parseInt(numbers) > 59 ? "59" : numbers;
       return `${numbers}:`;
     }
-
-    // Se forem três dígitos
     if (numbers.length === 3) {
       const minutes = numbers.slice(0, 2);
       const seconds = numbers.slice(2);
       return `${minutes}:${seconds}`;
     }
-
-    // Se forem quatro dígitos
     if (numbers.length >= 4) {
       const minutes = numbers.slice(0, 2);
       let seconds = numbers.slice(2, 4);
-      // Se os segundos forem maior que 59, limita a 59
       seconds = parseInt(seconds) > 59 ? "59" : seconds;
       return `${minutes}:${seconds}`;
     }
-
     return value;
   };
 
@@ -261,179 +331,307 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="trackCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº da Faixa</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="isrc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>ISRC</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="BR-XXX-YY-NNNNN" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="work"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Obra</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="authors"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Autores</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="playLength"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tempo</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="00:00"
-                  onChange={handleTimeChange}
-                  maxLength={5}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="originalPublisher"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Editora Original</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="Nome da editora original"
-                  required
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
-              <FormItem>
-                <FormLabel>Editora</FormLabel>
-                <Select
-                  value={currentPublisher}
-                  onValueChange={setCurrentPublisher}
-                >
+        <ScrollArea className="h-[calc(100vh-10rem)] pr-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="trackCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº da Faixa</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isrc"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ISRC</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="BR-XXX-YY-NNNNN" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="work"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Obra</FormLabel>
                   <FormControl>
-                    <SelectTrigger disabled={isLoadingPublishers}>
-                      <SelectValue
-                        placeholder={
-                          isLoadingPublishers
-                            ? "Carregando editoras..."
-                            : "Selecione a editora"
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="authors"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Autores</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="playLength"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tempo</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="00:00"
+                        onChange={handleTimeChange}
+                        maxLength={5}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="originalPublisher"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Editora Original</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nome da editora original"
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Seção de Editoras */}
+            <Accordion type="single" collapsible>
+              <AccordionItem value="publishers">
+                <AccordionTrigger>Editoras</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                  <FormItem>
+                    <FormLabel>Editora</FormLabel>
+                    <Select
+                      value={currentPublisher}
+                      onValueChange={setCurrentPublisher}
+                    >
+                      <FormControl>
+                        <SelectTrigger disabled={isLoadingPublishers}>
+                          <SelectValue
+                            placeholder={
+                              isLoadingPublishers
+                                ? "Carregando editoras..."
+                                : "Selecione a editora"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {publishers?.map((pub) => (
+                          <SelectItem key={pub.id} value={pub.name}>
+                            {pub.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                </div>
+                <div>
+                  <FormItem>
+                    <FormLabel>% de Participação</FormLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={currentPercentage || ""}
+                        onChange={(e) =>
+                          setCurrentPercentage(Number(e.target.value))
                         }
                       />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {publishers?.map((pub) => (
-                      <SelectItem key={pub.id} value={pub.name}>
-                        {pub.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            </div>
-            <div>
-              <FormItem>
-                <FormLabel>% de Participação</FormLabel>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={currentPercentage || ""}
-                    onChange={(e) =>
-                      setCurrentPercentage(Number(e.target.value))
-                    }
-                  />
-                  <Button
-                    type="button"
-                    onClick={addPublisher}
-                    variant="outline"
-                    size="icon"
-                  >
-                    +
-                  </Button>
+                      <Button
+                        type="button"
+                        onClick={addPublisher}
+                        variant="outline"
+                        size="icon"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </FormItem>
                 </div>
-              </FormItem>
-            </div>
-          </div>
-
-          <div className="border rounded-md p-2">
-            <ScrollArea className="h-24">
-              <div className="flex flex-wrap gap-2 p-1">
-                {selectedPublishers.map((pub) => (
-                  <Badge
-                    key={pub.name}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {pub.name} ({pub.participationPercentage}%)
-                    <button
-                      type="button"
-                      onClick={() => removePublisher(pub.name)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
               </div>
-            </ScrollArea>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Total: {totalPercentage}%
+
+              <div className="border rounded-md p-2">
+                <ScrollArea className="h-10">
+                  <div className="flex flex-wrap gap-2 p-1">
+                    {selectedPublishers.map((pub) => (
+                      <Badge
+                        key={pub.name}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        {pub.name} ({pub.participationPercentage}%)
+                        <button
+                          type="button"
+                          onClick={() => removePublisher(pub.name)}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Total: {totalPercentage}%
+                </div>
+              </div>
             </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          {/* Seção de SubTracks */}
+            <Accordion type="single" collapsible className="my-4">
+              <AccordionItem value="subtracks" className="bg-slate-50/50 rounded-lg border">
+                <AccordionTrigger>Musicas da Faixa</AccordionTrigger>
+                <AccordionContent className="px-4">
+                  <div className="space-y-2">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2">
+                          <FormItem>
+                            <FormLabel>Faixa Editora</FormLabel>
+                            <Select
+                              value={currentSubTrackPublisher}
+                              onValueChange={setCurrentSubTrackPublisher}
+                            >
+                              <FormControl>
+                                <SelectTrigger disabled={isLoadingPublishers}>
+                                  <SelectValue
+                                    placeholder={
+                                      isLoadingPublishers
+                                        ? "Carregando editoras..."
+                                        : "Selecione a editora"
+                                    }
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {publishers?.map((pub) => (
+                                  <SelectItem key={pub.id} value={pub.name}>
+                                    {pub.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        </div>
+                        <div>
+                          <FormItem>
+                            <FormLabel>% de Participação</FormLabel>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={currentSubTrackPercentage || ""}
+                              onChange={(e) =>
+                                setCurrentSubTrackPercentage(
+                                  Number(e.target.value)
+                                )
+                              }
+                            />
+                          </FormItem>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-6 gap-4">
+                        <div className="col-span-5">
+                          <FormItem>
+                            <FormLabel>Nome da Obra</FormLabel>
+                            <Input
+                              value={currentSubTrackWork}
+                              onChange={(e) =>
+                                setCurrentSubTrackWork(e.target.value)
+                              }
+                              placeholder="Digite o nome da obra"
+                            />
+                          </FormItem>
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            type="button"
+                            onClick={addSubTrack}
+                            variant="outline"
+                            size="default"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border rounded-md p-2">
+                      <ScrollArea className="h-10">
+                        <div className="flex flex-wrap gap-2 p-1">
+                          {selectedSubTracks.map((subTrack) => (
+                            <Badge
+                              key={subTrack.publisher}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {subTrack.work} - {subTrack.publisher} (
+                              {subTrack.participationPercentage}%)
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  removeSubTrack(subTrack.publisher)
+                                }
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        Total: {totalSubTrackPercentage}%
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
-        </div>
-        <div className="flex justify-end space-x-2">
+        </ScrollArea>
+
+        <div className="flex justify-end space-x-2 mt-4">
           <Button
             type="submit"
             disabled={mutation.isPending || form.formState.isSubmitting}

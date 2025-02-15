@@ -25,6 +25,7 @@ export interface Track {
   publishers: { name: string; participationPercentage: number }[];
   catalogId: string;
   originalPublisher: string;
+  subTracks?: { publisher: string; participationPercentage: number; work: string }[];
 }
 
 export type CatalogFormData = Omit<Catalog, "id">;

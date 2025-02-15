@@ -37,6 +37,12 @@ export const publisherSchema = z.object({
   participationPercentage: z.number().min(0).max(100),
 });
 
+export const subTrackSchema = z.object({
+  publisher: z.string().min(1, "Nome da editora é obrigatório"),
+  participationPercentage: z.number().min(0).max(100),
+  work: z.string().min(1, mensagens.work),
+});
+
 export const trackSchema = z.object({
   trackCode: z.string().min(1, "Número da faixa é obrigatório"),
   isrc: z.string().min(1, "ISRC é obrigatório"),
@@ -58,4 +64,18 @@ export const trackSchema = z.object({
       return total === 100;
     }, "O total de percentuais deve ser igual a 100%"),
   catalogId: z.string().optional(),
+  subTracks: z
+    .array(subTrackSchema)
+    .optional()
+    .refine(
+      (subTracks) => {
+        if (!subTracks || subTracks.length === 0) return true;
+        const total = subTracks.reduce(
+          (sum, track) => sum + track.participationPercentage,
+          0
+        );
+        return total <= 100;
+      },
+      "O total de percentuais não pode exceder 100%"
+    ),
 });
