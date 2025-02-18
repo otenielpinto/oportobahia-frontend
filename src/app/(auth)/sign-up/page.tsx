@@ -8,11 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { authSchema, TAuthSchema } from "@/auth/schema/authSchema";
-import { ZodError } from "zod";
 import { useRouter } from "next/navigation";
-import { createAccount } from "@/auth/actions/auth-actions";
-
+import { authSchema, TAuthSchema } from "@/auth/schema/authSchema";
+import { createUser } from "@/auth/actions/auth-actions";
 import { User } from "@/auth/types/user";
 import { toast } from "sonner";
 
@@ -27,23 +25,23 @@ const Page = () => {
   const router = useRouter();
 
   const onSubmit = async ({ email, password, name }: TAuthSchema) => {
-    let nameStr = name ? name : "name";
-    let user: any = {
-      email: email,
-      name: nameStr,
+    let user: User = {
+      email,
+      name,
       active: 0,
       isAdmin: 0,
       password: password,
     };
-    const res: any = await createAccount(user);
 
-    if (res?.insertedId) {
+    const res = await createUser(user);
+
+    if (res.insertedId) {
       toast.success(
         "Conta criada com sucesso, solicite ao administrador para ativar sua conta"
       );
       router.push("/sign-in");
     } else {
-      toast.error("Erro ao criar conta");
+      toast.error("Erro ao criar conta ou email já cadastrado");
     }
   };
 
@@ -74,6 +72,7 @@ const Page = () => {
                 <div className="grid gap-1 py-2">
                   <Label htmlFor="email">Nome</Label>
                   <Input
+                    required
                     {...register("name")}
                     className={cn({
                       "focus-visible:ring-red-500": errors.name,
@@ -90,6 +89,7 @@ const Page = () => {
                 <div className="grid gap-1 py-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
+                    required
                     {...register("email")}
                     className={cn({
                       "focus-visible:ring-red-500": errors.email,
@@ -106,6 +106,7 @@ const Page = () => {
                 <div className="grid gap-1 py-2">
                   <Label htmlFor="password">Senha</Label>
                   <Input
+                    required
                     {...register("password")}
                     type="password"
                     className={cn({

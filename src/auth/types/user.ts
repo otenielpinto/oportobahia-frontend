@@ -1,10 +1,12 @@
 export type User = {
-  _id?: string | undefined;
   id?: string;
   email: string;
   password: string;
-  name: string;
-  isAdmin?: Number | 0 | 1;
-  active?: Number | 0 | 1;
-  id_empresa?: Number;
+  name?: string;
+  isAdmin?: number | 0 | 1;
+  active?: number | 0 | 1;
+  emp_acesso?: Number[];
+  codigo?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
