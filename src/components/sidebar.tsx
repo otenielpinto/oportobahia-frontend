@@ -142,7 +142,7 @@ const SideNav = () => {
 
       if (user) {
         setEmpresa(user.name as string);
-        setCodEmpresa(user.id_empresa as number);
+        setCodEmpresa(user?.empresa as number);
       }
     };
 
