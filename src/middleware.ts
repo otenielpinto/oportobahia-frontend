@@ -5,7 +5,7 @@ export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
 
-const publicRoutes = ["/sign-in", "/sign-up"];
+const publicRoutes = ["/sign-in", "/sign-up", "/"];
 
 export async function middleware(req: NextRequest) {
   //console.log(req.nextUrl);
@@ -24,9 +24,11 @@ export async function middleware(req: NextRequest) {
     }
 
     return NextResponse.redirect(new URL("/sign-in", req.url));
-  } else if (pathname == "/") {
-    return NextResponse.redirect(new URL("/home", req.url));
   }
+
+  // else if (pathname == "/") {
+  //   return NextResponse.redirect(new URL("/home", req.url));
+  // }
 
   return NextResponse.next();
 }
