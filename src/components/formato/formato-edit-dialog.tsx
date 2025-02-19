@@ -155,9 +155,10 @@ export function FormatoEditDialog({
             <div>
               <Label htmlFor="status">Status</Label>
               <Select
-                id="status"
-                {...register("status")}
-                defaultValue={watch("status")}
+                onValueChange={(value: "active" | "inactive") =>
+                  setValue("status", value)
+                }
+                value={watch("status") as "active" | "inactive"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o status" />

@@ -87,6 +87,7 @@ export async function createUser(body: User): Promise<any> {
       password: hashPassword,
       codigo: name,
       emp_acesso: [],
+      id_empresa: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

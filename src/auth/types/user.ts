@@ -6,6 +6,7 @@ export type User = {
   isAdmin?: number | 0 | 1;
   active?: number | 0 | 1;
   emp_acesso?: Number[];
+  id_empresa?: Number;
   codigo?: string;
   createdAt?: Date;
   updatedAt?: Date;

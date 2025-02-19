@@ -39,7 +39,7 @@ import { toast } from "sonner";
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [companiesList, setCompaniesList] = useState<any[]>([]);
 
@@ -59,8 +59,9 @@ export default function UserManagement() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user?.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      false ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleEdit = (user: User) => {
@@ -78,18 +79,18 @@ export default function UserManagement() {
     await getHandleClick();
   };
 
-  const handleSave = async (user: User) => {
+  const handleSave = async (user: any) => {
     if (user?._id) {
-      user.id_empresa = Number(user.id_empresa);
+      user.codigo = Number(user.codigo);
       user._id = user._id ?? "";
       const [data, err] = await updateUser({
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        isAdmin: Number(user.isAdmin),
-        active: Number(user.active),
-        password: user.password,
-        id_empresa: Number(user.id_empresa),
+        _id: user?._id,
+        email: user?.email,
+        name: user?.name,
+        isAdmin: Number(user?.isAdmin),
+        active: Number(user?.active),
+        password: user?.password,
+        id_empresa: Number(user?.id_empresa),
       });
 
       if (err) {

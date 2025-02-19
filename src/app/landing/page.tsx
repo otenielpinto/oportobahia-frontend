@@ -168,8 +168,8 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="p-6">
               <p className="text-gray-600 mb-4">
-                "Reduzimos nosso tempo de processamento de royalties de dias
-                para horas. Uma ferramenta indispensável!"
+                &quot;Reduzimos nosso tempo de processamento de royalties de dias
+                para horas. Uma ferramenta indispensável!&quot;
               </p>
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
@@ -181,8 +181,8 @@ export default function LandingPage() {
             </Card>
             <Card className="p-6">
               <p className="text-gray-600 mb-4">
-                "A precisão e facilidade de uso do software superaram todas as
-                nossas expectativas."
+                &quot;A precisão e facilidade de uso do software superaram todas as
+                nossas expectativas.&quot;
               </p>
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>

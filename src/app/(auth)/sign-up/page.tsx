@@ -25,7 +25,7 @@ const Page = () => {
   const router = useRouter();
 
   const onSubmit = async ({ email, password, name }: TAuthSchema) => {
-    let user: User = {
+    let user: any = {
       email,
       name,
       active: 0,
