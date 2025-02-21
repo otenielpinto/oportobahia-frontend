@@ -22,10 +22,17 @@ export interface Track {
   work: string;
   authors: string;
   playLength: string;
-  publishers: { name: string; participationPercentage: number }[];
+  publishers?: { name: string; participationPercentage: number }[];
   catalogId: string;
   originalPublisher: string;
-  subTracks?: { publisher: string; participationPercentage: number; work: string }[];
+  subTracks?: {
+    publisher: string;
+    participationPercentage: number;
+    work: string;
+    authors: string;
+    playLength: string;
+    originalPublisher: string;
+  }[];
 }
 
 export type CatalogFormData = Omit<Catalog, "id">;

@@ -198,6 +198,7 @@ export async function updateTrack(catalogId: string, data: any): Promise<any> {
       t.isrc = data.isrc;
       t.playLength = data.playLength;
       t.originalPublisher = data.originalPublisher;
+      t.subTracks = data.subTracks;
     }
   }
 

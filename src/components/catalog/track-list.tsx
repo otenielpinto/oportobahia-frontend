@@ -98,7 +98,7 @@ export function TrackList({ catalogId }: TrackListProps) {
               Adicionar Faixa
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-3xl">
             <TrackForm
               catalogId={catalogId}
               onSuccess={() => setIsOpen(false)}
@@ -136,7 +136,7 @@ export function TrackList({ catalogId }: TrackListProps) {
                         <Edit2Icon className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-3xl">
                       <TrackForm
                         catalogId={catalogId}
                         track={editingTrack}

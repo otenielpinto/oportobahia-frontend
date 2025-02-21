@@ -14,6 +14,7 @@ const mensagens = {
   publisher: "Editora é obrigatória",
   majorGenre: "Gênero Principal é obrigatório",
   playLength: "Duração deve estar no formato mm:ss",
+  originalPublisher: "Editora original é obrigatória",
 };
 
 export const catalogSchema = z.object({
@@ -41,6 +42,12 @@ export const subTrackSchema = z.object({
   publisher: z.string().min(1, "Nome da editora é obrigatório"),
   participationPercentage: z.number().min(0).max(100),
   work: z.string().min(1, mensagens.work),
+  authors: z.string().min(1, "Nome dos autores é obrigatório"),
+  playLength: z
+    .string()
+    .min(1, mensagens.playLength)
+    .regex(/^([0-5][0-9]):([0-5][0-9])$/, mensagens.playLength),
+  originalPublisher: z.string().min(1, "Editora original é obrigatória"),
 });
 
 export const trackSchema = z.object({
@@ -55,27 +62,24 @@ export const trackSchema = z.object({
     .regex(/^([0-5][0-9]):([0-5][0-9])$/, mensagens.playLength),
   publishers: z
     .array(publisherSchema)
-    .min(1, "Adicione pelo menos uma editora")
+    .optional()
     .refine((publishers) => {
-      const total = publishers.reduce(
+      const total = publishers?.reduce(
         (sum, pub) => sum + pub.participationPercentage,
         0
       );
-      return total === 100;
+      return total === 100 || total === 0;
     }, "O total de percentuais deve ser igual a 100%"),
   catalogId: z.string().optional(),
   subTracks: z
     .array(subTrackSchema)
     .optional()
-    .refine(
-      (subTracks) => {
-        if (!subTracks || subTracks.length === 0) return true;
-        const total = subTracks.reduce(
-          (sum, track) => sum + track.participationPercentage,
-          0
-        );
-        return total <= 100;
-      },
-      "O total de percentuais não pode exceder 100%"
-    ),
+    .refine((subTracks) => {
+      if (!subTracks || subTracks.length === 0) return true;
+      const total = subTracks.reduce(
+        (sum, track) => sum + track.participationPercentage,
+        0
+      );
+      return total <= 100;
+    }, "O total de percentuais não pode exceder 100%"),
 });
