@@ -27,7 +27,7 @@ export default function LandingPage() {
         </div>
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-blue-900 mb-6">
-            Calcule Royalties com Precisão e Simplicidade
+            Calcule direitos autorais com precisão e simplicidade
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-12">
             Software especializado que automatiza seus cálculos de direitos
@@ -48,11 +48,11 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Veja como é fácil calcular royalties
+                Veja como é fácil calcular direitos autorais
               </h2>
               <p className="text-lg text-gray-600 mb-8">
-                Interface intuitiva que permite calcular royalties em poucos
-                cliques. Importe seus dados, defina as regras e obtenha
+                Interface intuitiva que permite calcular direitos autorais em
+                poucos cliques. Importe seus dados, defina as regras e obtenha
                 relatórios detalhados instantaneamente.
               </p>
               <Button
@@ -61,7 +61,7 @@ export default function LandingPage() {
                 className="bg-green-500 hover:bg-green-600 text-white border-0"
                 onClick={() =>
                   window.open(
-                    "https://wa.me/5551998664776?text=Olá!%20Gostaria%20de%20agendar%20uma%20demonstração%20do%20software%20de%20cálculo%20de%20royalties.",
+                    "https://wa.me/5551998664776?text=Olá!%20Gostaria%20de%20agendar%20uma%20demonstração%20do%20software%20de%20cálculo%20de%20direitos%20autorais.",
                     "_blank",
                     "noopener noreferrer"
                   )
@@ -95,7 +95,7 @@ export default function LandingPage() {
               <h3 className="text-xl font-semibold mb-3">Precisão Garantida</h3>
               <p className="text-gray-600">
                 Elimine erros de cálculo e tenha 100% de precisão nos seus
-                relatórios de royalties
+                relatórios de direitos autorais
               </p>
             </Card>
             <Card className="p-6">
@@ -168,8 +168,8 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="p-6">
               <p className="text-gray-600 mb-4">
-                &quot;Reduzimos nosso tempo de processamento de royalties de dias
-                para horas. Uma ferramenta indispensável!&quot;
+                &quot;Reduzimos nosso tempo de processamento de direitos
+                autorais de dias para horas. Uma ferramenta indispensável!&quot;
               </p>
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
@@ -181,14 +181,14 @@ export default function LandingPage() {
             </Card>
             <Card className="p-6">
               <p className="text-gray-600 mb-4">
-                &quot;A precisão e facilidade de uso do software superaram todas as
-                nossas expectativas.&quot;
+                &quot;A precisão e facilidade de uso do software superaram todas
+                as nossas expectativas.&quot;
               </p>
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
                 <div>
                   <p className="font-semibold">Maria Santos</p>
-                  <p className="text-sm text-gray-500">Gerente de Royalties</p>
+                  <p className="text-sm text-gray-500">Gerente de Copyright</p>
                 </div>
               </div>
             </Card>
@@ -235,14 +235,14 @@ export default function LandingPage() {
               </Card>
               <Card className="p-6">
                 <h3 className="text-xl font-semibold mb-2">
-                  Como é feito o cálculo dos royalties?
+                  Como é feito o cálculo dos direitos autorais?
                 </h3>
                 <p className="text-gray-600">
-                  Nosso sistema calcula automaticamente os royalties com base
-                  nas vendas físicas de CDs e DVDs, aplicando as porcentagens
-                  acordadas em contrato para cada artista e editora.
-                  Consideramos diferentes tipos de mídia, territórios de
-                  distribuição e acordos específicos.
+                  Nosso sistema calcula automaticamente os direitos autorais com
+                  base nas vendas físicas de CDs e DVDs, aplicando as
+                  porcentagens acordadas em contrato para cada artista e
+                  editora. Consideramos diferentes tipos de mídia, territórios
+                  de distribuição e acordos específicos.
                 </p>
               </Card>
               <Card className="p-6">
@@ -289,7 +289,7 @@ export default function LandingPage() {
           </h2>
           <p className="text-xl mb-8">
             Junte-se a centenas de empresas que já transformaram sua gestão de
-            royalties
+            direitos autorais
           </p>
           <Button
             size="lg"
