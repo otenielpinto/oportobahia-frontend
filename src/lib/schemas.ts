@@ -36,6 +36,7 @@ export const catalogSchema = z.object({
 export const publisherSchema = z.object({
   name: z.string().min(1, "Nome da editora é obrigatório"),
   participationPercentage: z.number().min(0).max(100),
+  publisherCode: z.string().optional(),
 });
 
 export const subTrackSchema = z.object({
@@ -48,6 +49,7 @@ export const subTrackSchema = z.object({
     .min(1, mensagens.playLength)
     .regex(/^([0-5][0-9]):([0-5][0-9])$/, mensagens.playLength),
   originalPublisher: z.string().min(1, "Editora original é obrigatória"),
+  publisherCode: z.string().optional(),
 });
 
 export const trackSchema = z.object({

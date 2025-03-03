@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, FileCode } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Accordion,
@@ -142,9 +142,19 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
 
   // Estados para publishers
   const [selectedPublishers, setSelectedPublishers] = useState<
-    Array<{ name: string; participationPercentage: number }>
-  >(track?.publishers || []);
+    Array<{
+      name: string;
+      publisherCode: string;
+      participationPercentage: number;
+    }>
+  >(
+    track?.publishers?.map((pub) => ({
+      ...pub,
+      publisherCode: pub.publisherCode || "",
+    })) || []
+  );
   const [currentPublisher, setCurrentPublisher] = useState("");
+  const [currentPublisherCode, setCurrentPublisherCode] = useState("");
   const [currentPercentage, setCurrentPercentage] = useState<number>(0);
   const [totalPercentage, setTotalPercentage] = useState(0);
 
@@ -157,27 +167,45 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       authors: string;
       playLength: string;
       originalPublisher: string;
+      publisherCode: string;
     }>
-  >(track?.subTracks || []);
+  >(
+    track?.subTracks?.map((subTrack) => ({
+      ...subTrack,
+      publisherCode: subTrack.publisherCode || "",
+    })) || []
+  );
   const [currentSubTrackPublisher, setCurrentSubTrackPublisher] = useState("");
   const [currentSubTrackPercentage, setCurrentSubTrackPercentage] =
     useState<number>(0);
   const [currentSubTrackWork, setCurrentSubTrackWork] = useState("");
   const [currentSubTrackAuthors, setCurrentSubTrackAuthors] = useState("");
   const [currentSubTrackPlayLength, setCurrentSubTrackPlayLength] =
-    useState(""); // Changed from time to playLength
+    useState("");
   const [
     currentSubTrackOriginalPublisher,
     setCurrentSubTrackOriginalPublisher,
   ] = useState("");
+  const [currentSubTrackPublisherCode, setCurrentSubTrackPublisherCode] =
+    useState(""); // Adicionado campo para publisherCode
   const [totalSubTrackPercentage, setTotalSubTrackPercentage] = useState(0);
 
   useEffect(() => {
     if (track?.publishers) {
-      setSelectedPublishers(track.publishers);
+      setSelectedPublishers(
+        track.publishers.map((pub) => ({
+          ...pub,
+          publisherCode: pub.publisherCode || "",
+        }))
+      );
     }
     if (track?.subTracks) {
-      setSelectedSubTracks(track.subTracks);
+      setSelectedSubTracks(
+        track.subTracks.map((subTrack) => ({
+          ...subTrack,
+          publisherCode: subTrack.publisherCode || "",
+        }))
+      );
     }
   }, [track]);
 
@@ -229,6 +257,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
 
     const newPublisher = {
       name: currentPublisher,
+      publisherCode: currentPublisherCode, // Adicionado campo publisherCode,
       participationPercentage: currentPercentage,
     };
 
@@ -297,6 +326,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       authors: currentSubTrackAuthors,
       playLength: currentSubTrackPlayLength, // Changed from time to playLength
       originalPublisher: currentSubTrackOriginalPublisher,
+      publisherCode: currentSubTrackPublisherCode, // Adicionado campo publisherCode
     };
 
     setSelectedSubTracks((prev) => {
@@ -314,6 +344,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     setCurrentSubTrackAuthors("");
     setCurrentSubTrackPlayLength(""); // Changed from time to playLength
     setCurrentSubTrackOriginalPublisher("");
+    setCurrentSubTrackPublisherCode(""); // Limpar o campo publisherCode
   };
 
   const removePublisher = (publisherName: string) => {
@@ -519,6 +550,21 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                           </Select>
                         </FormItem>
                       </div>
+
+                      {/* Adicionando o campo publisherCode */}
+                      <div>
+                        <FormItem>
+                          <FormLabel>Código da Editora</FormLabel>
+                          <Input
+                            value={currentPublisherCode}
+                            onChange={(e) =>
+                              setCurrentPublisherCode(e.target.value)
+                            }
+                            placeholder="Código da editora"
+                          />
+                        </FormItem>
+                      </div>
+
                       <div>
                         <FormItem>
                           <FormLabel>% de Participação</FormLabel>
@@ -552,9 +598,18 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                             <Badge
                               key={pub.name}
                               variant="secondary"
-                              className="flex items-center gap-1"
+                              className={`flex items-center gap-1 `}
                             >
-                              {pub.name} ({pub.participationPercentage}%)
+                              {pub.name}
+                              {pub.publisherCode ? (
+                                <span className="font-medium text-green-700 dark:text-green-300 flex items-center gap-1">
+                                  <span className="flex items-center">
+                                    <FileCode className="h-3 w-3 mr-1" />
+                                    {pub.publisherCode}
+                                  </span>
+                                </span>
+                              ) : null}
+                              {` (${pub.participationPercentage}%)`}
                               <button
                                 type="button"
                                 onClick={() => removePublisher(pub.name)}
@@ -646,6 +701,20 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                           </FormItem>
                         </div>
 
+                        {/* Adicionando o campo publisherCode */}
+                        <div>
+                          <FormItem>
+                            <FormLabel>Código da Editora</FormLabel>
+                            <Input
+                              value={currentSubTrackPublisherCode}
+                              onChange={(e) =>
+                                setCurrentSubTrackPublisherCode(e.target.value)
+                              }
+                              placeholder="Código da editora"
+                            />
+                          </FormItem>
+                        </div>
+
                         <div className="col-span-2">
                           <FormItem>
                             <FormLabel>Editora</FormLabel>
@@ -717,7 +786,10 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                             >
                               {subTrack.work.slice(0, 30)}... -{" "}
                               {subTrack.publisher.slice(0, 30)}... - Autores *
-                              {subTrack.authors.slice(0, 30)}... (
+                              {subTrack.authors.slice(0, 30)}...
+                              {subTrack.publisherCode &&
+                                ` (Código: ${subTrack.publisherCode})`}{" "}
+                              {/* Mostrar o código se existir */}(
                               {subTrack.participationPercentage}%)
                               <button
                                 type="button"

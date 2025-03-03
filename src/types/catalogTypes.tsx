@@ -22,7 +22,11 @@ export interface Track {
   work: string;
   authors: string;
   playLength: string;
-  publishers?: { name: string; participationPercentage: number }[];
+  publishers?: {
+    name: string;
+    publisherCode?: string;
+    participationPercentage: number;
+  }[];
   catalogId: string;
   originalPublisher: string;
   subTracks?: {
@@ -32,6 +36,7 @@ export interface Track {
     authors: string;
     playLength: string;
     originalPublisher: string;
+    publisherCode?: string;
   }[];
 }
 
