@@ -30,13 +30,15 @@ export interface Track {
   catalogId: string;
   originalPublisher: string;
   subTracks?: {
-    publisher: string;
-    participationPercentage: number;
     work: string;
     authors: string;
     playLength: string;
     originalPublisher: string;
-    publisherCode?: string;
+    publishers?: {
+      name: string;
+      publisherCode?: string;
+      participationPercentage: number;
+    }[];
   }[];
 }
 

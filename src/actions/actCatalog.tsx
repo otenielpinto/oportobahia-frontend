@@ -170,6 +170,7 @@ export async function createTrack(
 ): Promise<any> {
   const catalog = await getCatalogById(catalogId);
   const tracks = catalog.tracks ? catalog.tracks : [];
+  console.log("tracks", tracks);
 
   const newTrack = {
     id: String(Date.now()),

@@ -65,61 +65,15 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     queryFn: () => getPublishers(),
   });
 
-  // const validatePublishers = () => {
-  //   if (!selectedPublishers || selectedPublishers.length === 0) {
-  //     toast.error(
-  //       "É necessário adicionar pelo menos uma editora com seu percentual de participação"
-  //     );
-  //     return false;
-  //   }
-
-  //   if (totalPercentage !== 100) {
-  //     toast.error(
-  //       totalPercentage === 0
-  //         ? "É necessário informar o percentual de participação da editora"
-  //         : "O total de percentuais deve ser igual a 100%"
-  //     );
-  //     return false;
-  //   }
-
-  //   return true;
-  // };
-
   const mutation = useMutation({
     mutationFn: async (data: TrackFormData) => {
-      // if (!validatePublishers()) {
-      //   throw new Error("Validação de editoras falhou");
-      // }
-
-      if (data.subTracks?.length === 0 && data.publishers?.length === 0) {
-        throw new Error("Validação de editoras falhou");
-      }
-
-      if (
-        (data.subTracks?.length ?? 0) > 0 &&
-        (data.publishers?.length ?? 0) > 0
-      ) {
-        throw new Error("Validação de editoras falhou");
-      }
-
-      try {
-        if (track) {
-          return await updateTrack(catalogId, {
-            ...data,
-            id: track.id,
-            publishers: selectedPublishers,
-            subTracks: selectedSubTracks,
-          });
-        } else {
-          return await createTrack(catalogId, {
-            ...data,
-            publishers: selectedPublishers,
-            subTracks: selectedSubTracks,
-          });
-        }
-      } catch (error) {
-        console.error("Erro na mutação:", error);
-        throw error;
+      if (track) {
+        return await updateTrack(catalogId, {
+          ...data,
+          id: track.id,
+        });
+      } else {
+        return await createTrack(catalogId, data);
       }
     },
     onSuccess: () => {
@@ -128,15 +82,28 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
         track ? "Faixa atualizada com sucesso" : "Faixa criada com sucesso"
       );
       form.reset();
+      setSelectedPublishers([]);
+      setSelectedSubTracks([]);
+      setCurrentSubTrack({
+        work: "",
+        authors: "",
+        playLength: "",
+        originalPublisher: "",
+        publishers: [],
+      });
       onSuccess?.();
     },
     onError: (error) => {
       console.error("Erro na operação:", error);
-      toast.error(
-        track
-          ? "Falha ao atualizar faixa. Tente novamente."
-          : "Falha ao criar faixa. Tente novamente."
-      );
+      if (error instanceof Error) {
+        toast.error(`Erro: ${error.message}`);
+      } else {
+        toast.error(
+          track
+            ? "Falha ao atualizar faixa. Tente novamente."
+            : "Falha ao criar faixa. Tente novamente."
+        );
+      }
     },
   });
 
@@ -161,33 +128,50 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   // Estados para subTracks
   const [selectedSubTracks, setSelectedSubTracks] = useState<
     Array<{
-      publisher: string;
-      participationPercentage: number;
       work: string;
       authors: string;
       playLength: string;
       originalPublisher: string;
-      publisherCode: string;
+      publishers: Array<{
+        name: string;
+        publisherCode?: string;
+        participationPercentage: number;
+      }>;
     }>
   >(
     track?.subTracks?.map((subTrack) => ({
       ...subTrack,
-      publisherCode: subTrack.publisherCode || "",
+      publishers: subTrack.publishers || [],
     })) || []
   );
+
+  // Estado para o subTrack atual em edição
+  const [currentSubTrack, setCurrentSubTrack] = useState<{
+    work: string;
+    authors: string;
+    playLength: string;
+    originalPublisher: string;
+    publishers: Array<{
+      name: string;
+      publisherCode?: string;
+      participationPercentage: number;
+    }>;
+  }>({
+    work: "",
+    authors: "",
+    playLength: "",
+    originalPublisher: "",
+    publishers: [],
+  });
+
+  // Estado para a editora atual sendo adicionada ao subTrack
   const [currentSubTrackPublisher, setCurrentSubTrackPublisher] = useState("");
-  const [currentSubTrackPercentage, setCurrentSubTrackPercentage] =
-    useState<number>(0);
-  const [currentSubTrackWork, setCurrentSubTrackWork] = useState("");
-  const [currentSubTrackAuthors, setCurrentSubTrackAuthors] = useState("");
-  const [currentSubTrackPlayLength, setCurrentSubTrackPlayLength] =
+  const [currentSubTrackPublisherCode, setCurrentSubTrackPublisherCode] =
     useState("");
   const [
-    currentSubTrackOriginalPublisher,
-    setCurrentSubTrackOriginalPublisher,
-  ] = useState("");
-  const [currentSubTrackPublisherCode, setCurrentSubTrackPublisherCode] =
-    useState(""); // Adicionado campo para publisherCode
+    currentSubTrackPublisherPercentage,
+    setCurrentSubTrackPublisherPercentage,
+  ] = useState<number>(0);
   const [totalSubTrackPercentage, setTotalSubTrackPercentage] = useState(0);
 
   useEffect(() => {
@@ -203,7 +187,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       setSelectedSubTracks(
         track.subTracks.map((subTrack) => ({
           ...subTrack,
-          publisherCode: subTrack.publisherCode || "",
+          publishers: subTrack.publishers || [],
         }))
       );
     }
@@ -217,13 +201,18 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     setTotalPercentage(total);
   }, [selectedPublishers]);
 
+  // Atualizado para calcular o total baseado na nova estrutura
   useEffect(() => {
-    const total = selectedSubTracks.reduce(
-      (sum, track) => sum + track.participationPercentage,
-      0
-    );
-    setTotalSubTrackPercentage(total);
-  }, [selectedSubTracks]);
+    if (currentSubTrack.publishers.length > 0) {
+      const total = currentSubTrack.publishers.reduce(
+        (sum, pub) => sum + pub.participationPercentage,
+        0
+      );
+      setTotalSubTrackPercentage(total);
+    } else {
+      setTotalSubTrackPercentage(0);
+    }
+  }, [currentSubTrack.publishers]);
 
   useEffect(() => {
     form.setValue("publishers", selectedPublishers, {
@@ -274,63 +263,84 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     setCurrentPercentage(0);
   };
 
-  const addSubTrack = () => {
-    if (selectedPublishers.length > 0) {
-      toast.error("Remova as editoras para preencher as Musicas da Faixa");
-      return;
-    }
-
-    if (!currentSubTrackPublisher || currentSubTrackPercentage <= 0) {
+  const addPublisherToSubTrack = () => {
+    if (!currentSubTrackPublisher || currentSubTrackPublisherPercentage <= 0) {
       toast.error("Selecione uma editora e defina um percentual maior que 0");
       return;
     }
 
-    if (totalSubTrackPercentage + currentSubTrackPercentage > 100) {
+    if (totalSubTrackPercentage + currentSubTrackPublisherPercentage > 100) {
       toast.error("O total de percentuais não pode exceder 100%");
       return;
     }
 
     if (
-      selectedSubTracks.some(
-        (track) => track.publisher === currentSubTrackPublisher
+      currentSubTrack.publishers.some(
+        (pub) => pub.name === currentSubTrackPublisher
       )
     ) {
-      toast.error("Esta editora já foi adicionada");
+      toast.error("Esta editora já foi adicionada para esta obra");
       return;
     }
 
-    if (!currentSubTrackWork) {
+    const newPublisher = {
+      name: currentSubTrackPublisher,
+      publisherCode: currentSubTrackPublisherCode || undefined,
+      participationPercentage: currentSubTrackPublisherPercentage,
+    };
+
+    setCurrentSubTrack((prev) => ({
+      ...prev,
+      publishers: [...prev.publishers, newPublisher],
+    }));
+
+    setCurrentSubTrackPublisher("");
+    setCurrentSubTrackPublisherCode("");
+    setCurrentSubTrackPublisherPercentage(0);
+  };
+
+  const addSubTrack = () => {
+    console.log("Adicionando subTrack:", currentSubTrack);
+
+    // Remova a validação que impede adicionar subTracks quando há publishers
+    // Isso permite mais flexibilidade ao preencher o formulário
+    // if (selectedPublishers.length > 0) {
+    //   toast.error("Remova as editoras para preencher as Musicas da Faixa");
+    //   return;
+    // }
+
+    if (!currentSubTrack.work) {
       toast.error("O nome da obra é obrigatório");
       return;
     }
 
-    if (!currentSubTrackAuthors) {
+    if (!currentSubTrack.authors) {
       toast.error("Autores são obrigatórios");
       return;
     }
 
-    if (!currentSubTrackPlayLength) {
+    if (!currentSubTrack.playLength) {
       toast.error("Tempo deve estar no formato mm:ss");
       return;
     }
 
-    if (!currentSubTrackOriginalPublisher) {
+    if (!currentSubTrack.originalPublisher) {
       toast.error("Editora original é obrigatória");
       return;
     }
 
-    const newSubTrack = {
-      publisher: currentSubTrackPublisher,
-      participationPercentage: currentSubTrackPercentage,
-      work: currentSubTrackWork,
-      authors: currentSubTrackAuthors,
-      playLength: currentSubTrackPlayLength, // Changed from time to playLength
-      originalPublisher: currentSubTrackOriginalPublisher,
-      publisherCode: currentSubTrackPublisherCode, // Adicionado campo publisherCode
-    };
+    if (currentSubTrack.publishers.length === 0) {
+      toast.error("Adicione pelo menos uma editora");
+      return;
+    }
+
+    if (totalSubTrackPercentage !== 100) {
+      toast.error("O total de percentuais deve ser igual a 100%");
+      return;
+    }
 
     setSelectedSubTracks((prev) => {
-      const updated = [...prev, newSubTrack];
+      const updated = [...prev, { ...currentSubTrack }];
       form.setValue("subTracks", updated, {
         shouldValidate: true,
         shouldDirty: true,
@@ -338,13 +348,14 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       return updated;
     });
 
-    setCurrentSubTrackPublisher("");
-    setCurrentSubTrackPercentage(0);
-    setCurrentSubTrackWork("");
-    setCurrentSubTrackAuthors("");
-    setCurrentSubTrackPlayLength(""); // Changed from time to playLength
-    setCurrentSubTrackOriginalPublisher("");
-    setCurrentSubTrackPublisherCode(""); // Limpar o campo publisherCode
+    // Resetar o formulário de subTrack
+    setCurrentSubTrack({
+      work: "",
+      authors: "",
+      playLength: "",
+      originalPublisher: "",
+      publishers: [],
+    });
   };
 
   const removePublisher = (publisherName: string) => {
@@ -358,9 +369,16 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     });
   };
 
-  const removeSubTrack = (publisherName: string) => {
+  const removePublisherFromSubTrack = (publisherName: string) => {
+    setCurrentSubTrack((prev) => ({
+      ...prev,
+      publishers: prev.publishers.filter((pub) => pub.name !== publisherName),
+    }));
+  };
+
+  const removeSubTrack = (index: number) => {
     setSelectedSubTracks((prev) => {
-      const updated = prev.filter((track) => track.publisher !== publisherName);
+      const updated = prev.filter((_, i) => i !== index);
       form.setValue("subTracks", updated, {
         shouldValidate: true,
         shouldDirty: true,
@@ -370,10 +388,127 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   };
 
   const onSubmit = async (data: TrackFormData) => {
+    console.group("Form Submission Debug");
+    console.log("Dados do formulário:", JSON.stringify(data, null, 2));
+    console.log(
+      "Publishers selecionados:",
+      JSON.stringify(selectedPublishers, null, 2)
+    );
+    console.log(
+      "SubTracks selecionados:",
+      JSON.stringify(selectedSubTracks, null, 2)
+    );
+    console.log("Estado do formulário:", {
+      isValid: form.formState.isValid,
+      isDirty: form.formState.isDirty,
+      errors: form.formState.errors,
+    });
+
     try {
-      await mutation.mutateAsync(data);
+      console.log("Validando dados...");
+
+      // Verifica campos obrigatórios
+      if (!data.trackCode) {
+        toast.error("O número da faixa é obrigatório");
+        return;
+      }
+
+      if (!data.isrc) {
+        toast.error("O ISRC é obrigatório");
+        return;
+      }
+
+      if (!data.work) {
+        toast.error("O nome da obra é obrigatório");
+        return;
+      }
+
+      if (!data.authors) {
+        toast.error("Os autores são obrigatórios");
+        return;
+      }
+
+      // Preparação dos dados para envio
+      const trackData = {
+        ...data,
+        publishers: selectedPublishers,
+        subTracks: selectedSubTracks.map((subTrack) => ({
+          ...subTrack,
+          publishers: subTrack.publishers.map((pub) => ({
+            name: pub.name,
+            publisherCode: pub.publisherCode || "",
+            participationPercentage: pub.participationPercentage,
+          })),
+        })),
+      };
+
+      console.log("Dados formatados para envio:", trackData);
+
+      // Executa diretamente a ação sem usar mutation.mutateAsync
+      try {
+        let result;
+        if (track) {
+          result = await updateTrack(catalogId, {
+            ...trackData,
+            id: track.id,
+          });
+        } else {
+          result = await createTrack(catalogId, trackData);
+        }
+
+        // Atualiza a UI após sucesso
+        queryClient.invalidateQueries({ queryKey: ["tracks", catalogId] });
+        toast.success(
+          track ? "Faixa atualizada com sucesso" : "Faixa criada com sucesso"
+        );
+
+        // Limpa o formulário
+        form.reset();
+        setSelectedPublishers([]);
+        setSelectedSubTracks([]);
+        setCurrentSubTrack({
+          work: "",
+          authors: "",
+          playLength: "",
+          originalPublisher: "",
+          publishers: [],
+        });
+
+        onSuccess?.();
+        console.log("Operação concluída com sucesso:", result);
+        console.groupEnd();
+        return result;
+      } catch (error) {
+        console.error("Erro na requisição:", error);
+        if (error instanceof Error) {
+          toast.error(`Erro: ${error.message}`);
+        } else {
+          toast.error(
+            track
+              ? "Falha ao atualizar faixa. Tente novamente."
+              : "Falha ao criar faixa. Tente novamente."
+          );
+        }
+        throw error;
+      }
     } catch (error) {
-      console.error("Erro no envio do formulário:", error);
+      console.error("Erro durante o envio:", error);
+      if (error instanceof Error) {
+        console.error("Detalhes do erro:", {
+          message: error.message,
+          stack: error.stack,
+        });
+        toast.error(`Erro: ${error.message}`);
+      } else {
+        console.error("Erro desconhecido:", error);
+        toast.error(
+          track
+            ? "Falha ao atualizar faixa. Tente novamente."
+            : "Falha ao criar faixa. Tente novamente."
+        );
+      }
+      console.groupEnd();
+      return null;
     }
   };
 
@@ -408,6 +543,11 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatTimeInput(e.target.value);
     form.setValue("playLength", formatted, { shouldValidate: true });
+  };
+
+  const handleSubTrackTimeChange = (value: string) => {
+    const formatted = formatTimeInput(value);
+    setCurrentSubTrack((prev) => ({ ...prev, playLength: formatted }));
   };
 
   return (
@@ -554,13 +694,13 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                       {/* Adicionando o campo publisherCode */}
                       <div>
                         <FormItem>
-                          <FormLabel>Código da Editora</FormLabel>
+                          <FormLabel>Código da Obra</FormLabel>
                           <Input
                             value={currentPublisherCode}
                             onChange={(e) =>
                               setCurrentPublisherCode(e.target.value)
                             }
-                            placeholder="Código da editora"
+                            placeholder="Código da obra"
                           />
                         </FormItem>
                       </div>
@@ -640,82 +780,76 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                   Musicas da Faixa
                 </AccordionTrigger>
                 <AccordionContent className="px-4">
-                  <div className="space-y-2">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
+                  <div className="space-y-4">
+                    {/* Formulário para adicionar novo subTrack */}
+                    <div className="border-b pb-4">
+                      <h4 className="font-medium mb-2">
+                        Adicionar Nova Música
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
                           <FormItem>
                             <FormLabel>Obra</FormLabel>
                             <Input
-                              value={currentSubTrackWork}
+                              value={currentSubTrack.work}
                               onChange={(e) =>
-                                setCurrentSubTrackWork(e.target.value)
+                                setCurrentSubTrack((prev) => ({
+                                  ...prev,
+                                  work: e.target.value,
+                                }))
                               }
                               placeholder="Digite o nome da obra"
                             />
                           </FormItem>
                         </div>
-
-                        <div className="md:col-span-2">
+                        <div>
                           <FormItem>
                             <FormLabel>Autores</FormLabel>
                             <Input
-                              value={currentSubTrackAuthors}
+                              value={currentSubTrack.authors}
                               onChange={(e) =>
-                                setCurrentSubTrackAuthors(e.target.value)
+                                setCurrentSubTrack((prev) => ({
+                                  ...prev,
+                                  authors: e.target.value,
+                                }))
                               }
                               placeholder="Digite o nome dos autores"
                             />
                           </FormItem>
                         </div>
-
                         <div>
                           <FormItem>
                             <FormLabel>Tempo</FormLabel>
                             <Input
-                              value={currentSubTrackPlayLength} // Changed from time to playLength
-                              onChange={(e) => {
-                                const formatted = formatTimeInput(
-                                  e.target.value
-                                );
-                                setCurrentSubTrackPlayLength(formatted); // Changed from time to playLength
-                              }}
+                              value={currentSubTrack.playLength}
+                              onChange={(e) =>
+                                handleSubTrackTimeChange(e.target.value)
+                              }
                               placeholder="00:00"
                               maxLength={5}
                             />
                           </FormItem>
                         </div>
-
-                        <div className="md:col-span-2">
+                        <div>
                           <FormItem>
                             <FormLabel>Editora Original</FormLabel>
                             <Input
-                              value={currentSubTrackOriginalPublisher}
+                              value={currentSubTrack.originalPublisher}
                               onChange={(e) =>
-                                setCurrentSubTrackOriginalPublisher(
-                                  e.target.value
-                                )
+                                setCurrentSubTrack((prev) => ({
+                                  ...prev,
+                                  originalPublisher: e.target.value,
+                                }))
                               }
                               placeholder="Digite o nome da editora original"
                             />
                           </FormItem>
                         </div>
+                      </div>
 
-                        {/* Adicionando o campo publisherCode */}
+                      <h5 className="font-medium mb-2">Editoras da Música</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                         <div>
-                          <FormItem>
-                            <FormLabel>Código da Editora</FormLabel>
-                            <Input
-                              value={currentSubTrackPublisherCode}
-                              onChange={(e) =>
-                                setCurrentSubTrackPublisherCode(e.target.value)
-                              }
-                              placeholder="Código da editora"
-                            />
-                          </FormItem>
-                        </div>
-
-                        <div className="col-span-2">
                           <FormItem>
                             <FormLabel>Editora</FormLabel>
                             <Select
@@ -745,68 +879,154 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                         </div>
                         <div>
                           <FormItem>
-                            <FormLabel>% Participação</FormLabel>
+                            <FormLabel>Código da Obra</FormLabel>
                             <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={currentSubTrackPercentage || ""}
+                              value={currentSubTrackPublisherCode}
                               onChange={(e) =>
-                                setCurrentSubTrackPercentage(
-                                  Number(e.target.value)
-                                )
+                                setCurrentSubTrackPublisherCode(e.target.value)
                               }
+                              placeholder="Código da obra"
                             />
+                          </FormItem>
+                        </div>
+                        <div>
+                          <FormItem>
+                            <FormLabel>% Participação</FormLabel>
+                            <div className="flex gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={currentSubTrackPublisherPercentage || ""}
+                                onChange={(e) =>
+                                  setCurrentSubTrackPublisherPercentage(
+                                    Number(e.target.value)
+                                  )
+                                }
+                              />
+                              <Button
+                                type="button"
+                                onClick={addPublisherToSubTrack}
+                                variant="outline"
+                                size="icon"
+                              >
+                                +
+                              </Button>
+                            </div>
                           </FormItem>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-6 gap-4">
-                        <div className="flex items-end">
-                          <Button
-                            type="button"
-                            onClick={addSubTrack}
-                            variant="outline"
-                            size="default"
-                          >
-                            +
-                          </Button>
+                      {/* Lista de editoras adicionadas para o subTrack atual */}
+                      <div className="border rounded-md p-2 mb-4">
+                        <ScrollArea className="h-10">
+                          <div className="flex flex-wrap gap-2 p-1">
+                            {currentSubTrack.publishers.map((pub, idx) => (
+                              <Badge
+                                key={`${pub.name}-${idx}`}
+                                variant="secondary"
+                                className="flex items-center gap-1"
+                              >
+                                {pub.name}
+                                {pub.publisherCode && (
+                                  <span className="font-medium text-green-700 dark:text-green-300 flex items-center gap-1">
+                                    <FileCode className="h-3 w-3 mr-1" />
+                                    {pub.publisherCode}
+                                  </span>
+                                )}
+                                {` (${pub.participationPercentage}%)`}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removePublisherFromSubTrack(pub.name)
+                                  }
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          Total: {totalSubTrackPercentage}%
                         </div>
                       </div>
+
+                      <Button
+                        type="button"
+                        onClick={addSubTrack}
+                        variant="outline"
+                      >
+                        Adicionar Música
+                      </Button>
                     </div>
 
-                    <div className="border rounded-md p-2">
-                      <ScrollArea className="h-20">
-                        <div className="flex flex-wrap gap-2 p-1">
-                          {selectedSubTracks.map((subTrack) => (
-                            <Badge
-                              key={subTrack.publisher}
-                              variant="secondary"
-                              className="flex items-center gap-1"
-                            >
-                              {subTrack.work.slice(0, 30)}... -{" "}
-                              {subTrack.publisher.slice(0, 30)}... - Autores *
-                              {subTrack.authors.slice(0, 30)}...
-                              {subTrack.publisherCode &&
-                                ` (Código: ${subTrack.publisherCode})`}{" "}
-                              {/* Mostrar o código se existir */}(
-                              {subTrack.participationPercentage}%)
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  removeSubTrack(subTrack.publisher)
-                                }
-                                className="ml-1 hover:text-destructive"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
+                    {/* Lista de subTracks adicionados */}
+                    <div>
+                      <h4 className="font-medium mb-2">Músicas Adicionadas</h4>
+                      {selectedSubTracks.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">
+                          Nenhuma música adicionada
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {selectedSubTracks.map((subTrack, index) => (
+                            <div key={index} className="border rounded-lg p-3">
+                              <div className="flex justify-between mb-2">
+                                <h5 className="font-medium">{subTrack.work}</h5>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeSubTrack(index)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-destructive"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <span className="font-medium">Autores:</span>{" "}
+                                  {subTrack.authors}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Tempo:</span>{" "}
+                                  {subTrack.playLength}
+                                </div>
+                                <div>
+                                  <span className="font-medium">
+                                    Editora Original:
+                                  </span>{" "}
+                                  {subTrack.originalPublisher}
+                                </div>
+                              </div>
+                              <div className="mt-2">
+                                <span className="font-medium text-sm">
+                                  Editoras:
+                                </span>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {subTrack.publishers.map((pub, idx) => (
+                                    <Badge
+                                      key={`${pub.name}-${idx}`}
+                                      variant="secondary"
+                                      className="flex items-center gap-1"
+                                    >
+                                      {pub.name}
+                                      {pub.publisherCode && (
+                                        <span className="text-xs text-green-700 dark:text-green-300">
+                                          ({pub.publisherCode})
+                                        </span>
+                                      )}
+                                      {` ${pub.participationPercentage}%`}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
-                      </ScrollArea>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Total: {totalSubTrackPercentage}%
-                      </div>
+                      )}
                     </div>
                   </div>
                 </AccordionContent>
@@ -819,6 +1039,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
           <Button
             type="submit"
             disabled={mutation.isPending || form.formState.isSubmitting}
+            className="bg-primary hover:bg-primary/90 text-white"
           >
             {mutation.isPending
               ? "Processando..."
@@ -826,6 +1047,24 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
               ? "Atualizar Faixa"
               : "Criar Faixa"}
           </Button>
+
+          {process.env.NODE_ENV !== "production" && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                console.log("Estado atual do formulário:", form.getValues());
+                console.log("Publishers:", selectedPublishers);
+                console.log("SubTracks:", selectedSubTracks);
+                console.log("Current SubTrack:", currentSubTrack);
+                console.log("Current Publisher:", currentPublisher);
+                console.log("track", track);
+                toast.info("Dados do formulário exibidos no console");
+              }}
+            >
+              Debug
+            </Button>
+          )}
         </div>
       </form>
     </Form>
