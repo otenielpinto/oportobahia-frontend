@@ -16,7 +16,7 @@ export function CatalogList() {
   const [search, setSearch] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const MAX_PER_PAGE = 25;
+  const MAX_PER_PAGE = 10;
 
   const { data, isLoading } = useQuery({
     queryKey: ["catalogs", page, searchTerm],
