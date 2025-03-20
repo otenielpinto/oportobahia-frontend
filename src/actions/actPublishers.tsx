@@ -19,6 +19,8 @@ export const createPublisher = async (publisher: any) => {
       id,
       name: publisher.name,
       status: publisher.status,
+      cnpj: publisher.cnpj,
+      account: publisher.account,
     });
     await TMongo.mongoDisconnect(client);
     return null;
@@ -32,7 +34,6 @@ export const updatePublisher = async (
   id: number,
   updatedData: Partial<Publisher>
 ) => {
-  console.log("updatePublisher chamado com:", { id, updatedData });
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
     // Verificar se a editora existe antes de atualizar
@@ -86,8 +87,8 @@ export const getPublishers = async (): Promise<any[]> => {
       id: doc.id,
       name: doc.name,
       status: doc.status,
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
+      cnpj: doc.cnpj,
+      account: doc.account,
     }));
   } catch (error) {
     console.error("Error retrieving publishers:", error);
