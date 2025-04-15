@@ -2,16 +2,8 @@ import { SideNavItem } from "@/types/sideNavItem.d";
 import {
   Home,
   FolderDot,
-  MessageSquareDashed,
-  Settings,
-  HelpingHand,
-  CircleDollarSign,
-  Users,
   AlarmClockMinus,
-  Workflow,
   Plus,
-  PackageSearch,
-  CandlestickChart,
   ReceiptText,
 } from "lucide-react";
 
@@ -47,8 +39,14 @@ export const menuItems: SideNavItem[] = [
     submenu: true,
     subMenuItems: [
       {
-        title: "Direitos Autorais",
+        title: "Processar apuração",
         path: "/relatorio/direitos-autorais",
+        admin: true,
+      },
+
+      {
+        title: "Consultar apuração",
+        path: "/relatorio/consulta-apuracoes",
         admin: true,
       },
     ],
