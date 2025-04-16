@@ -73,6 +73,19 @@ export async function iniciarApuracao({
             if (!catalogo) {
               continue;
             }
+            let tx_copyright_item = tx_copyright;
+            let numberOfTracks = catalogo.numberOfTracks || 0;
+            let trackLimit = catalogo.trackLimit || 0;
+            let trackDifference = trackLimit - numberOfTracks;
+            let trackPercentage = catalogo.trackPercentage || 0;
+            let extra_copyright = 0;
+            if (trackDifference < 0) {
+              extra_copyright = lib.round(
+                Math.abs(trackDifference) * trackPercentage
+              );
+            }
+
+            tx_copyright_item = tx_copyright_item + extra_copyright;
 
             // Extrair informações relevantes do item
             let row = {
@@ -89,7 +102,7 @@ export async function iniciarApuracao({
               valor_liquido: lib.round(
                 parseFloat(item.prod.vProd) - parseFloat(item.prod.vDesc || 0)
               ),
-              tx_copyright,
+              tx_copyright: tx_copyright_item,
               catalogo: catalogo, // Pode ser null se não estiver no catálogo
             };
             const itemProcessado = await processarApuracao({ item: row });
