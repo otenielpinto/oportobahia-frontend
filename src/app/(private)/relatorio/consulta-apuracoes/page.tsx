@@ -465,9 +465,9 @@ export default function ConsultaApuracoesPage() {
                 ser desfeita.
               </p>
               <p className="text-sm text-muted-foreground">
-                Nota: Apenas apurações com status "aguardando" ou "aberto" podem
-                ser excluídas. Apurações com status "fechado" não podem ser
-                excluídas.
+                Nota: Apenas apurações com status &ldquo;aguardando&rdquo; ou
+                &ldquo;aberto&rdquo; podem ser excluídas. Apurações com status
+                &ldquo;fechado&rdquo; não podem ser excluídas.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
