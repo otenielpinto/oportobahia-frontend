@@ -3,12 +3,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { startOfMonth, format, parse } from "date-fns";
 import {
   iniciarApuracao,
   consultarApuracoesPorPeriodo,
 } from "@/actions/actApurarRoyalties";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DireitosAutoraisPage() {
   const [dataInicial, setDataInicial] = useState<string>(
@@ -23,6 +33,7 @@ export default function DireitosAutoraisPage() {
   const [processado, setProcessado] = useState(false);
   const [apuracoesAnteriores, setApuracoesAnteriores] = useState<any>(null);
   const [consultando, setConsultando] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const resetarApuracao = () => {
     setProcessado(false);
@@ -51,9 +62,16 @@ export default function DireitosAutoraisPage() {
     }
   };
 
+  // Função para abrir o diálogo de confirmação
+  const confirmarProcessamento = () => {
+    setIsDialogOpen(true);
+  };
+
+  // Função para processar a apuração após confirmação
   const handlePesquisar = async () => {
     setIsLoading(true);
     setError(null);
+    setIsDialogOpen(false);
 
     try {
       // Converter strings de data para objetos Date
@@ -111,7 +129,10 @@ export default function DireitosAutoraisPage() {
       </div>
 
       <div className="flex gap-2">
-        <Button onClick={handlePesquisar} disabled={isLoading || processado}>
+        <Button
+          onClick={confirmarProcessamento}
+          disabled={isLoading || processado}
+        >
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Processar Apuração
         </Button>
@@ -132,6 +153,58 @@ export default function DireitosAutoraisPage() {
         </Button>
       </div>
 
+      {/* Diálogo de confirmação */}
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2 text-amber-500" />
+              Confirmar Processamento
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="bg-amber-50 p-3 rounded-md border border-amber-200 mb-3">
+                <p className="font-medium text-amber-800 mb-1">
+                  Período selecionado:
+                </p>
+                <p className="text-amber-700">
+                  De:{" "}
+                  <span className="font-semibold">
+                    {format(
+                      parse(dataInicial, "yyyy-MM-dd", new Date()),
+                      "dd/MM/yyyy"
+                    )}
+                  </span>
+                </p>
+                <p className="text-amber-700">
+                  Até:{" "}
+                  <span className="font-semibold">
+                    {format(
+                      parse(dataFinal, "yyyy-MM-dd", new Date()),
+                      "dd/MM/yyyy"
+                    )}
+                  </span>
+                </p>
+              </div>
+              <p className="mb-2">
+                O relatório será processado através de uma fila e poderá demorar
+                até 15 minutos para ser concluído.
+              </p>
+              <p className="mb-2">
+                Durante este período, o sistema estará processando os dados e
+                calculando os royalties para cada item.
+              </p>
+              <p>Deseja continuar com o processamento?</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePesquisar}>
+              Sim, processar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {isLoading ? (
         <div className="h-32 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -147,8 +220,7 @@ export default function DireitosAutoraisPage() {
 
           <div className="bg-gray-100 p-4 rounded">
             <p>
-              <strong>Código Identificador:</strong>{" "}
-              {resultado.codigo_identificador}
+              <strong>Código Identificador:</strong> {resultado.id}
             </p>
             <p>
               <strong>Total de Itens:</strong> {resultado.total_itens}
@@ -190,7 +262,7 @@ export default function DireitosAutoraisPage() {
                   (apuracao: any, index: number) => (
                     <div key={index} className="bg-white p-3 rounded shadow-sm">
                       <p>
-                        <strong>Código:</strong> {apuracao.codigo_identificador}
+                        <strong>Código:</strong> {apuracao.id}
                       </p>
                       <p>
                         <strong>Período:</strong>{" "}
@@ -203,6 +275,9 @@ export default function DireitosAutoraisPage() {
                           new Date(apuracao.data_apuracao),
                           "dd/MM/yyyy HH:mm"
                         )}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> {apuracao?.status}
                       </p>
                     </div>
                   )

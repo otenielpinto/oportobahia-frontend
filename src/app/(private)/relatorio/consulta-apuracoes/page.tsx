@@ -52,7 +52,7 @@ import { Badge } from "@/components/ui/badge";
 
 // Interface para tipagem dos dados de apuração
 interface Apuracao {
-  codigo_identificador: string;
+  id: string;
   data_inicial: string | Date;
   data_final: string | Date;
   data_apuracao: string | Date;
@@ -111,14 +111,14 @@ export default function ConsultaApuracoesPage() {
   };
 
   // Função para abrir o diálogo de confirmação de exclusão
-  const confirmarExclusao = (codigo_identificador: string) => {
-    setApuracaoParaExcluir(codigo_identificador);
+  const confirmarExclusao = (id: string) => {
+    setApuracaoParaExcluir(id);
     setIsAlertOpen(true);
   };
 
   // Função para abrir o diálogo de confirmação de fechamento
-  const confirmarFechamento = (codigo_identificador: string) => {
-    setApuracaoParaFechar(codigo_identificador);
+  const confirmarFechamento = (id: string) => {
+    setApuracaoParaFechar(id);
     setIsAlertFecharOpen(true);
   };
 
@@ -129,7 +129,7 @@ export default function ConsultaApuracoesPage() {
     setFechando(true);
     try {
       const resultado = await fecharApuracao({
-        codigo_identificador: apuracaoParaFechar,
+        id: apuracaoParaFechar,
       });
       setApuracaoFechada(resultado);
       setApuracaoExcluida(null); // Limpar mensagem de exclusão se houver
@@ -150,7 +150,7 @@ export default function ConsultaApuracoesPage() {
     setExcluindo(true);
     try {
       const resultado = await excluirApuracao({
-        codigo_identificador: apuracaoParaExcluir,
+        id: apuracaoParaExcluir,
       });
       setApuracaoExcluida(resultado);
       refetch(); // Atualizar a lista após a exclusão
@@ -279,7 +279,7 @@ export default function ConsultaApuracoesPage() {
           <CardContent>
             <p className="text-green-700">{apuracaoExcluida.mensagem}</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Código: {apuracaoExcluida.codigo_identificador}
+              Código: {apuracaoExcluida.id}
             </p>
           </CardContent>
         </Card>
@@ -296,7 +296,7 @@ export default function ConsultaApuracoesPage() {
           <CardContent>
             <p className="text-blue-700">{apuracaoFechada.mensagem}</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Código: {apuracaoFechada.codigo_identificador}
+              Código: {apuracaoFechada.id}
             </p>
           </CardContent>
         </Card>
@@ -338,7 +338,7 @@ export default function ConsultaApuracoesPage() {
                     {data.apuracoes.map((apuracao: Apuracao, index: number) => (
                       <TableRow key={index}>
                         <TableCell className="font-mono text-xs">
-                          {apuracao.codigo_identificador}
+                          {apuracao.id}
                         </TableCell>
                         <TableCell>
                           {formatarData(apuracao.data_inicial)} a{" "}
@@ -352,18 +352,27 @@ export default function ConsultaApuracoesPage() {
                             variant={
                               apuracao.status === "fechado"
                                 ? "secondary"
-                                : "outline"
+                                : apuracao.status === "aguardando"
+                                ? "outline"
+                                : "default"
                             }
                             className={
                               apuracao.status === "fechado"
                                 ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                                : ""
+                                : apuracao.status === "aguardando"
+                                ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                                : "bg-green-100 text-green-800 hover:bg-green-100"
                             }
                           >
                             {apuracao.status === "fechado" ? (
                               <>
                                 <LockIcon className="mr-1 h-3 w-3" />
                                 Fechado
+                              </>
+                            ) : apuracao.status === "aguardando" ? (
+                              <>
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Aguardando
                               </>
                             ) : (
                               <>
@@ -382,22 +391,21 @@ export default function ConsultaApuracoesPage() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Link
-                              href={`/relatorio/consulta-apuracoes/${apuracao.codigo_identificador}`}
+                              href={`/relatorio/consulta-apuracoes/${apuracao.id}`}
                             >
                               <Button variant="outline" size="sm">
                                 Visualizar Detalhes
                               </Button>
                             </Link>
 
-                            {apuracao.status === "aberto" && (
+                            {(apuracao.status === "aberto" ||
+                              apuracao.status === "aguardando") && (
                               <>
                                 <Button
                                   variant="secondary"
                                   size="sm"
                                   onClick={() =>
-                                    confirmarFechamento(
-                                      apuracao.codigo_identificador
-                                    )
+                                    confirmarFechamento(apuracao.id)
                                   }
                                   disabled={fechando}
                                   title="Fechar apuração"
@@ -414,11 +422,7 @@ export default function ConsultaApuracoesPage() {
                                 <Button
                                   variant="destructive"
                                   size="sm"
-                                  onClick={() =>
-                                    confirmarExclusao(
-                                      apuracao.codigo_identificador
-                                    )
-                                  }
+                                  onClick={() => confirmarExclusao(apuracao.id)}
                                   disabled={excluindo}
                                   title="Excluir apuração"
                                 >
@@ -456,8 +460,15 @@ export default function ConsultaApuracoesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Apuração</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta apuração? Esta ação não pode
-              ser desfeita.
+              <p className="mb-2">
+                Tem certeza que deseja excluir esta apuração? Esta ação não pode
+                ser desfeita.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Nota: Apenas apurações com status "aguardando" ou "aberto" podem
+                ser excluídas. Apurações com status "fechado" não podem ser
+                excluídas.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -485,8 +496,16 @@ export default function ConsultaApuracoesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Fechar Apuração</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja fechar esta apuração? Após fechada, a
-              apuração não poderá ser excluída.
+              <p className="mb-2">
+                Tem certeza que deseja fechar esta apuração?
+              </p>
+              <p className="font-medium text-amber-600 mb-2">
+                Atenção: Após fechada, a apuração não poderá ser excluída.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                O fechamento da apuração indica que os dados foram verificados e
+                estão prontos para uso em relatórios oficiais.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

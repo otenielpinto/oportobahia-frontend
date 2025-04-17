@@ -42,16 +42,16 @@ export default function DetalhesApuracaoPage({
 }: {
   params: { id: string };
 }) {
-  const codigo_identificador = params.id;
+  const id = params.id;
   const [filtroBarcode, setFiltroBarcode] = useState("");
   const [filtroDescricao, setFiltroDescricao] = useState("");
 
   // Consulta para obter os dados da apuração
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["apuracao-detalhes", codigo_identificador],
+    queryKey: ["apuracao-detalhes", id],
     queryFn: async () => {
       return await obterResultadosApuracao({
-        codigo_identificador,
+        id_grupo: id,
       });
     },
   });
@@ -285,9 +285,7 @@ export default function DetalhesApuracaoPage({
                 <FileText className="mr-2 h-5 w-5" />
                 Resumo da Apuração
               </CardTitle>
-              <CardDescription>
-                Código Identificador: {codigo_identificador}
-              </CardDescription>
+              <CardDescription>Código Identificador: {id}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
