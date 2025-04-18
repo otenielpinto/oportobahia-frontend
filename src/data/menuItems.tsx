@@ -49,6 +49,12 @@ export const menuItems: SideNavItem[] = [
         path: "/relatorio/consulta-apuracoes",
         admin: true,
       },
+
+      {
+        title: "Apuração por Produto/Editora",
+        path: "/relatorio/apuracao-por-produto-editora",
+        admin: true,
+      },
     ],
   },
 

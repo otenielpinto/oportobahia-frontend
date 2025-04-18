@@ -135,11 +135,6 @@ export async function consultarApuracoesPorPeriodo({
 }
 
 /**
- * Exclui uma apuração e seus itens relacionados
- * @param id - Código identificador da apuração a ser excluída
- * @returns Informações sobre a exclusão
- */
-/**
  * Fecha uma apuração alterando seu status para "fechado"
  * @param id - Código  da apuração a ser fechada
  * @returns Informações sobre o fechamento
@@ -186,6 +181,11 @@ export async function fecharApuracao({ id }: { id: string }) {
   }
 }
 
+/**
+ * Exclui uma apuração e seus itens relacionados
+ * @param id - Código identificador da apuração a ser excluída
+ * @returns Informações sobre a exclusão
+ */
 export async function excluirApuracao({ id }: { id: string }) {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
@@ -226,6 +226,194 @@ export async function excluirApuracao({ id }: { id: string }) {
     };
   } catch (error) {
     console.error("Erro ao excluir apuração:", error);
+    throw error;
+  }
+}
+
+/**
+ * Agrupa os registros de apuração por produto e editora
+ * @param id_grupo - Código identificador do grupo de apuração
+ * @returns Array com os dados agrupados por produto e editora
+ */
+export async function agruparApuracoesPorProdutoEditora({
+  id_grupo,
+}: {
+  id_grupo: string;
+}) {
+  try {
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Buscar todos os itens da apuração
+    const itensApuracao = await clientdb
+      .collection(collectionPeriodo)
+      .find({ id_grupo })
+      .toArray();
+
+    // Criar um mapa para agrupar os itens
+    const gruposMap = new Map();
+
+    // Processar cada item da apuração
+    for (const item of itensApuracao) {
+      // Verificar se o item tem catálogo e tracks
+      if (
+        !item.catalogo ||
+        !item.catalogo.tracks ||
+        item.catalogo.tracks.length === 0
+      ) {
+        continue; // Pular itens sem catálogo ou tracks
+      }
+
+      // Obter os dados necessários
+      const barcode = item.catalogo.barcode || "";
+      const format = item.catalogo.format || "";
+
+      // Não vamos mais controlar as editoras processadas
+      // Vamos somar normalmente a quantidade para cada grupo
+
+      // Processar cada track e seus publishers
+      for (const track of item.catalogo.tracks) {
+        // Processar publishers da track principal
+        if (track.publishers && track.publishers.length > 0) {
+          for (const publisher of track.publishers) {
+            const publisherName = publisher.name || "Editora Desconhecida";
+            const participationPercentage =
+              publisher.participationPercentage || 0;
+            const valorRoyalties = publisher.valor_royalties || 0;
+
+            // Obter o nome da obra e o código da faixa
+            const trackName = track.work || "";
+            // Converter trackCode para número inteiro, ou usar 0 se não for possível converter
+            const trackCode = parseInt(track.trackCode || "0", 10) || 0;
+
+            // Criar uma chave única para o agrupamento
+            const chave = `${barcode}|${format}|${publisherName}|${trackName}|${trackCode}`;
+
+            // Verificar se já existe um grupo para esta chave
+            if (!gruposMap.has(chave)) {
+              gruposMap.set(chave, {
+                codigoProduto: barcode,
+                formato: format,
+                editora: publisherName,
+                obra: trackName,
+                codigoFaixa: trackCode,
+                percentualEditora: participationPercentage,
+                vendas: 0,
+                somaPrecos: 0, // Soma dos valores totais (baseCalculo) para cálculo do preço médio
+                percentualObra:
+                  item.tx_copyright && item.catalogo.numberOfTracks > 0
+                    ? item.tx_copyright / item.catalogo.numberOfTracks
+                    : 0,
+                valorPagamento: 0,
+              });
+            }
+
+            // Atualizar os valores do grupo
+            const grupo = gruposMap.get(chave);
+
+            // Somar vendas normalmente para cada grupo
+            grupo.vendas += item.quantidade || 0;
+            grupo.somaPrecos += item.baseCalculo;
+
+            // Atualizar o valor de pagamento
+            grupo.valorPagamento += valorRoyalties;
+          }
+        }
+
+        // Processar subTracks se existirem
+        if (track.subTracks && track.subTracks.length > 0) {
+          for (const subTrack of track.subTracks) {
+            if (subTrack.publishers && subTrack.publishers.length > 0) {
+              for (const publisher of subTrack.publishers) {
+                const publisherName = publisher.name || "Editora Desconhecida";
+                const participationPercentage =
+                  publisher.participationPercentage || 0;
+
+                // Calcular o valor de royalties para a subTrack com base na porcentagem de participação
+                const valorRoyaltiesPorFaixa = item.valorRoyaltiesPorFaixa || 0;
+                const valorRoyalties =
+                  (valorRoyaltiesPorFaixa * participationPercentage) / 100;
+
+                // Obter o nome da obra (subTrack) e o código da faixa
+                const trackName = subTrack.work || "";
+                // Para subTracks, usamos um identificador derivado do código da faixa principal
+                // Convertemos para número inteiro e adicionamos 1000 para diferenciar das tracks principais
+                const trackCodeBase = parseInt(track.trackCode || "0", 10) || 0;
+                const trackCode = trackCodeBase + 1000; // Adicionar 1000 para diferenciar subTracks
+
+                // Criar uma chave única para o agrupamento
+                const chave = `${barcode}|${format}|${publisherName}|${trackName}|${trackCode}`;
+
+                // Verificar se já existe um grupo para esta chave
+                if (!gruposMap.has(chave)) {
+                  gruposMap.set(chave, {
+                    codigoProduto: barcode,
+                    formato: format,
+                    editora: publisherName,
+                    obra: trackName,
+                    codigoFaixa: trackCode,
+                    percentualEditora: participationPercentage,
+                    vendas: 0,
+                    somaPrecos: 0, // Soma dos valores totais (baseCalculo) para cálculo do preço médio
+                    percentualObra:
+                      item.tx_copyright && item.catalogo.numberOfTracks > 0
+                        ? item.tx_copyright / item.catalogo.numberOfTracks
+                        : 0,
+                    valorPagamento: 0,
+                  });
+                }
+
+                // Atualizar os valores do grupo
+                const grupo = gruposMap.get(chave);
+
+                // Somar vendas normalmente para cada grupo
+                grupo.vendas += item.quantidade || 0;
+                grupo.somaPrecos += item.baseCalculo;
+
+                // Atualizar o valor de pagamento
+                grupo.valorPagamento += valorRoyalties;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    await TMongo.mongoDisconnect(client);
+
+    // Converter o mapa em um array e formatar os valores
+    const resultado = Array.from(gruposMap.values()).map((grupo) => ({
+      codigoProduto: grupo.codigoProduto,
+      formato: grupo.formato,
+      editora: grupo.editora,
+      obra: grupo.obra,
+      codigoFaixa: grupo.codigoFaixa,
+      percentualEditora: grupo.percentualEditora,
+      vendas: grupo.vendas,
+      // Adicionar o campo somaVendas igual a somaPrecos
+      somaVendas: grupo.somaPrecos,
+      // Calcular o preço como somaPrecos / vendas, com até 6 casas decimais
+      preco:
+        grupo.vendas > 0
+          ? Number((grupo.somaPrecos / grupo.vendas).toFixed(6))
+          : 0,
+      percentualObra: grupo.percentualObra,
+      valorPagamento: lib.round(grupo.valorPagamento),
+    }));
+
+    // Ordenar o resultado por código de produto, editora e obra
+    resultado.sort((a, b) => {
+      if (a.codigoProduto !== b.codigoProduto) {
+        return a.codigoProduto.localeCompare(b.codigoProduto);
+      }
+      if (a.editora !== b.editora) {
+        return a.editora.localeCompare(b.editora);
+      }
+      return a.obra.localeCompare(b.obra);
+    });
+
+    return resultado;
+  } catch (error) {
+    console.error("Erro ao agrupar apurações por produto e editora:", error);
     throw error;
   }
 }

@@ -91,7 +91,7 @@ export default function DetalhesApuracaoPage({
     const itens = filtrarItens();
     const totalItens = itens.length;
     const totalValor = itens.reduce(
-      (acc: number, item: any) => acc + (item.valor_liquido || 0),
+      (acc: number, item: any) => acc + (item.baseCalculo || 0),
       0
     );
     const totalRoyalties = itens.reduce(
@@ -124,7 +124,7 @@ export default function DetalhesApuracaoPage({
       }
 
       grupos[artista].totalItens += 1;
-      grupos[artista].totalValor += item.valor_liquido || 0;
+      grupos[artista].totalValor += item.baseCalculo || 0;
       grupos[artista].totalRoyalties += item.valorRoyalties || 0;
       grupos[artista].itens.push(item);
     });
@@ -469,7 +469,7 @@ export default function DetalhesApuracaoPage({
                                 <TableHead>Código de Barras</TableHead>
                                 <TableHead>Descrição</TableHead>
                                 <TableHead>Quantidade</TableHead>
-                                <TableHead>Valor Líquido</TableHead>
+                                <TableHead>Base de Cálculo</TableHead>
                                 <TableHead>Valor Royalties</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -482,7 +482,7 @@ export default function DetalhesApuracaoPage({
                                   <TableCell>{item.descricao}</TableCell>
                                   <TableCell>{item.quantidade}</TableCell>
                                   <TableCell>
-                                    {formatarMoeda(item.valor_liquido)}
+                                    {formatarMoeda(item.baseCalculo)}
                                   </TableCell>
                                   <TableCell>
                                     {formatarMoeda(item.valorRoyalties)}

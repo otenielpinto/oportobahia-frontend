@@ -397,6 +397,17 @@ export default function ConsultaApuracoesPage() {
                                 Visualizar Detalhes
                               </Button>
                             </Link>
+                            <Link
+                              href={`/relatorio/apuracao-por-produto-editora?id=${apuracao.id}`}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                              >
+                                Por Produto/Editora
+                              </Button>
+                            </Link>
 
                             {(apuracao.status === "aberto" ||
                               apuracao.status === "aguardando") && (
