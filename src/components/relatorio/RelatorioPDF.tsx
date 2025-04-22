@@ -120,11 +120,7 @@ export default function RelatorioPDF({
     setCurrentPage(page);
   }, []);
 
-  // Calcular totais
-  const totalValor = itensParaExibir.reduce(
-    (acc: number, item: ProdutoEditoraItem) => acc + item.valorPagamento,
-    0
-  );
+  // Não precisamos mais calcular o total geral, pois ele foi removido
 
   // Formatação de valores monetários
   const formatarMoeda = (valor: number) => {
@@ -241,9 +237,6 @@ export default function RelatorioPDF({
             >
               <p style={{ margin: "0 0 5px 0", fontWeight: "bold" }}>
                 {format(new Date(), "dd-MMM-yyyy", { locale: ptBR })}
-              </p>
-              <p style={{ margin: "0", fontWeight: "bold" }}>
-                Page {currentPage} of {totalPages}
               </p>
             </div>
           </div>
@@ -810,44 +803,8 @@ export default function RelatorioPDF({
             );
           })()}
 
-          {/* Tabela de Total Geral */}
-          {itensParaExibir.length > 0 && (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "11px",
-                tableLayout: "fixed",
-                marginTop: "30px",
-              }}
-            >
-              <thead>
-                <tr style={{ backgroundColor: "#e0e0e0", fontWeight: "bold" }}>
-                  <td
-                    colSpan={12}
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "10px",
-                      textAlign: "right",
-                      fontSize: "14px",
-                    }}
-                  >
-                    TOTAL GERAL:
-                  </td>
-                  <td
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "10px",
-                      textAlign: "right",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {formatarMoeda(totalValor)}
-                  </td>
-                </tr>
-              </thead>
-            </table>
-          )}
+          {/* Espaço após o último grupo */}
+          <div style={{ height: "30px" }}></div>
 
           {/* Rodapé */}
           <div
