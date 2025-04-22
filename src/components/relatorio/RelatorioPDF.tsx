@@ -88,14 +88,18 @@ export default function RelatorioPDF({
 }: RelatorioPDFProps) {
   const componentRef = useRef<HTMLDivElement>(null);
 
-  // Ordenar os itens por editora
-  const ordenarPorEditora = (itens: ProdutoEditoraItem[]) => {
+  // Ordenar os itens por editora e formato
+  const ordenarPorEditoraEFormato = (itens: ProdutoEditoraItem[]) => {
     return [...itens].sort((a, b) => {
       // Primeiro ordenar por editora
       const comparacaoEditora = a.editora.localeCompare(b.editora);
       if (comparacaoEditora !== 0) return comparacaoEditora;
 
-      // Se a editora for a mesma, ordenar por código do produto
+      // Se a editora for a mesma, ordenar por formato
+      const comparacaoFormato = a.formato.localeCompare(b.formato);
+      if (comparacaoFormato !== 0) return comparacaoFormato;
+
+      // Se o formato for o mesmo, ordenar por código do produto
       const comparacaoProduto = a.codigoProduto.localeCompare(b.codigoProduto);
       if (comparacaoProduto !== 0) return comparacaoProduto;
 
@@ -105,7 +109,7 @@ export default function RelatorioPDF({
   };
 
   // Aplicar a ordenação aos itens
-  const itensParaExibir = ordenarPorEditora(filteredData || data);
+  const itensParaExibir = ordenarPorEditoraEFormato(filteredData || data);
 
   // Estados para controlar a paginação
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -118,7 +122,7 @@ export default function RelatorioPDF({
 
   // Calcular totais
   const totalValor = itensParaExibir.reduce(
-    (acc, item) => acc + item.valorPagamento,
+    (acc: number, item: ProdutoEditoraItem) => acc + item.valorPagamento,
     0
   );
 
@@ -248,28 +252,60 @@ export default function RelatorioPDF({
 
           {/* Dados agrupados por editora */}
           {(() => {
-            // Agrupar itens por editora
+            // Agrupar itens por editora e formato
             const editorasAgrupadas: {
-              [key: string]: ProdutoEditoraItem[];
+              [key: string]: {
+                dadosEditora: ProdutoEditoraItem;
+                formatosAgrupados: {
+                  [key: string]: ProdutoEditoraItem[];
+                };
+              };
             } = {};
 
-            itensParaExibir.forEach((item) => {
+            // Primeiro agrupamos por editora
+            itensParaExibir.forEach((item: ProdutoEditoraItem) => {
               if (!editorasAgrupadas[item.editora]) {
-                editorasAgrupadas[item.editora] = [];
+                editorasAgrupadas[item.editora] = {
+                  dadosEditora: item, // Guardamos o primeiro item para acessar os dados da editora
+                  formatosAgrupados: {},
+                };
               }
-              editorasAgrupadas[item.editora].push(item);
+
+              // Depois agrupamos por formato dentro de cada editora
+              if (
+                !editorasAgrupadas[item.editora].formatosAgrupados[item.formato]
+              ) {
+                editorasAgrupadas[item.editora].formatosAgrupados[
+                  item.formato
+                ] = [];
+              }
+
+              editorasAgrupadas[item.editora].formatosAgrupados[
+                item.formato
+              ].push(item);
             });
 
             // Renderizar os grupos de editoras
             return Object.entries(editorasAgrupadas).map(
-              ([nomeEditora, itensEditora], editoraIndex) => {
+              ([nomeEditora, dadosEditora], editoraIndex) => {
                 // Obter o primeiro item para acessar os dados da editora
-                const primeiroItem = itensEditora[0];
+                const primeiroItem = dadosEditora.dadosEditora;
 
                 return (
                   <div key={`editora-grupo-${editoraIndex}`}>
-                    {/* Espaçamento entre grupos de editoras */}
-                    {editoraIndex > 0 && <div style={{ height: "30px" }}></div>}
+                    {/* Quebra de página entre grupos de editoras */}
+                    {editoraIndex > 0 && (
+                      <div
+                        className="page-break-before"
+                        style={{
+                          pageBreakBefore: "always",
+                          breakBefore: "page",
+                          marginTop: 0,
+                          marginBottom: 0,
+                          height: 0,
+                        }}
+                      ></div>
+                    )}
 
                     {/* Card da Editora */}
                     <div
@@ -367,20 +403,358 @@ export default function RelatorioPDF({
                       </div>
                     </div>
 
-                    {/* Linha de Formato */}
-                    <div
-                      style={{
-                        marginBottom: "10px",
-                        borderBottom: "1px solid #000",
-                        padding: "3px 0",
-                      }}
-                    >
-                      <div style={{ fontSize: "12px", fontWeight: "bold" }}>
-                        {primeiroItem.formato || "***"}
-                      </div>
-                    </div>
+                    {/* Renderizar cada formato dentro da editora */}
+                    {Object.entries(dadosEditora.formatosAgrupados).map(
+                      ([nomeFormato, itensFormato], formatoIndex) => {
+                        // Calcular o total de pagamentos para este formato
+                        const totalPagamentosFormato = itensFormato.reduce(
+                          (acc: number, item: ProdutoEditoraItem) =>
+                            acc + item.valorPagamento,
+                          0
+                        );
 
-                    {/* Tabela de dados para esta editora */}
+                        return (
+                          <React.Fragment
+                            key={`formato-${editoraIndex}-${formatoIndex}`}
+                          >
+                            {/* Linha de Formato */}
+                            <div
+                              style={{
+                                marginBottom: "10px",
+                                borderBottom: "1px solid #000",
+                                padding: "3px 0",
+                                marginTop: formatoIndex > 0 ? "20px" : "0",
+                              }}
+                            >
+                              <div
+                                style={{ fontSize: "12px", fontWeight: "bold" }}
+                              >
+                                {nomeFormato || "***"}
+                              </div>
+                            </div>
+
+                            {/* Tabela de dados para este formato */}
+                            <table
+                              style={{
+                                width: "100%",
+                                borderCollapse: "collapse",
+                                fontSize: "10px",
+                                tableLayout: "fixed",
+                                marginBottom: "15px",
+                              }}
+                            >
+                              <thead>
+                                <tr style={{ backgroundColor: "#f0f0f0" }}>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "left",
+                                      width: "110px",
+                                    }}
+                                  >
+                                    Código Produto
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "25px",
+                                    }}
+                                  >
+                                    NL
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "25px",
+                                    }}
+                                  >
+                                    LD
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "25px",
+                                    }}
+                                  >
+                                    NF
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "25px",
+                                    }}
+                                  >
+                                    FX
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "25px",
+                                    }}
+                                  >
+                                    Mus
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "left",
+                                    }}
+                                  >
+                                    Descrição da Obra
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "left",
+                                    }}
+                                  >
+                                    Autores da Obra
+                                  </th>
+
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "35px",
+                                    }}
+                                  >
+                                    % Edit.
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "center",
+                                      width: "50px",
+                                    }}
+                                  >
+                                    Vendas
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "right",
+                                      width: "60px",
+                                    }}
+                                  >
+                                    Preço
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px 3px",
+                                      textAlign: "center",
+                                      width: "35px",
+                                    }}
+                                  >
+                                    % Obra
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "right",
+                                      width: "70px",
+                                    }}
+                                  >
+                                    Pagamento
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {/* Itens do formato */}
+                                {itensFormato.map(
+                                  (item: ProdutoEditoraItem, index: number) => (
+                                    <tr
+                                      key={`item-${editoraIndex}-${formatoIndex}-${index}`}
+                                      style={{
+                                        backgroundColor:
+                                          index % 2 === 0 ? "#fff" : "#f9f9f9",
+                                      }}
+                                    >
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                          width: "110px",
+                                        }}
+                                      >
+                                        {item.codigoProduto}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "25px",
+                                        }}
+                                      >
+                                        {item.NL || 1}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "25px",
+                                        }}
+                                      >
+                                        {item.LD || 1}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "25px",
+                                        }}
+                                      >
+                                        {item.NF || 0}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "25px",
+                                        }}
+                                      >
+                                        {item.FX || item.codigoFaixa || 0}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "25px",
+                                        }}
+                                      >
+                                        {item.Mus || 1}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                        }}
+                                      >
+                                        {item.obra}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                        }}
+                                      >
+                                        {item.authors || "Não informado"}
+                                      </td>
+
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "35px",
+                                        }}
+                                      >
+                                        {item.percentualEditora
+                                          .toFixed(2)
+                                          .replace(".", ",")}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                          textAlign: "center",
+                                          width: "50px",
+                                        }}
+                                      >
+                                        {item.vendas}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                          textAlign: "right",
+                                          width: "60px",
+                                        }}
+                                      >
+                                        {item.preco
+                                          .toFixed(6)
+                                          .replace(".", ",")}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px 3px",
+                                          textAlign: "center",
+                                          width: "35px",
+                                        }}
+                                      >
+                                        {item.percentualObra
+                                          .toFixed(2)
+                                          .replace(".", ",")}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                          textAlign: "right",
+                                          width: "70px",
+                                        }}
+                                      >
+                                        {formatarMoeda(item.valorPagamento)}
+                                      </td>
+                                    </tr>
+                                  )
+                                )}
+
+                                {/* Subtotal por formato */}
+                                <tr style={{ backgroundColor: "#f0f0f0" }}>
+                                  <td
+                                    colSpan={12}
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "right",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    Subtotal {nomeFormato}:
+                                  </td>
+                                  <td
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
+                                      textAlign: "right",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    {formatarMoeda(totalPagamentosFormato)}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </React.Fragment>
+                        );
+                      }
+                    )}
+
+                    {/* Total por editora */}
                     <table
                       style={{
                         width: "100%",
@@ -388,312 +762,9 @@ export default function RelatorioPDF({
                         fontSize: "10px",
                         tableLayout: "fixed",
                         marginBottom: "15px",
+                        marginTop: "20px",
                       }}
                     >
-                      <thead>
-                        <tr style={{ backgroundColor: "#f0f0f0" }}>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "left",
-                              width: "110px",
-                            }}
-                          >
-                            Código Produto
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "25px",
-                            }}
-                          >
-                            NL
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "25px",
-                            }}
-                          >
-                            LD
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "25px",
-                            }}
-                          >
-                            NF
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "25px",
-                            }}
-                          >
-                            FX
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "25px",
-                            }}
-                          >
-                            Mus
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "left",
-                            }}
-                          >
-                            Descrição da Obra
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "left",
-                            }}
-                          >
-                            Autores da Obra
-                          </th>
-
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "35px",
-                            }}
-                          >
-                            % Edit.
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "center",
-                              width: "50px",
-                            }}
-                          >
-                            Vendas
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "right",
-                              width: "60px",
-                            }}
-                          >
-                            Preço
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px 3px",
-                              textAlign: "center",
-                              width: "35px",
-                            }}
-                          >
-                            % Obra
-                          </th>
-                          <th
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "right",
-                              width: "70px",
-                            }}
-                          >
-                            Pagamento
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Itens da editora */}
-                        {itensEditora.map((item, index) => (
-                          <tr
-                            key={`item-${editoraIndex}-${index}`}
-                            style={{
-                              backgroundColor:
-                                index % 2 === 0 ? "#fff" : "#f9f9f9",
-                            }}
-                          >
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px",
-                                width: "110px",
-                              }}
-                            >
-                              {item.codigoProduto}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "25px",
-                              }}
-                            >
-                              {item.NL || 1}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "25px",
-                              }}
-                            >
-                              {item.LD || 1}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "25px",
-                              }}
-                            >
-                              {item.NF || 0}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "25px",
-                              }}
-                            >
-                              {item.FX || item.codigoFaixa || 0}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "25px",
-                              }}
-                            >
-                              {item.Mus || 1}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px",
-                              }}
-                            >
-                              {item.obra}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px",
-                              }}
-                            >
-                              {item.authors || "Não informado"}
-                            </td>
-
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "35px",
-                              }}
-                            >
-                              {item.percentualEditora
-                                .toFixed(2)
-                                .replace(".", ",")}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px",
-                                textAlign: "center",
-                                width: "50px",
-                              }}
-                            >
-                              {item.vendas}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px",
-                                textAlign: "right",
-                                width: "60px",
-                              }}
-                            >
-                              {item.preco.toFixed(6).replace(".", ",")}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px 3px",
-                                textAlign: "center",
-                                width: "35px",
-                              }}
-                            >
-                              {item.percentualObra.toFixed(2).replace(".", ",")}
-                            </td>
-                            <td
-                              style={{
-                                border: "1px solid #ddd",
-                                padding: "5px",
-                                textAlign: "right",
-                                width: "70px",
-                              }}
-                            >
-                              {formatarMoeda(item.valorPagamento)}
-                            </td>
-                          </tr>
-                        ))}
-
-                        {/* Subtotal por editora */}
-                        <tr style={{ backgroundColor: "#f0f0f0" }}>
-                          <td
-                            colSpan={12}
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "right",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            Subtotal {nomeEditora}:
-                          </td>
-                          <td
-                            style={{
-                              border: "1px solid #ddd",
-                              padding: "5px",
-                              textAlign: "right",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {formatarMoeda(
-                              itensEditora.reduce(
-                                (acc, item) => acc + item.valorPagamento,
-                                0
-                              )
-                            )}
-                          </td>
-                        </tr>
-                      </tbody>
                       <tfoot>
                         <tr
                           style={{
@@ -721,10 +792,13 @@ export default function RelatorioPDF({
                             }}
                           >
                             {formatarMoeda(
-                              itensEditora.reduce(
-                                (acc, item) => acc + item.valorPagamento,
-                                0
-                              )
+                              Object.values(dadosEditora.formatosAgrupados)
+                                .flat()
+                                .reduce(
+                                  (acc: number, item: ProdutoEditoraItem) =>
+                                    acc + item.valorPagamento,
+                                  0
+                                )
                             )}
                           </td>
                         </tr>

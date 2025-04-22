@@ -48,3 +48,16 @@
     --ring: 240 4.9% 83.9%;
   }
 }
+
+/* Estilos para quebra de página na impressão */
+@media print {
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+}
