@@ -1,22 +1,26 @@
-import { getAllEmpresa } from "@/actions/actIntegracao";
+"use server";
+import { TMongo } from "@/infra/mongoClient";
 
-let listOfEmpresas: any[] = [];
+export async function getAllEmpresa(): Promise<any[]> {
+  const { client, clientdb } = await TMongo.connectToDatabase();
+  const data = await clientdb.collection("empresa").find({}).toArray();
+  await TMongo.mongoDisconnect(client);
+  return data;
+}
 
-async function findAll() {
-  if (!listOfEmpresas || listOfEmpresas.length === 0) {
-    listOfEmpresas = await getAllEmpresa();
+export async function getEmpresaById(id: Number): Promise<any> {
+  try {
+    const { client, clientdb } = await TMongo.connectToDatabase();
+    // Buscar a empresa com o id especificado
+    const data = await clientdb
+      .collection("empresa")
+      .findOne({ id: Number(id) });
+    await TMongo.mongoDisconnect(client);
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar empresa:", error);
+    throw error;
   }
-  return listOfEmpresas;
 }
 
-async function getEmpresaById(id: Number): Promise<any> {
-  let empresas = await findAll();
-  return empresas.filter((e) => e.id === id)[0];
-}
-
-async function getEmpresaByCodigo(codigo: String): Promise<any> {
-  let empresas = await findAll();
-  return empresas.filter((e) => e.codigo === codigo)[0];
-}
-
-export const Empresa = { findAll, getEmpresaById, getEmpresaByCodigo };
+//Tem que exportar exatamente assim . Nao pode criar uma variavel , e inserir as functions dentro . pois gera erro .

@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { agruparApuracoesPorProdutoEditora } from "@/actions/actApurarRoyalties";
+import {
+  agruparApuracoesPorProdutoEditora,
+  consultarApuracaoCurrentById,
+} from "@/actions/actApurarRoyalties";
+import { getEmpresaById } from "@/actions/actEmpresa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +17,9 @@ import {
   SortAsc,
   SortDesc,
   BookOpen,
+  FileOutput,
 } from "lucide-react";
+import RelatorioPDF from "@/components/relatorio/RelatorioPDF";
 import {
   Card,
   CardContent,
@@ -44,6 +50,7 @@ interface ProdutoEditoraItem {
   codigoProduto: string;
   formato: string;
   editora: string;
+  editoraCompleta?: any; // Dados completos da editora para uso em relatórios
   obra: string;
   codigoFaixa: number;
   percentualEditora: number;
@@ -75,6 +82,44 @@ export default function ApuracaoPorProdutoEditoraPage() {
       return await agruparApuracoesPorProdutoEditora({
         id_grupo,
       });
+    },
+    enabled: !!id_grupo,
+  });
+
+  // Consulta para obter os dados da empresa com código 1
+  const {
+    data: empresaData,
+    isLoading: empresaLoading,
+    error: empresaError,
+  } = useQuery({
+    queryKey: ["empresa", 1],
+    queryFn: async () => {
+      try {
+        const result = await getEmpresaById(1);
+        return result;
+      } catch (error) {
+        console.error("Erro ao buscar empresa:", error);
+        throw error;
+      }
+    },
+  });
+
+  // Consulta para obter os dados da apuração atual pelo id
+  const {
+    data: apuracaoCurrentData,
+    isLoading: apuracaoCurrentLoading,
+    error: apuracaoCurrentError,
+  } = useQuery({
+    queryKey: ["apuracao-current", id_grupo],
+    queryFn: async () => {
+      if (!id_grupo) return null;
+      try {
+        const result = await consultarApuracaoCurrentById(id_grupo);
+        return result;
+      } catch (error) {
+        console.error("Erro ao buscar apuração atual:", error);
+        throw error;
+      }
     },
     enabled: !!id_grupo,
   });
@@ -220,6 +265,26 @@ export default function ApuracaoPorProdutoEditoraPage() {
             {id_grupo
               ? `Código da Apuração: ${id_grupo}`
               : "Selecione uma apuração para visualizar os dados"}
+            {apuracaoCurrentData && (
+              <div className="mt-2 text-sm">
+                <p>
+                  Período:{" "}
+                  {new Date(
+                    apuracaoCurrentData.data_inicial
+                  ).toLocaleDateString("pt-BR")}{" "}
+                  a{" "}
+                  {new Date(apuracaoCurrentData.data_final).toLocaleDateString(
+                    "pt-BR"
+                  )}
+                </p>
+                <p>
+                  Status:{" "}
+                  <span className="font-semibold">
+                    {apuracaoCurrentData.status}
+                  </span>
+                </p>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -233,11 +298,20 @@ export default function ApuracaoPorProdutoEditoraPage() {
             </div>
           )}
 
-          {id_grupo && isLoading && (
+          {(id_grupo && isLoading) ||
+          empresaLoading ||
+          apuracaoCurrentLoading ? (
             <div className="flex justify-center items-center h-32">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">
+                {isLoading
+                  ? "Carregando dados da apuração..."
+                  : apuracaoCurrentLoading
+                  ? "Carregando detalhes da apuração..."
+                  : "Carregando dados da empresa..."}
+              </span>
             </div>
-          )}
+          ) : null}
 
           {id_grupo && isError && (
             <div className="bg-red-50 p-4 rounded-md border border-red-200">
@@ -245,6 +319,26 @@ export default function ApuracaoPorProdutoEditoraPage() {
                 {error instanceof Error
                   ? error.message
                   : "Erro ao carregar os dados da apuração"}
+              </p>
+            </div>
+          )}
+
+          {empresaError && (
+            <div className="bg-red-50 p-4 rounded-md border border-red-200 mt-4">
+              <p className="text-red-800">
+                {empresaError instanceof Error
+                  ? empresaError.message
+                  : "Erro ao carregar os dados da empresa"}
+              </p>
+            </div>
+          )}
+
+          {apuracaoCurrentError && (
+            <div className="bg-red-50 p-4 rounded-md border border-red-200 mt-4">
+              <p className="text-red-800">
+                {apuracaoCurrentError instanceof Error
+                  ? apuracaoCurrentError.message
+                  : "Erro ao carregar os detalhes da apuração"}
               </p>
             </div>
           )}
@@ -520,10 +614,20 @@ export default function ApuracaoPorProdutoEditoraPage() {
                 Exibindo {filtrarItens().length} de {data.length} itens
               </p>
             </div>
-            <Button variant="outline" onClick={exportarCSV}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar para CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={exportarCSV}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar para CSV
+              </Button>
+              <RelatorioPDF
+                data={data}
+                filteredData={filtrarItens()}
+                periodo={`${id_grupo}`}
+                id_grupo={id_grupo}
+                empresaData={empresaData}
+                apuracaoCurrentData={apuracaoCurrentData}
+              />
+            </div>
           </CardFooter>
         )}
       </Card>

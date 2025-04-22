@@ -231,6 +231,29 @@ export async function excluirApuracao({ id }: { id: string }) {
 }
 
 /**
+ * Consulta um registro da collection tmp_apuracao_current por id
+ * @param id - ID do registro a ser consultado
+ * @returns O registro encontrado ou null se não existir
+ */
+export async function consultarApuracaoCurrentById(id: string) {
+  try {
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Buscar o registro pelo campo id (não pelo id_grupo)
+    const apuracao = await clientdb
+      .collection("tmp_apuracao_current")
+      .findOne({ id: id });
+
+    await TMongo.mongoDisconnect(client);
+
+    return apuracao;
+  } catch (error) {
+    console.error("Erro ao buscar apuração por id:", error);
+    throw error;
+  }
+}
+
+/**
  * Agrupa os registros de apuração por produto e editora
  * @param id_grupo - Código identificador do grupo de apuração
  * @returns Array com os dados agrupados por produto e editora
@@ -242,6 +265,15 @@ export async function agruparApuracoesPorProdutoEditora({
 }) {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Buscar todas as editoras e criar um mapa para acesso rápido
+    const editoras = await clientdb.collection("editora").find({}).toArray();
+    const editorasMap = new Map();
+
+    // Criar um mapa de editoras para acesso rápido por nome
+    editoras.forEach((editora) => {
+      editorasMap.set(editora.name, editora);
+    });
 
     // Buscar todos os itens da apuração
     const itensApuracao = await clientdb
@@ -288,12 +320,16 @@ export async function agruparApuracoesPorProdutoEditora({
             // Criar uma chave única para o agrupamento
             const chave = `${barcode}|${format}|${publisherName}|${trackName}|${trackCode}`;
 
+            // Obter os dados completos da editora do mapa
+            const editoraCompleta = editorasMap.get(publisherName) || null;
+
             // Verificar se já existe um grupo para esta chave
             if (!gruposMap.has(chave)) {
               gruposMap.set(chave, {
                 codigoProduto: barcode,
                 formato: format,
                 editora: publisherName,
+                editoraCompleta: editoraCompleta, // Adicionar os dados completos da editora
                 obra: trackName,
                 codigoFaixa: trackCode,
                 percentualEditora: participationPercentage,
@@ -304,6 +340,17 @@ export async function agruparApuracoesPorProdutoEditora({
                     ? item.tx_copyright / item.catalogo.numberOfTracks
                     : 0,
                 valorPagamento: 0,
+                // Novos campos adicionados
+                NL: 1, // Número de lados (padrão: 1)
+                LD: 1, // Lado (padrão: 1)
+                NF: item.catalogo.numberOfTracks || 0, // Número de faixas
+                FX: trackCode, // Número da faixa
+                Mus:
+                  track.subTracks && track.subTracks.length > 0
+                    ? track.subTracks.length
+                    : 1, // 1 se não tiver subTracks, ou o número de subTracks
+                authors: track.authors || "", // Autores da música
+                isrc: track.isrc || "", // Código ISRC da faixa
               });
             }
 
@@ -343,12 +390,16 @@ export async function agruparApuracoesPorProdutoEditora({
                 // Criar uma chave única para o agrupamento
                 const chave = `${barcode}|${format}|${publisherName}|${trackName}|${trackCode}`;
 
+                // Obter os dados completos da editora do mapa
+                const editoraCompleta = editorasMap.get(publisherName) || null;
+
                 // Verificar se já existe um grupo para esta chave
                 if (!gruposMap.has(chave)) {
                   gruposMap.set(chave, {
                     codigoProduto: barcode,
                     formato: format,
                     editora: publisherName,
+                    editoraCompleta: editoraCompleta, // Adicionar os dados completos da editora
                     obra: trackName,
                     codigoFaixa: trackCode,
                     percentualEditora: participationPercentage,
@@ -359,6 +410,14 @@ export async function agruparApuracoesPorProdutoEditora({
                         ? item.tx_copyright / item.catalogo.numberOfTracks
                         : 0,
                     valorPagamento: 0,
+                    // Novos campos adicionados
+                    NL: 1, // Número de lados (padrão: 1)
+                    LD: 1, // Lado (padrão: 1)
+                    NF: item.catalogo.numberOfTracks || 0, // Número de faixas
+                    FX: trackCode - 1000, // Número da faixa (subtraímos 1000 para obter o número original)
+                    Mus: 1, // Para subTracks, sempre 1
+                    authors: subTrack.authors || "", // Autores da música
+                    isrc: "", // Para subTracks, ISRC vazio pois geralmente não possuem ISRC próprio
                   });
                 }
 
@@ -385,6 +444,7 @@ export async function agruparApuracoesPorProdutoEditora({
       codigoProduto: grupo.codigoProduto,
       formato: grupo.formato,
       editora: grupo.editora,
+      editoraCompleta: grupo.editoraCompleta, // Incluir os dados completos da editora
       obra: grupo.obra,
       codigoFaixa: grupo.codigoFaixa,
       percentualEditora: grupo.percentualEditora,
@@ -398,6 +458,14 @@ export async function agruparApuracoesPorProdutoEditora({
           : 0,
       percentualObra: grupo.percentualObra,
       valorPagamento: lib.round(grupo.valorPagamento),
+      // Novos campos adicionados
+      NL: grupo.NL || 1,
+      LD: grupo.LD || 1,
+      NF: grupo.NF || 0,
+      FX: grupo.FX || 0,
+      Mus: grupo.Mus || "",
+      authors: grupo.authors || "",
+      isrc: grupo.isrc || "",
     }));
 
     // Ordenar o resultado por código de produto, editora e obra
