@@ -12,6 +12,86 @@ const status_aguardando = "aguardando";
 // Sem interfaces de tipagem específicas - usando tipagem dinâmica
 
 /**
+ * Converte duas datas em um formato de trimestre (ex: 1T2025)
+ * @param dataInicial - Data inicial do período
+ * @param dataFinal - Data final do período
+ * @returns String no formato "[trimestre]T[ano]" ou string vazia se as datas forem inválidas
+ */
+function converterParaTrimestre(
+  dataInicial: Date | null,
+  dataFinal: Date | null
+): string {
+  // Verificar se as datas são válidas
+  if (!dataInicial || !dataFinal) {
+    return "";
+  }
+
+  // Obter o mês da data inicial (0-11)
+  const mesInicial = dataInicial.getMonth();
+
+  // Obter o mês da data final (0-11)
+  const mesFinal = dataFinal.getMonth();
+
+  // Obter o ano da data inicial
+  const ano = dataInicial.getFullYear();
+
+  // Verificar se as datas estão no mesmo ano
+  if (dataFinal.getFullYear() !== ano) {
+    // Se estiverem em anos diferentes, retornar um formato personalizado
+    return `${ano}/${dataFinal.getFullYear()}`;
+  }
+
+  // Determinar o trimestre com base nos meses
+  let trimestre = 0;
+
+  // Verificar se as datas correspondem a um trimestre específico
+  if (mesInicial === 0 && mesFinal === 2) {
+    // Janeiro a Março
+    trimestre = 1;
+  } else if (mesInicial === 3 && mesFinal === 5) {
+    // Abril a Junho
+    trimestre = 2;
+  } else if (mesInicial === 6 && mesFinal === 8) {
+    // Julho a Setembro
+    trimestre = 3;
+  } else if (mesInicial === 9 && mesFinal === 11) {
+    // Outubro a Dezembro
+    trimestre = 4;
+  } else {
+    // Se não corresponder a um trimestre específico, verificar se está dentro de um trimestre
+    if (mesInicial <= 2 && mesFinal <= 2) {
+      // Dentro do 1º trimestre
+      trimestre = 1;
+    } else if (
+      mesInicial >= 3 &&
+      mesInicial <= 5 &&
+      mesFinal >= 3 &&
+      mesFinal <= 5
+    ) {
+      // Dentro do 2º trimestre
+      trimestre = 2;
+    } else if (
+      mesInicial >= 6 &&
+      mesInicial <= 8 &&
+      mesFinal >= 6 &&
+      mesFinal <= 8
+    ) {
+      // Dentro do 3º trimestre
+      trimestre = 3;
+    } else if (mesInicial >= 9 && mesFinal >= 9) {
+      // Dentro do 4º trimestre
+      trimestre = 4;
+    } else {
+      // Se não corresponder a um trimestre específico, retornar um formato personalizado
+      return `${mesInicial + 1}-${mesFinal + 1}/${ano}`;
+    }
+  }
+
+  // Retornar o trimestre no formato "[trimestre]T[ano]"
+  return `${trimestre}T${ano}`;
+}
+
+/**
  * Inicia o processo de apuração de royalties
  * @param fromDate - Data inicial do período
  * @param toDate - Data final do período
@@ -186,6 +266,50 @@ export async function fecharApuracao({ id }: { id: string }) {
 }
 
 /**
+ * Processa os dados da apuração após o fechamento
+ * @param id - Código identificador da apuração
+ * @returns Dados processados da apuração
+ */
+export async function processarApuracaoFechada({ id }: { id: string }) {
+  try {
+    // Verificar se a apuração existe e está fechada
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    const apuracao = await clientdb
+      .collection(collectionCurrent)
+      .findOne({ id });
+
+    if (!apuracao) {
+      await TMongo.mongoDisconnect(client);
+      throw new Error(`Apuração com código ${id} não encontrada`);
+    }
+
+    if (apuracao.status !== "fechado") {
+      await TMongo.mongoDisconnect(client);
+      throw new Error(`Apuração com código ${id} não está fechada`);
+    }
+
+    // Agrupar os dados por editora
+    const dadosPorEditora = await agruparApuracoesPorEditora({ id });
+    await clientdb
+      .collection("tmp_apuracao_royalties")
+      .insertMany(dadosPorEditora);
+
+    await TMongo.mongoDisconnect(client);
+
+    // Retornar os dados processados
+    return {
+      sucesso: true,
+      id,
+      mensagem: "Apuração processada com sucesso.",
+    };
+  } catch (error) {
+    console.error("Erro ao processar apuração fechada:", error);
+    throw error;
+  }
+}
+
+/**
  * Exclui uma apuração e seus itens relacionados
  * @param id - Código identificador da apuração a ser excluída
  * @returns Informações sobre a exclusão
@@ -262,6 +386,156 @@ export async function consultarApuracaoCurrentById(id: string) {
  * @param id_grupo - Código identificador do grupo de apuração
  * @returns Array com os dados agrupados por produto e editora
  */
+/**
+ * Agrupa os resultados da apuração por editora após o fechamento
+ * @param id - Código identificador da apuração
+ * @returns Array com os dados agrupados por editora
+ */
+export async function agruparApuracoesPorEditora({ id }: { id: string }) {
+  try {
+    const apuracao = await consultarApuracaoCurrentById(id);
+
+    // Obter os resultados da apuração
+    const itensApuracao = await obterResultadosApuracao({ id_grupo: id });
+
+    // Criar um mapa para agrupar os itens por editora
+    const grupos: Record<string, any> = {};
+
+    // Processar cada item da apuração
+    itensApuracao.forEach((item: any) => {
+      // Processar publishers das faixas principais
+      if (item.catalogo?.tracks && Array.isArray(item.catalogo.tracks)) {
+        item.catalogo.tracks.forEach((track: any) => {
+          if (track.publishers && Array.isArray(track.publishers)) {
+            track.publishers.forEach((publisher: any) => {
+              const nomeEditora = publisher.name || "Editora Desconhecida";
+
+              if (!grupos[nomeEditora]) {
+                grupos[nomeEditora] = {
+                  editora: nomeEditora,
+                  totalItens: 0,
+                  totalRoyalties: 0,
+                };
+              }
+
+              // Utilizar diretamente o valor de royalties da editora
+              const valor_royalties = lib.round(publisher.valor_royalties);
+
+              // Adicionar informações ao grupo
+              grupos[nomeEditora].totalItens += 1;
+              grupos[nomeEditora].totalRoyalties += valor_royalties;
+            });
+          }
+        });
+      }
+
+      // Processar publishers das subFaixas
+      if (item.catalogo?.tracks && Array.isArray(item.catalogo.tracks)) {
+        item.catalogo.tracks.forEach((track: any) => {
+          if (track.subTracks && Array.isArray(track.subTracks)) {
+            track.subTracks.forEach((subTrack: any) => {
+              if (subTrack.publishers && Array.isArray(subTrack.publishers)) {
+                subTrack.publishers.forEach((publisher: any) => {
+                  const nomeEditora = publisher.name || "Editora Desconhecida";
+
+                  if (!grupos[nomeEditora]) {
+                    grupos[nomeEditora] = {
+                      editora: nomeEditora,
+                      totalItens: 0,
+                      totalRoyalties: 0,
+                    };
+                  }
+
+                  // Utilizar diretamente o valor de royalties da editora
+                  const valor_royalties = lib.round(publisher.valor_royalties);
+
+                  // Adicionar informações ao grupo
+                  grupos[nomeEditora].totalItens += 1;
+                  grupos[nomeEditora].totalRoyalties += valor_royalties;
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    // Calcular as datas para os campos
+    const dataAtual = new Date();
+    const ultimoDiaMes = new Date(
+      dataAtual.getFullYear(),
+      dataAtual.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    // Formatar as datas do período para o histórico
+    const dataInicial =
+      apuracao && apuracao.data_inicial
+        ? new Date(apuracao.data_inicial)
+        : null;
+    const dataFinal =
+      apuracao && apuracao.data_final ? new Date(apuracao.data_final) : null;
+
+    // Formatar as datas para exibição no formato DD/MM/YYYY
+    const formatarData = (data: Date | null) => {
+      if (!data) return "";
+      return `${data.getDate().toString().padStart(2, "0")}/${(
+        data.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}/${data.getFullYear()}`;
+    };
+
+    const periodoFormatado =
+      dataInicial && dataFinal
+        ? `${formatarData(dataInicial)} a ${formatarData(dataFinal)}`
+        : "";
+
+    // Obter o trimestre do período
+    const trimestreFormatado = converterParaTrimestre(dataInicial, dataFinal);
+
+    // Gerar um número de documento baseado no ID e no trimestre
+    const documento = trimestreFormatado
+      ? `ROY-${id.substring(0, 8)}-${trimestreFormatado}`
+      : `ROY-${id.substring(0, 8)}-${dataAtual.getFullYear()}${(
+          dataAtual.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, "0")}`;
+
+    // Ordenar os grupos por nome da editora e adicionar campos adicionais
+    return Object.values(grupos)
+      .map((grupo: any) => ({
+        ...grupo,
+        id_grupo: id,
+        dt_movto: dataAtual,
+        dt_vencto: ultimoDiaMes,
+        documento: documento,
+        valor: lib.round(grupo.totalRoyalties),
+        pago: 0,
+        saldo: lib.round(grupo.totalRoyalties),
+        situacao: "Aberto",
+        valorPago: 0,
+        dt_pagto: null,
+        observacao: "",
+        referente:
+          trimestreFormatado ||
+          `${dataAtual.getFullYear()}/${(dataAtual.getMonth() + 1)
+            .toString()
+            .padStart(2, "0")}`,
+        historico: `Pagamento de Royalties - Período: ${periodoFormatado} (${trimestreFormatado})`,
+      }))
+      .sort((a: any, b: any) => a.editora.localeCompare(b.editora));
+  } catch (error) {
+    console.error("Erro ao agrupar apurações por editora:", error);
+    throw error;
+  }
+}
+
 export async function agruparApuracoesPorProdutoEditora({
   id_grupo,
 }: {

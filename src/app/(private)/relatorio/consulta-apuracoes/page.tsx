@@ -8,6 +8,7 @@ import {
   consultarApuracoesPorPeriodo,
   excluirApuracao,
   fecharApuracao,
+  processarApuracaoFechada,
 } from "@/actions/actApurarRoyalties";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -128,10 +129,48 @@ export default function ConsultaApuracoesPage() {
 
     setFechando(true);
     try {
-      const resultado = await fecharApuracao({
+      // Primeiro, fechar a apuração
+      const resultadoFechamento = await fecharApuracao({
         id: apuracaoParaFechar,
       });
-      setApuracaoFechada(resultado);
+
+      // Verificar se o fechamento foi bem-sucedido
+      if (resultadoFechamento && resultadoFechamento.sucesso) {
+        try {
+          // Processar a apuração fechada
+          const resultadoProcessamento = await processarApuracaoFechada({
+            id: apuracaoParaFechar,
+          });
+
+          // Atualizar a mensagem com informações sobre o processamento
+          setApuracaoFechada({
+            ...resultadoFechamento,
+            mensagem: `${resultadoFechamento.mensagem} ${resultadoProcessamento.mensagem}`,
+            processado: true,
+          });
+        } catch (errProcessamento) {
+          console.error(
+            "Erro ao processar apuração fechada:",
+            errProcessamento
+          );
+          // Ainda consideramos o fechamento bem-sucedido, mas informamos sobre o erro no processamento
+          setApuracaoFechada({
+            ...resultadoFechamento,
+            mensagem: `${
+              resultadoFechamento.mensagem
+            } Porém houve um erro ao processar: ${
+              errProcessamento instanceof Error
+                ? errProcessamento.message
+                : "Erro desconhecido"
+            }`,
+            processado: false,
+          });
+        }
+      } else {
+        // Se o fechamento não foi bem-sucedido, apenas exibir o resultado do fechamento
+        setApuracaoFechada(resultadoFechamento);
+      }
+
       setApuracaoExcluida(null); // Limpar mensagem de exclusão se houver
       refetch(); // Atualizar a lista após o fechamento
     } catch (err) {
@@ -298,6 +337,19 @@ export default function ConsultaApuracoesPage() {
             <p className="text-sm text-muted-foreground mt-2">
               Código: {apuracaoFechada.id}
             </p>
+            {apuracaoFechada.processado === true && (
+              <p className="text-sm text-green-700 mt-2 flex items-center">
+                <CheckCircle className="mr-1 h-4 w-4" />
+                Processamento de royalties por editora concluído com sucesso.
+              </p>
+            )}
+            {apuracaoFechada.processado === false && (
+              <p className="text-sm text-amber-700 mt-2 flex items-center">
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                Houve um problema no processamento. Verifique os logs do
+                sistema.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -513,9 +565,13 @@ export default function ConsultaApuracoesPage() {
               <p className="font-medium text-amber-600 mb-2">
                 Atenção: Após fechada, a apuração não poderá ser excluída.
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-2">
                 O fechamento da apuração indica que os dados foram verificados e
                 estão prontos para uso em relatórios oficiais.
+              </p>
+              <p className="text-sm font-medium text-blue-600">
+                Após o fechamento, a apuração será automaticamente processada
+                para cálculo de royalties por editora.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
