@@ -257,35 +257,55 @@ export default function ApuracaoPorProdutoEditoraPage() {
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <FileText className="mr-2 h-5 w-5" />
-            Apuração por Produto e Editora
-          </CardTitle>
-          <CardDescription>
-            {id_grupo
-              ? `Código da Apuração: ${id_grupo}`
-              : "Selecione uma apuração para visualizar os dados"}
-            {apuracaoCurrentData && (
-              <div className="mt-2 text-sm">
-                <p>
-                  Período:{" "}
-                  {new Date(
-                    apuracaoCurrentData.data_inicial
-                  ).toLocaleDateString("pt-BR")}{" "}
-                  a{" "}
-                  {new Date(apuracaoCurrentData.data_final).toLocaleDateString(
-                    "pt-BR"
-                  )}
-                </p>
-                <p>
-                  Status:{" "}
-                  <span className="font-semibold">
-                    {apuracaoCurrentData.status}
-                  </span>
-                </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="flex items-center">
+                <FileText className="mr-2 h-5 w-5" />
+                Apuração por Produto e Editora
+              </CardTitle>
+              <CardDescription>
+                {id_grupo
+                  ? `Código da Apuração: ${id_grupo}`
+                  : "Selecione uma apuração para visualizar os dados"}
+                {apuracaoCurrentData && (
+                  <div className="mt-2 text-sm">
+                    <p>
+                      Período:{" "}
+                      {new Date(
+                        apuracaoCurrentData.data_inicial
+                      ).toLocaleDateString("pt-BR")}{" "}
+                      a{" "}
+                      {new Date(
+                        apuracaoCurrentData.data_final
+                      ).toLocaleDateString("pt-BR")}
+                    </p>
+                    <p>
+                      Status:{" "}
+                      <span className="font-semibold">
+                        {apuracaoCurrentData.status}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </CardDescription>
+            </div>
+            {id_grupo && data && !isLoading && (
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={exportarCSV}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar para CSV
+                </Button>
+                <RelatorioPDF
+                  data={data}
+                  filteredData={filtrarItens()}
+                  periodo={`${id_grupo}`}
+                  id_grupo={id_grupo}
+                  empresaData={empresaData}
+                  apuracaoCurrentData={apuracaoCurrentData}
+                />
               </div>
             )}
-          </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           {!id_grupo && (
@@ -613,20 +633,6 @@ export default function ApuracaoPorProdutoEditoraPage() {
               <p className="text-sm text-muted-foreground">
                 Exibindo {filtrarItens().length} de {data.length} itens
               </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={exportarCSV}>
-                <Download className="mr-2 h-4 w-4" />
-                Exportar para CSV
-              </Button>
-              <RelatorioPDF
-                data={data}
-                filteredData={filtrarItens()}
-                periodo={`${id_grupo}`}
-                id_grupo={id_grupo}
-                empresaData={empresaData}
-                apuracaoCurrentData={apuracaoCurrentData}
-              />
             </div>
           </CardFooter>
         )}

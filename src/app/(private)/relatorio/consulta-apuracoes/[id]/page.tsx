@@ -158,11 +158,9 @@ export default function DetalhesApuracaoPage({
                 };
               }
 
-              // Calcular valor de royalties com base na porcentagem de participação
-              const valorRoyaltiesPorFaixa = item.valorRoyaltiesPorFaixa || 0;
+              // Utilizar diretamente o valor de royalties da editora
               const participacao = publisher.participationPercentage || 100;
-              const valorRoyaltiesEditora =
-                (valorRoyaltiesPorFaixa * participacao) / 100;
+              const valorRoyaltiesEditora = publisher.valor_royalties;
 
               // Adicionar informações ao grupo
               if (!grupos[nomeEditora].itens.includes(item)) {
@@ -201,12 +199,9 @@ export default function DetalhesApuracaoPage({
                     };
                   }
 
-                  // Calcular valor de royalties com base na porcentagem de participação
-                  const valorRoyaltiesPorFaixa =
-                    item.valorRoyaltiesPorFaixa || 0;
+                  // Utilizar diretamente o valor de royalties da editora
                   const participacao = publisher.participationPercentage || 100;
-                  const valorRoyaltiesEditora =
-                    (valorRoyaltiesPorFaixa * participacao) / 100;
+                  const valorRoyaltiesEditora = publisher.valor_royalties;
 
                   // Adicionar informações ao grupo
                   if (

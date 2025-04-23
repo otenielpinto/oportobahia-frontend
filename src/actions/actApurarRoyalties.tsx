@@ -28,6 +28,9 @@ export async function iniciarApuracao({
     const { client, clientdb } = await TMongo.connectToDatabase();
     let id = uuidv4();
 
+    //Buscar todas as editoras *** Estou fazendo isso , porque pode ser alterado o nome da editora ***
+    const editoras = await clientdb.collection("editora").find({}).toArray();
+
     // Salvar dados na collection tmp_apuracao_current
     await clientdb.collection(collectionCurrent).insertOne({
       id,
@@ -35,6 +38,7 @@ export async function iniciarApuracao({
       data_final: toDate,
       data_apuracao: new Date(),
       status: status_aguardando,
+      editoras,
     });
     await TMongo.mongoDisconnect(client);
 
@@ -266,12 +270,17 @@ export async function agruparApuracoesPorProdutoEditora({
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
 
+    // Buscar os dados da apuração . Dessa forma eu sempre terei o nome da editora correta .
+    const apuracao: any = await clientdb
+      .collection("tmp_apuracao_current")
+      .findOne({ id: id_grupo });
+
     // Buscar todas as editoras e criar um mapa para acesso rápido
-    const editoras = await clientdb.collection("editora").find({}).toArray();
+    const editoras: any = apuracao.editoras || [];
     const editorasMap = new Map();
 
     // Criar um mapa de editoras para acesso rápido por nome
-    editoras.forEach((editora) => {
+    editoras.forEach((editora: any) => {
       editorasMap.set(editora.name, editora);
     });
 
