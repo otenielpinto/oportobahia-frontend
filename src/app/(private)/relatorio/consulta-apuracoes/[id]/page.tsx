@@ -507,7 +507,16 @@ export default function DetalhesApuracaoPage({
                     {agruparPorEditora().map((grupo: any, index: number) => (
                       <div key={index} className="border rounded-md p-4">
                         <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-lg font-bold">{grupo.editora}</h3>
+                          <h3 className="text-lg font-bold">
+                            <Link
+                              href={`/relatorio/apuracao-por-produto-editora?id=${id}&editora=${encodeURIComponent(
+                                grupo.editora
+                              )}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              {grupo.editora}
+                            </Link>
+                          </h3>
                           <div className="flex space-x-4">
                             <div className="text-sm">
                               <span className="font-medium">Itens:</span>{" "}
@@ -662,7 +671,14 @@ export default function DetalhesApuracaoPage({
                                 (grupo: any, index: number) => (
                                   <TableRow key={index}>
                                     <TableCell className="font-medium">
-                                      {grupo.editora}
+                                      <Link
+                                        href={`/relatorio/apuracao-por-produto-editora?id=${id}&editora=${encodeURIComponent(
+                                          grupo.editora
+                                        )}`}
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        {grupo.editora}
+                                      </Link>
                                     </TableCell>
                                     <TableCell>{grupo.totalItens}</TableCell>
                                     <TableCell>

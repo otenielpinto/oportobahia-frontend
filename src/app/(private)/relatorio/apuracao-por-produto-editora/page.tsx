@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   agruparApuracoesPorProdutoEditora,
@@ -44,6 +44,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 // Interface para os dados retornados pela função agruparApuracoesPorProdutoEditora
 interface ProdutoEditoraItem {
@@ -64,6 +66,7 @@ interface ProdutoEditoraItem {
 export default function ApuracaoPorProdutoEditoraPage() {
   const searchParams = useSearchParams();
   const id_grupo = searchParams.get("id") || "";
+  const editoraParam = searchParams.get("editora") || "";
 
   const [filtroProduto, setFiltroProduto] = useState("");
   const [filtroEditora, setFiltroEditora] = useState("");
@@ -196,6 +199,13 @@ export default function ApuracaoPorProdutoEditoraPage() {
 
   const { totalItens, totalValor } = calcularTotais();
 
+  // Efeito para preencher o filtro de editora quando o parâmetro estiver presente na URL
+  useEffect(() => {
+    if (editoraParam) {
+      setFiltroEditora(editoraParam);
+    }
+  }, [editoraParam]);
+
   // Função para exportar os dados para CSV
   const exportarCSV = () => {
     if (!data || data.length === 0) return;
@@ -291,6 +301,12 @@ export default function ApuracaoPorProdutoEditoraPage() {
             </div>
             {id_grupo && data && !isLoading && (
               <div className="flex gap-2">
+                <Link href={`/relatorio/consulta-apuracoes/${id_grupo}`}>
+                  <Button variant="outline">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Voltar
+                  </Button>
+                </Link>
                 <Button variant="outline" onClick={exportarCSV}>
                   <Download className="mr-2 h-4 w-4" />
                   Exportar para CSV
