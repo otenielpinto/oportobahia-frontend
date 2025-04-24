@@ -768,3 +768,161 @@ export async function agruparApuracoesPorProdutoEditora({
     throw error;
   }
 }
+
+/**
+ * Consulta todos os registros com situação "Aberto" na collection tmp_apuracao_royalties
+ * Ordenados por data de vencimento crescente (vencimentos mais próximos primeiro)
+ * @returns Array com todos os registros em aberto
+ */
+export async function consultarRoyaltiesEmAberto() {
+  try {
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Buscar todos os registros com situação "Aberto"
+    const registrosAbertos = await clientdb
+      .collection("tmp_apuracao_royalties")
+      .find({ situacao: "Aberto" })
+      .sort({ dt_vencto: 1 }) // Ordenar pela data de vencimento (crescente - mais próximo primeiro)
+      .toArray();
+
+    await TMongo.mongoDisconnect(client);
+
+    // Formatar as datas para exibição
+    const registrosFormatados = registrosAbertos.map((registro) => {
+      // Converter datas para objetos Date se forem strings
+      const dt_movto = registro.dt_movto ? new Date(registro.dt_movto) : null;
+      const dt_vencto = registro.dt_vencto
+        ? new Date(registro.dt_vencto)
+        : null;
+      const dt_pagto = registro.dt_pagto ? new Date(registro.dt_pagto) : null;
+
+      return {
+        ...registro,
+        dt_movto,
+        dt_vencto,
+        dt_pagto,
+        // Adicionar campos calculados que podem ser úteis na interface
+        diasAteVencimento: dt_vencto
+          ? Math.ceil(
+              (dt_vencto.getTime() - new Date().getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : null,
+        vencido: dt_vencto ? dt_vencto < new Date() : false,
+      };
+    });
+
+    return {
+      total: registrosFormatados.length,
+      registros: registrosFormatados,
+    };
+  } catch (error) {
+    console.error("Erro ao consultar royalties em aberto:", error);
+    throw error;
+  }
+}
+
+/**
+ * Consulta um registro específico de royalties por ID do grupo
+ * @param id_grupo - ID do grupo de apuração
+ * @returns O registro encontrado ou null se não existir
+ */
+export async function consultarRoyaltiesPorIdGrupo({
+  id_grupo,
+}: {
+  id_grupo: string;
+}) {
+  try {
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Buscar o registro pelo ID do grupo
+    const registro = await clientdb
+      .collection("tmp_apuracao_royalties")
+      .findOne({ id_grupo: id_grupo });
+
+    await TMongo.mongoDisconnect(client);
+
+    if (!registro) {
+      return null;
+    }
+
+    // Converter datas para objetos Date se forem strings
+    const dt_movto = registro.dt_movto ? new Date(registro.dt_movto) : null;
+    const dt_vencto = registro.dt_vencto ? new Date(registro.dt_vencto) : null;
+    const dt_pagto = registro.dt_pagto ? new Date(registro.dt_pagto) : null;
+
+    return {
+      ...registro,
+      dt_movto,
+      dt_vencto,
+      dt_pagto,
+      // Adicionar campos calculados que podem ser úteis na interface
+      diasAteVencimento: dt_vencto
+        ? Math.ceil(
+            (dt_vencto.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+          )
+        : null,
+      vencido: dt_vencto ? dt_vencto < new Date() : false,
+    };
+  } catch (error) {
+    console.error("Erro ao consultar royalties por ID do grupo:", error);
+    throw error;
+  }
+}
+
+/**
+ * Consulta royalties por editora
+ * @param editora - Nome da editora para filtrar
+ * @returns Array com os registros da editora especificada
+ */
+export async function consultarRoyaltiesPorEditora({
+  editora,
+}: {
+  editora: string;
+}) {
+  try {
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Buscar registros pela editora
+    const registros = await clientdb
+      .collection("tmp_apuracao_royalties")
+      .find({ editora: editora })
+      .sort({ dt_movto: -1 }) // Ordenar pela data de movimento (mais recente primeiro)
+      .toArray();
+
+    await TMongo.mongoDisconnect(client);
+
+    // Formatar as datas para exibição
+    const registrosFormatados = registros.map((registro) => {
+      // Converter datas para objetos Date se forem strings
+      const dt_movto = registro.dt_movto ? new Date(registro.dt_movto) : null;
+      const dt_vencto = registro.dt_vencto
+        ? new Date(registro.dt_vencto)
+        : null;
+      const dt_pagto = registro.dt_pagto ? new Date(registro.dt_pagto) : null;
+
+      return {
+        ...registro,
+        dt_movto,
+        dt_vencto,
+        dt_pagto,
+        // Adicionar campos calculados que podem ser úteis na interface
+        diasAteVencimento: dt_vencto
+          ? Math.ceil(
+              (dt_vencto.getTime() - new Date().getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : null,
+        vencido: dt_vencto ? dt_vencto < new Date() : false,
+      };
+    });
+
+    return {
+      total: registrosFormatados.length,
+      registros: registrosFormatados,
+    };
+  } catch (error) {
+    console.error("Erro ao consultar royalties por editora:", error);
+    throw error;
+  }
+}
