@@ -5,6 +5,7 @@ import {
   AlarmClockMinus,
   Plus,
   ReceiptText,
+  DollarSign,
 } from "lucide-react";
 
 export const menuItems: SideNavItem[] = [
@@ -47,6 +48,12 @@ export const menuItems: SideNavItem[] = [
       {
         title: "Consultar apuração",
         path: "/relatorio/consulta-apuracoes",
+        admin: true,
+      },
+
+      {
+        title: "Royalties em Aberto",
+        path: "/relatorio/royalties-em-aberto",
         admin: true,
       },
     ],
