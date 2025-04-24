@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  consultarRoyaltiesEmAberto,
-  consultarRoyaltiesPorEditora,
+  consultarRoyalties,
+  registrarPagamentoRoyalties,
 } from "@/actions/actApurarRoyalties";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -21,7 +21,17 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
+  X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -49,7 +59,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Interface para os dados retornados pela função consultarRoyaltiesEmAberto
+// Interface para os dados retornados pela função consultarRoyalties
 // Usamos tipagem dinâmica (any) para evitar problemas com a estrutura dos dados
 // que pode variar dependendo da fonte
 
@@ -58,17 +68,30 @@ export default function RoyaltiesEmAbertoPage() {
   const [filtroEditora, setFiltroEditora] = useState("");
   const [filtroDocumento, setFiltroDocumento] = useState("");
   const [filtroReferente, setFiltroReferente] = useState("");
+  const [situacao, setSituacao] = useState<string>("Aberto");
   const [ordenacao, setOrdenacao] = useState<string>("dt_vencto");
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<"asc" | "desc">(
     "asc"
   );
 
-  // Consulta para obter os dados de royalties em aberto
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["royalties-em-aberto"],
+  // Estados para o modal de pagamento
+  const [isDialogPagamentoOpen, setIsDialogPagamentoOpen] = useState(false);
+  const [royaltyParaPagar, setRoyaltyParaPagar] = useState<any>(null);
+  const [valorPagamento, setValorPagamento] = useState("");
+  const [observacaoPagamento, setObservacaoPagamento] = useState("");
+  const [dataPagamento, setDataPagamento] = useState(
+    format(new Date(), "yyyy-MM-dd")
+  );
+  const [processandoPagamento, setProcessandoPagamento] = useState(false);
+  const [resultadoPagamento, setResultadoPagamento] = useState<any>(null);
+
+  // Consulta para obter os dados de royalties com base na situação selecionada
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["royalties-em-aberto", situacao],
     queryFn: async () => {
-      return await consultarRoyaltiesEmAberto();
+      return await consultarRoyalties({ situacao });
     },
+    enabled: !!situacao, // Só executa a consulta quando a situação estiver definida
   });
 
   // Não precisamos dos dados da empresa para esta interface
@@ -190,7 +213,10 @@ export default function RoyaltiesEmAbertoPage() {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `royalties-em-aberto-${format(new Date(), "yyyy-MM-dd")}.csv`
+      `royalties-${situacao.toLowerCase()}-${format(
+        new Date(),
+        "yyyy-MM-dd"
+      )}.csv`
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
@@ -208,6 +234,77 @@ export default function RoyaltiesEmAbertoPage() {
     }
   };
 
+  // Abrir o modal de pagamento
+  const abrirModalPagamento = (item: any) => {
+    // Verificar se a situação permite pagamento
+    if (item.situacao === "Pago") {
+      alert("Royalties com situação 'Pago' não podem receber pagamentos.");
+      return;
+    }
+
+    setRoyaltyParaPagar(item);
+    setValorPagamento(item.valor.toString());
+    setObservacaoPagamento("");
+    setDataPagamento(format(new Date(), "yyyy-MM-dd"));
+    setResultadoPagamento(null);
+    setIsDialogPagamentoOpen(true);
+  };
+
+  // Processar o pagamento
+  const processarPagamento = async () => {
+    if (!royaltyParaPagar) return;
+
+    // Verificação adicional para garantir que a situação permite pagamento
+    if (royaltyParaPagar.situacao === "Pago") {
+      setResultadoPagamento({
+        sucesso: false,
+        mensagem: "Royalties com situação 'Pago' não podem receber pagamentos.",
+      });
+      return;
+    }
+
+    try {
+      setProcessandoPagamento(true);
+
+      // Converter o valor para número
+      const valorNumerico = parseFloat(valorPagamento);
+      if (isNaN(valorNumerico)) {
+        throw new Error("O valor do pagamento deve ser um número válido.");
+      }
+
+      // Converter a data para objeto Date
+      const dataObj = new Date(dataPagamento);
+
+      // Chamar a função de pagamento
+      const resultado = await registrarPagamentoRoyalties({
+        id: royaltyParaPagar.id,
+        pago: valorNumerico,
+        dt_pagto: dataObj,
+        observacao: observacaoPagamento,
+      });
+
+      setResultadoPagamento(resultado);
+
+      // Atualizar a lista após o pagamento bem-sucedido
+      if (resultado.sucesso) {
+        setTimeout(() => {
+          refetch();
+          setIsDialogPagamentoOpen(false);
+        }, 2000);
+      }
+    } catch (error) {
+      setResultadoPagamento({
+        sucesso: false,
+        mensagem:
+          error instanceof Error
+            ? error.message
+            : "Erro ao processar pagamento",
+      });
+    } finally {
+      setProcessandoPagamento(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Card>
@@ -216,11 +313,10 @@ export default function RoyaltiesEmAbertoPage() {
             <div>
               <CardTitle className="flex items-center">
                 <DollarSign className="mr-2 h-5 w-5" />
-                Royalties em Aberto
+                Royalties
               </CardTitle>
               <CardDescription>
-                Consulta de todos os royalties com situação &#39;Aberto&#39;
-                para pagamento
+                Consulta de royalties por situação
               </CardDescription>
             </div>
             {data && data.registros && !isLoading && (
@@ -258,7 +354,8 @@ export default function RoyaltiesEmAbertoPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-blue-50 p-4 rounded-md">
                   <div className="text-sm text-blue-600 font-medium">
-                    Total de Royalties em Aberto
+                    Total de Royalties{" "}
+                    {situacao === "Todos" ? "" : `(${situacao})`}
                   </div>
                   <div className="text-2xl font-bold">{totalItens}</div>
                 </div>
@@ -279,6 +376,26 @@ export default function RoyaltiesEmAbertoPage() {
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1 space-y-2">
+                  <label className="text-sm font-medium">Situação</label>
+                  <Select
+                    value={situacao}
+                    onValueChange={(valor) => {
+                      setSituacao(valor);
+                      // Refetch é chamado automaticamente quando a queryKey muda
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a situação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Aberto">Aberto</SelectItem>
+                      <SelectItem value="Pago">Pago</SelectItem>
+                      <SelectItem value="Cancelado">Cancelado</SelectItem>
+                      <SelectItem value="Todos">Todos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex-1 space-y-2">
                   <label className="text-sm font-medium">Editora</label>
                   <div className="flex items-center space-x-2">
@@ -529,15 +646,29 @@ export default function RoyaltiesEmAbertoPage() {
                                   Detalhes
                                 </Button>
                               </Link>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-2 text-xs bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
-                                title="Registrar pagamento"
-                              >
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Pagar
-                              </Button>
+                              {item.situacao !== "Pago" ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-2 text-xs bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                                  title="Registrar pagamento"
+                                  onClick={() => abrirModalPagamento(item)}
+                                >
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Pagar
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-2 text-xs bg-gray-50 text-gray-400 cursor-not-allowed"
+                                  title="Pagamento não disponível para esta situação"
+                                  disabled
+                                >
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Pago
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -554,12 +685,137 @@ export default function RoyaltiesEmAbertoPage() {
             <div>
               <p className="text-sm text-muted-foreground">
                 Exibindo {filtrarItens().length} de {data.registros.length}{" "}
-                royalties em aberto
+                royalties{" "}
+                {situacao === "Todos" ? "" : `com situação "${situacao}"`}
               </p>
             </div>
           </CardFooter>
         )}
       </Card>
+
+      {/* Modal de Pagamento */}
+      <Dialog
+        open={isDialogPagamentoOpen}
+        onOpenChange={setIsDialogPagamentoOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <DollarSign className="mr-2 h-5 w-5 text-green-600" />
+              Registrar Pagamento de Royalties
+            </DialogTitle>
+            <DialogDescription>
+              {royaltyParaPagar && (
+                <div className="mt-2 space-y-1 text-sm">
+                  <p>
+                    <span className="font-medium">Editora:</span>{" "}
+                    {royaltyParaPagar.editora}
+                  </p>
+                  <p>
+                    <span className="font-medium">Documento:</span>{" "}
+                    {royaltyParaPagar.documento}
+                  </p>
+                  <p>
+                    <span className="font-medium">Referente:</span>{" "}
+                    {royaltyParaPagar.referente || "-"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Valor Total:</span>{" "}
+                    {formatarMoeda(royaltyParaPagar.valor)}
+                  </p>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Valor do Pagamento</label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={valorPagamento}
+                onChange={(e) => setValorPagamento(e.target.value)}
+                placeholder="Informe o valor do pagamento"
+                disabled={processandoPagamento}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Data do Pagamento</label>
+              <Input
+                type="date"
+                value={dataPagamento}
+                onChange={(e) => setDataPagamento(e.target.value)}
+                disabled={processandoPagamento}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Observação</label>
+              <Input
+                type="text"
+                value={observacaoPagamento}
+                onChange={(e) => setObservacaoPagamento(e.target.value)}
+                placeholder="Observações sobre o pagamento"
+                disabled={processandoPagamento}
+              />
+            </div>
+
+            {resultadoPagamento && (
+              <div
+                className={`p-3 rounded-md ${
+                  resultadoPagamento.sucesso
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
+              >
+                <p
+                  className={
+                    resultadoPagamento.sucesso
+                      ? "text-green-700"
+                      : "text-red-700"
+                  }
+                >
+                  {resultadoPagamento.mensagem}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="sm:justify-between">
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={processandoPagamento}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button
+              type="button"
+              onClick={processarPagamento}
+              disabled={processandoPagamento}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {processandoPagamento ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Confirmar Pagamento
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

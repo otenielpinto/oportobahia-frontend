@@ -337,6 +337,11 @@ export async function excluirApuracao({ id }: { id: string }) {
     // Excluir a apuração da collection tmp_apuracao_current
     await clientdb.collection(collectionCurrent).deleteOne({ id });
 
+    // Excluir os itens relacionados da collection tmp_apuracao_royalties
+    await clientdb
+      .collection("tmp_apuracao_royalties")
+      .deleteMany({ id_grupo: id });
+
     // Excluir os itens relacionados da collection tmp_apuracao_periodo
     const resultadoExclusaoItens = await clientdb
       .collection(collectionPeriodo)
@@ -511,6 +516,7 @@ export async function agruparApuracoesPorEditora({ id }: { id: string }) {
     return Object.values(grupos)
       .map((grupo: any) => ({
         ...grupo,
+        id: uuidv4(),
         id_grupo: id,
         dt_movto: dataAtual,
         dt_vencto: ultimoDiaMes,
@@ -519,7 +525,6 @@ export async function agruparApuracoesPorEditora({ id }: { id: string }) {
         pago: 0,
         saldo: lib.round(grupo.totalRoyalties),
         situacao: "Aberto",
-        valorPago: 0,
         dt_pagto: null,
         observacao: "",
         referente:
@@ -770,25 +775,32 @@ export async function agruparApuracoesPorProdutoEditora({
 }
 
 /**
- * Consulta todos os registros com situação "Aberto" na collection tmp_apuracao_royalties
+ * Consulta registros na collection tmp_apuracao_royalties filtrados por situação
  * Ordenados por data de vencimento crescente (vencimentos mais próximos primeiro)
- * @returns Array com todos os registros em aberto
+ * @param situacao - Situação para filtrar (opcional, padrão: "Aberto")
+ * @returns Array com os registros que correspondem à situação especificada
  */
-export async function consultarRoyaltiesEmAberto() {
+export async function consultarRoyalties({
+  situacao = "Aberto",
+}: { situacao?: string } = {}) {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    // Buscar todos os registros com situação "Aberto"
-    const registrosAbertos = await clientdb
+    // Criar o filtro com base na situação fornecida
+    // Se a situação for "Todos", não aplicamos filtro de situação
+    const filtro = situacao && situacao !== "Todos" ? { situacao } : {};
+
+    // Buscar os registros com o filtro especificado
+    const registros = await clientdb
       .collection("tmp_apuracao_royalties")
-      .find({ situacao: "Aberto" })
+      .find(filtro)
       .sort({ dt_vencto: 1 }) // Ordenar pela data de vencimento (crescente - mais próximo primeiro)
       .toArray();
 
     await TMongo.mongoDisconnect(client);
 
     // Formatar as datas para exibição
-    const registrosFormatados = registrosAbertos.map((registro) => {
+    const registrosFormatados = registros.map((registro: any) => {
       // Converter datas para objetos Date se forem strings
       const dt_movto = registro.dt_movto ? new Date(registro.dt_movto) : null;
       const dt_vencto = registro.dt_vencto
@@ -822,107 +834,107 @@ export async function consultarRoyaltiesEmAberto() {
   }
 }
 
+// As funções consultarRoyaltiesPorIdGrupo e consultarRoyaltiesPorEditora foram removidas
+// Use a função consultarRoyalties com os parâmetros apropriados para obter os mesmos resultados
+
 /**
- * Consulta um registro específico de royalties por ID do grupo
- * @param id_grupo - ID do grupo de apuração
- * @returns O registro encontrado ou null se não existir
+ * Realiza o pagamento de um registro na collection tmp_apuracao_royalties
+ * @param id - ID do registro
+ * @param pago - Valor pago
+ * @param dt_pagto - Data do pagamento (opcional, padrão: data atual)
+ * @param observacao - Observação sobre o pagamento (opcional)
+ * @returns Objeto com informações sobre o resultado da operação
  */
-export async function consultarRoyaltiesPorIdGrupo({
-  id_grupo,
+export async function registrarPagamentoRoyalties({
+  id,
+  pago,
+  dt_pagto,
+  observacao,
 }: {
-  id_grupo: string;
+  id: string;
+  pago: number;
+  dt_pagto?: Date;
+  observacao?: string;
 }) {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    // Buscar o registro pelo ID do grupo
+    // Buscar o registro pelo ID
     const registro = await clientdb
       .collection("tmp_apuracao_royalties")
-      .findOne({ id_grupo: id_grupo });
-
-    await TMongo.mongoDisconnect(client);
+      .findOne({ id });
 
     if (!registro) {
-      return null;
+      await TMongo.mongoDisconnect(client);
+      throw new Error(`Registro com ID ${id} não encontrado.`);
     }
 
-    // Converter datas para objetos Date se forem strings
-    const dt_movto = registro.dt_movto ? new Date(registro.dt_movto) : null;
-    const dt_vencto = registro.dt_vencto ? new Date(registro.dt_vencto) : null;
-    const dt_pagto = registro.dt_pagto ? new Date(registro.dt_pagto) : null;
+    // Verificar se o registro já está pago
+    // Só consideramos pago se a situação for "Pago" E existir uma data de pagamento
+    if (registro.situacao === "Pago" && registro.dt_pagto) {
+      await TMongo.mongoDisconnect(client);
+      throw new Error(
+        `Este registro já foi pago em ${new Date(
+          registro.dt_pagto
+        ).toLocaleDateString()}.`
+      );
+    }
 
-    return {
-      ...registro,
-      dt_movto,
-      dt_vencto,
-      dt_pagto,
-      // Adicionar campos calculados que podem ser úteis na interface
-      diasAteVencimento: dt_vencto
-        ? Math.ceil(
-            (dt_vencto.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-          )
-        : null,
-      vencido: dt_vencto ? dt_vencto < new Date() : false,
-    };
-  } catch (error) {
-    console.error("Erro ao consultar royalties por ID do grupo:", error);
-    throw error;
-  }
-}
+    // Verificar se a situação permite pagamento
+    // Permitimos pagamento para qualquer situação que não seja "Pago"
+    if (registro.situacao === "Pago") {
+      await TMongo.mongoDisconnect(client);
+      throw new Error(
+        `Royalties com situação 'Pago' não podem receber pagamentos. Situação atual: ${registro.situacao}`
+      );
+    }
 
-/**
- * Consulta royalties por editora
- * @param editora - Nome da editora para filtrar
- * @returns Array com os registros da editora especificada
- */
-export async function consultarRoyaltiesPorEditora({
-  editora,
-}: {
-  editora: string;
-}) {
-  try {
-    const { client, clientdb } = await TMongo.connectToDatabase();
+    // Definir a data de pagamento (usar a data atual se não for fornecida)
+    const dataPagamento = dt_pagto || new Date();
 
-    // Buscar registros pela editora
-    const registros = await clientdb
+    // Calcular o saldo após o pagamento
+    const novoSaldo = registro.valor - pago;
+
+    // Determinar a nova situação com base no valor pago
+    // Se o valor pago for igual ou maior que o valor, a situação será "Pago"
+    const novaSituacao = pago >= registro.valor ? "Pago" : "Aberto";
+
+    // Atualizar o registro
+    const resultado = await clientdb
       .collection("tmp_apuracao_royalties")
-      .find({ editora: editora })
-      .sort({ dt_movto: -1 }) // Ordenar pela data de movimento (mais recente primeiro)
-      .toArray();
+      .updateOne(
+        { id_grupo: id },
+        {
+          $set: {
+            pago,
+            dt_pagto: dataPagamento,
+            observacao: observacao || "",
+            situacao: novaSituacao,
+            saldo: novoSaldo,
+            valorPago: pago,
+          },
+        }
+      );
 
     await TMongo.mongoDisconnect(client);
 
-    // Formatar as datas para exibição
-    const registrosFormatados = registros.map((registro) => {
-      // Converter datas para objetos Date se forem strings
-      const dt_movto = registro.dt_movto ? new Date(registro.dt_movto) : null;
-      const dt_vencto = registro.dt_vencto
-        ? new Date(registro.dt_vencto)
-        : null;
-      const dt_pagto = registro.dt_pagto ? new Date(registro.dt_pagto) : null;
-
-      return {
-        ...registro,
-        dt_movto,
-        dt_vencto,
-        dt_pagto,
-        // Adicionar campos calculados que podem ser úteis na interface
-        diasAteVencimento: dt_vencto
-          ? Math.ceil(
-              (dt_vencto.getTime() - new Date().getTime()) /
-                (1000 * 60 * 60 * 24)
-            )
-          : null,
-        vencido: dt_vencto ? dt_vencto < new Date() : false,
-      };
-    });
+    if (resultado.modifiedCount === 0) {
+      throw new Error(
+        "Não foi possível atualizar o registro. Tente novamente."
+      );
+    }
 
     return {
-      total: registrosFormatados.length,
-      registros: registrosFormatados,
+      sucesso: true,
+      mensagem: `Pagamento registrado com sucesso. Situação: ${novaSituacao}.`,
+      id,
+      valorPago: pago,
+      dataPagamento,
+      situacao: novaSituacao,
+      saldo: novoSaldo,
     };
   } catch (error) {
-    console.error("Erro ao consultar royalties por editora:", error);
+    console.error("Erro ao registrar pagamento:", error);
     throw error;
   }
 }
