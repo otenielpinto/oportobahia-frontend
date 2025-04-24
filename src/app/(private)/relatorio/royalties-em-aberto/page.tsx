@@ -218,8 +218,8 @@ export default function RoyaltiesEmAbertoPage() {
                 Royalties em Aberto
               </CardTitle>
               <CardDescription>
-                Consulta de todos os royalties com situação "Aberto" para
-                pagamento
+                Consulta de todos os royalties com situação &#39;Aberto&#39;
+                para pagamento
               </CardDescription>
             </div>
             {data && data.registros && !isLoading && (
