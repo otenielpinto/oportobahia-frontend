@@ -7,6 +7,7 @@ import {
   consultarRoyaltiesPorEditora,
 } from "@/actions/actApurarRoyalties";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
   Loader2,
@@ -512,14 +513,22 @@ export default function RoyaltiesEmAbertoPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-2 text-xs"
-                                title="Ver detalhes"
+                              <Link
+                                href={`/relatorio/apuracao-por-produto-editora?id=${
+                                  item.id_grupo || ""
+                                }&editora=${encodeURIComponent(
+                                  item.editora || ""
+                                )}`}
                               >
-                                Detalhes
-                              </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-2 text-xs"
+                                  title="Ver detalhes da apuração por produto e editora"
+                                >
+                                  Detalhes
+                                </Button>
+                              </Link>
                               <Button
                                 variant="outline"
                                 size="sm"
