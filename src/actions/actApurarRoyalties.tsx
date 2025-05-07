@@ -890,7 +890,10 @@ export async function registrarPagamentoRoyalties({
     }
 
     // Definir a data de pagamento (usar a data atual se não for fornecida)
-    const dataPagamento = dt_pagto || new Date();
+    // Definir a data de pagamento com a hora atual (usar a data atual se não for fornecida)
+    const dataPagamento = dt_pagto ? 
+      new Date(dt_pagto.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds())) : 
+      new Date();
 
     // Calcular o saldo após o pagamento
     const novoSaldo = registro.valor - pago;
@@ -903,7 +906,7 @@ export async function registrarPagamentoRoyalties({
     const resultado = await clientdb
       .collection("tmp_apuracao_royalties")
       .updateOne(
-        { id_grupo: id },
+        { id: id },
         {
           $set: {
             pago,
