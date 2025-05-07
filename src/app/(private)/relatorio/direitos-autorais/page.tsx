@@ -31,35 +31,13 @@ export default function DireitosAutoraisPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processado, setProcessado] = useState(false);
-  const [apuracoesAnteriores, setApuracoesAnteriores] = useState<any>(null);
-  const [consultando, setConsultando] = useState(false);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const resetarApuracao = () => {
     setProcessado(false);
     setResultado(null);
     setError(null);
-  };
-
-  const consultarApuracoes = async () => {
-    setConsultando(true);
-    try {
-      // Converter strings de data para objetos Date
-      const fromDate = parse(dataInicial, "yyyy-MM-dd", new Date());
-      const toDate = parse(dataFinal, "yyyy-MM-dd", new Date());
-
-      // Consultar apurações no período
-      const result = await consultarApuracoesPorPeriodo({
-        fromDate,
-        toDate,
-      });
-
-      setApuracoesAnteriores(result);
-    } catch (err) {
-      console.error("Erro ao consultar apurações:", err);
-    } finally {
-      setConsultando(false);
-    }
   };
 
   // Função para abrir o diálogo de confirmação
@@ -134,23 +112,13 @@ export default function DireitosAutoraisPage() {
           disabled={isLoading || processado}
         >
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Processar Apuração
+          Gerar Apuração
         </Button>
         {processado && (
           <Button variant="outline" onClick={resetarApuracao}>
             Nova Apuração
           </Button>
         )}
-        <Button
-          variant="secondary"
-          onClick={consultarApuracoes}
-          disabled={consultando}
-        >
-          {consultando ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : null}
-          Consultar Apurações
-        </Button>
       </div>
 
       {/* Diálogo de confirmação */}
@@ -242,51 +210,6 @@ export default function DireitosAutoraisPage() {
           </div>
         </div>
       ) : null}
-
-      {apuracoesAnteriores && !isLoading && (
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold mb-2">Apurações Anteriores:</h2>
-
-          {apuracoesAnteriores.total === 0 ? (
-            <p className="text-gray-500">
-              Nenhuma apuração encontrada no período selecionado.
-            </p>
-          ) : (
-            <div className="bg-gray-100 p-4 rounded">
-              <p className="mb-2">
-                <strong>Total de apurações:</strong> {apuracoesAnteriores.total}
-              </p>
-
-              <div className="space-y-4 mt-4">
-                {apuracoesAnteriores.apuracoes.map(
-                  (apuracao: any, index: number) => (
-                    <div key={index} className="bg-white p-3 rounded shadow-sm">
-                      <p>
-                        <strong>Código:</strong> {apuracao.id}
-                      </p>
-                      <p>
-                        <strong>Período:</strong>{" "}
-                        {format(new Date(apuracao.data_inicial), "dd/MM/yyyy")}{" "}
-                        a {format(new Date(apuracao.data_final), "dd/MM/yyyy")}
-                      </p>
-                      <p>
-                        <strong>Data da apuração:</strong>{" "}
-                        {format(
-                          new Date(apuracao.data_apuracao),
-                          "dd/MM/yyyy HH:mm"
-                        )}
-                      </p>
-                      <p>
-                        <strong>Status:</strong> {apuracao?.status}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

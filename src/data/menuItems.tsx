@@ -40,7 +40,7 @@ export const menuItems: SideNavItem[] = [
     submenu: true,
     subMenuItems: [
       {
-        title: "Processar apuração",
+        title: "Gerar apuração",
         path: "/relatorio/direitos-autorais",
         admin: true,
       },

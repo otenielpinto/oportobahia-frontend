@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { startOfMonth, endOfMonth, format, parse } from "date-fns";
+import { startOfMonth, endOfMonth, format, parse, startOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   consultarApuracoesPorPeriodo,
@@ -64,7 +64,7 @@ interface Apuracao {
 export default function ConsultaApuracoesPage() {
   // Estado para armazenar as datas de filtro
   const [dataInicial, setDataInicial] = useState<string>(
-    format(startOfMonth(new Date()), "yyyy-MM-dd")
+    format(startOfYear(new Date()), "yyyy-MM-dd")
   );
   const [dataFinal, setDataFinal] = useState<string>(
     format(endOfMonth(new Date()), "yyyy-MM-dd")
