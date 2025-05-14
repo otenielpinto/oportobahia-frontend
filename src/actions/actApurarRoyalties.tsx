@@ -119,6 +119,8 @@ export async function iniciarApuracao({
       data_apuracao: new Date(),
       status: status_aguardando,
       editoras,
+      has_error: false,
+      messages: [],
     });
     await TMongo.mongoDisconnect(client);
 
@@ -210,6 +212,8 @@ export async function consultarApuracoesPorPeriodo({
         data_apuracao: apuracao.data_apuracao,
         status: apuracao.status || "aberto", // Valor padrão para registros antigos
         data_fechamento: apuracao.data_fechamento,
+        has_error: apuracao.has_error || false,
+        messages: apuracao.messages || [],
       })),
     };
   } catch (error) {
@@ -891,9 +895,16 @@ export async function registrarPagamentoRoyalties({
 
     // Definir a data de pagamento (usar a data atual se não for fornecida)
     // Definir a data de pagamento com a hora atual (usar a data atual se não for fornecida)
-    const dataPagamento = dt_pagto ? 
-      new Date(dt_pagto.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds())) : 
-      new Date();
+    const dataPagamento = dt_pagto
+      ? new Date(
+          dt_pagto.setHours(
+            new Date().getHours(),
+            new Date().getMinutes(),
+            new Date().getSeconds(),
+            new Date().getMilliseconds()
+          )
+        )
+      : new Date();
 
     // Calcular o saldo após o pagamento
     const novoSaldo = registro.valor - pago;

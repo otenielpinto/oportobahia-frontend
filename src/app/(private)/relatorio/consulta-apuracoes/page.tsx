@@ -22,6 +22,7 @@ import {
   CheckCircle,
   LockIcon,
   UnlockIcon,
+  AlertCircle,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -59,6 +60,8 @@ interface Apuracao {
   data_apuracao: string | Date;
   status: string;
   data_fechamento?: string | Date;
+  has_error?: boolean;
+  messages?: string[];
 }
 
 export default function ConsultaApuracoesPage() {
@@ -80,6 +83,9 @@ export default function ConsultaApuracoesPage() {
   const [isAlertFecharOpen, setIsAlertFecharOpen] = useState(false);
   const [apuracaoParaExcluir, setApuracaoParaExcluir] = useState<string>("");
   const [apuracaoParaFechar, setApuracaoParaFechar] = useState<string>("");
+  // Estados para o modal de mensagens de erro
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [mensagensErro, setMensagensErro] = useState<string[]>([]);
 
   // Configuração da query com React Query
   const { data, isLoading, isError, error, refetch } = useQuery({
@@ -383,6 +389,7 @@ export default function ConsultaApuracoesPage() {
                       <TableHead>Período da Apuração</TableHead>
                       <TableHead>Data de Processamento</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Tem erros?</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -438,6 +445,37 @@ export default function ConsultaApuracoesPage() {
                               Fechado em:{" "}
                               {formatarDataHora(apuracao.data_fechamento)}
                             </div>
+                          )}
+                        </TableCell>
+
+                        <TableCell>
+                          {apuracao?.has_error ? (
+                            <div className="flex flex-col gap-2">
+                              <Badge variant="destructive" className="w-fit">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Sim
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setMensagensErro(apuracao.messages || []);
+                                  setIsErrorModalOpen(true);
+                                }}
+                                className="text-xs flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 -ml-2 pl-2"
+                              >
+                                <FileText className="h-3 w-3 mr-1" />
+                                Ver detalhes
+                              </Button>
+                            </div>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="bg-green-50 text-green-700 border-green-200"
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Não
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -590,6 +628,31 @@ export default function ConsultaApuracoesPage() {
               ) : (
                 "Fechar"
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal para exibir mensagens de erro */}
+      <AlertDialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mensagens de Erro</AlertDialogTitle>
+            <AlertDialogDescription>
+              {mensagensErro.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-1">
+                  {mensagensErro.map((mensagem, index) => (
+                    <li key={index}>{mensagem}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Nenhuma mensagem de erro disponível.</p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setIsErrorModalOpen(false)}>
+              Fechar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
