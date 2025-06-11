@@ -18,8 +18,18 @@ import {
   SortDesc,
   BookOpen,
   FileOutput,
+  ChevronDown,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import RelatorioPDF from "@/components/relatorio/RelatorioPDF";
+import RelatorioCSV from "@/components/relatorio/RelatorioCSV";
+import RelatorioTXT from "@/components/relatorio/RelatorioTXT";
 import {
   Card,
   CardContent,
@@ -206,53 +216,6 @@ export default function ApuracaoPorProdutoEditoraPage() {
     }
   }, [editoraParam]);
 
-  // Função para exportar os dados para CSV
-  const exportarCSV = () => {
-    if (!data || data.length === 0) return;
-
-    const itens = filtrarItens();
-    const cabecalho = [
-      "Código Produto",
-      "Formato",
-      "Editora",
-      "Obra",
-      "Código Faixa",
-      "% Editora",
-      "Vendas",
-      "Soma Vendas",
-      "Preço",
-      "% Obra",
-      "Valor Pagamento",
-    ].join(";");
-
-    const linhas = itens.map((item: ProdutoEditoraItem) => {
-      return [
-        item.codigoProduto,
-        item.formato,
-        item.editora,
-        item.obra,
-        item.codigoFaixa,
-        item.percentualEditora.toFixed(2),
-        item.vendas,
-        item.somaVendas.toFixed(2).replace(".", ","),
-        item.preco.toFixed(6).replace(".", ","),
-        item.percentualObra.toFixed(2),
-        item.valorPagamento.toFixed(2).replace(".", ","),
-      ].join(";");
-    });
-
-    const conteudoCSV = [cabecalho, ...linhas].join("\n");
-    const blob = new Blob([conteudoCSV], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `apuracao-produto-editora-${id_grupo}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // Alternar direção de ordenação
   const alternarOrdenacao = (campo: string) => {
     if (ordenacao === campo) {
@@ -307,18 +270,47 @@ export default function ApuracaoPorProdutoEditoraPage() {
                     Voltar
                   </Button>
                 </Link>
-                <Button variant="outline" onClick={exportarCSV}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Exportar para CSV
-                </Button>
-                <RelatorioPDF
-                  data={data}
-                  filteredData={filtrarItens()}
-                  periodo={`${id_grupo}`}
-                  id_grupo={id_grupo}
-                  empresaData={empresaData}
-                  apuracaoCurrentData={apuracaoCurrentData}
-                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button>
+                      Exportar
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Exportar dados</DropdownMenuLabel>
+                    <DropdownMenuItem>
+                      <RelatorioPDF
+                        data={data}
+                        filteredData={filtrarItens()}
+                        periodo={`${id_grupo}`}
+                        id_grupo={id_grupo}
+                        empresaData={empresaData}
+                        apuracaoCurrentData={apuracaoCurrentData}
+                      />
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <RelatorioCSV
+                        data={data}
+                        filteredData={filtrarItens()}
+                        periodo={`${id_grupo}`}
+                        id_grupo={id_grupo}
+                        empresaData={empresaData}
+                        apuracaoCurrentData={apuracaoCurrentData}
+                      />
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <RelatorioTXT
+                        data={data}
+                        filteredData={filtrarItens()}
+                        periodo={`${id_grupo}`}
+                        id_grupo={id_grupo}
+                        empresaData={empresaData}
+                        apuracaoCurrentData={apuracaoCurrentData}
+                      />
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>

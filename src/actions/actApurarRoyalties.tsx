@@ -603,6 +603,7 @@ export async function agruparApuracoesPorProdutoEditora({
             const participationPercentage =
               publisher.participationPercentage || 0;
             const valorRoyalties = publisher.valor_royalties || 0;
+            const publisherCode = publisher.publisherCode || "";
 
             // Obter o nome da obra e o código da faixa
             const trackName = track.work || "";
@@ -625,6 +626,7 @@ export async function agruparApuracoesPorProdutoEditora({
                 obra: trackName,
                 codigoFaixa: trackCode,
                 percentualEditora: participationPercentage,
+                publisherCode: publisherCode,
                 vendas: 0,
                 somaPrecos: 0, // Soma dos valores totais (baseCalculo) para cálculo do preço médio
                 percentualObra:
@@ -671,6 +673,7 @@ export async function agruparApuracoesPorProdutoEditora({
                 const valorRoyaltiesPorFaixa = item.valorRoyaltiesPorFaixa || 0;
                 const valorRoyalties =
                   (valorRoyaltiesPorFaixa * participationPercentage) / 100;
+                const publisherCode = publisher.publisherCode || "";
 
                 // Obter o nome da obra (subTrack) e o código da faixa
                 const trackName = subTrack.work || "";
@@ -695,6 +698,7 @@ export async function agruparApuracoesPorProdutoEditora({
                     obra: trackName,
                     codigoFaixa: trackCode,
                     percentualEditora: participationPercentage,
+                    publisherCode: publisherCode,
                     vendas: 0,
                     somaPrecos: 0, // Soma dos valores totais (baseCalculo) para cálculo do preço médio
                     percentualObra:
@@ -740,6 +744,7 @@ export async function agruparApuracoesPorProdutoEditora({
       obra: grupo.obra,
       codigoFaixa: grupo.codigoFaixa,
       percentualEditora: grupo.percentualEditora,
+      publisherCode: grupo.publisherCode,
       vendas: grupo.vendas,
       // Adicionar o campo somaVendas igual a somaPrecos
       somaVendas: grupo.somaPrecos,

@@ -92,6 +92,7 @@ export function LoginForm({
                   {...register("password")}
                   id="password"
                   type="password"
+                  placeholder="Informe sua senha"
                   required
                 />
 
