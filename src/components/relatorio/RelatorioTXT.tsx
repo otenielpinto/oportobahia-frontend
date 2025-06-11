@@ -135,7 +135,7 @@ export default function RelatorioTXT({
                 new Date(apuracaoCurrentData.data_final),
                 "dd/MM/yyyy"
               )}`
-            : periodo
+            : periodo || "Período não definido"
         }`,
         `Status da Apuração: ${apuracaoCurrentData?.status || "Não informado"}`,
         `Código da Apuração: ${id_grupo}`,

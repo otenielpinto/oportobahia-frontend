@@ -52,6 +52,7 @@ interface ProdutoEditoraItem {
   editora: string;
   editoraCompleta?: any; // Dados completos da editora para uso em relatórios
   obra: string;
+  publisherCode?: string; // Código da obra
   codigoFaixa: number;
   percentualEditora: number;
   vendas: number;
@@ -212,7 +213,7 @@ export default function RelatorioPDF({
                       new Date(apuracaoCurrentData.data_final),
                       "dd/MM/yyyy"
                     )}`
-                  : periodo}
+                  : periodo || "Período não definido"}
               </h3>
               <p style={{ margin: "5px 0", fontSize: "11px" }}>
                 {empresaData?.nome || "***"} - {empresaData?.rua || "***"},{" "}
@@ -511,6 +512,16 @@ export default function RelatorioPDF({
                                     style={{
                                       border: "1px solid #ddd",
                                       padding: "5px",
+                                      textAlign: "center",
+                                      width: "60px",
+                                    }}
+                                  >
+                                    Cód. Obra
+                                  </th>
+                                  <th
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "5px",
                                       textAlign: "left",
                                     }}
                                   >
@@ -646,6 +657,15 @@ export default function RelatorioPDF({
                                         }}
                                       >
                                         {item.obra}
+                                      </td>
+                                      <td
+                                        style={{
+                                          border: "1px solid #ddd",
+                                          padding: "5px",
+                                          textAlign: "center",
+                                        }}
+                                      >
+                                        {item.publisherCode || "Não informado"}
                                       </td>
                                       <td
                                         style={{

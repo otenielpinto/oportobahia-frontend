@@ -30,6 +30,7 @@ import {
 import RelatorioPDF from "@/components/relatorio/RelatorioPDF";
 import RelatorioCSV from "@/components/relatorio/RelatorioCSV";
 import RelatorioTXT from "@/components/relatorio/RelatorioTXT";
+import RelatorioExcel from "@/components/relatorio/RelatorioExcel";
 import {
   Card,
   CardContent,
@@ -64,6 +65,7 @@ interface ProdutoEditoraItem {
   editora: string;
   editoraCompleta?: any; // Dados completos da editora para uso em relatórios
   obra: string;
+  publisherCode?: string; // Código da obra
   codigoFaixa: number;
   percentualEditora: number;
   vendas: number;
@@ -309,6 +311,16 @@ export default function ApuracaoPorProdutoEditoraPage() {
                         apuracaoCurrentData={apuracaoCurrentData}
                       />
                     </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <RelatorioExcel
+                        data={data}
+                        filteredData={filtrarItens()}
+                        periodo={`${id_grupo}`}
+                        id_grupo={id_grupo}
+                        empresaData={empresaData}
+                        apuracaoCurrentData={apuracaoCurrentData}
+                      />
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -535,6 +547,7 @@ export default function ApuracaoPorProdutoEditoraPage() {
                           )}
                         </div>
                       </TableHead>
+                      <TableHead>Código da Obra</TableHead>
                       <TableHead
                         className="cursor-pointer"
                         onClick={() => alternarOrdenacao("codigoFaixa")}
@@ -608,6 +621,9 @@ export default function ApuracaoPorProdutoEditoraPage() {
                             title={item.obra}
                           >
                             {item.obra}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {item.publisherCode || "-"}
                           </TableCell>
                           <TableCell className="font-mono text-xs">
                             {item.codigoFaixa}

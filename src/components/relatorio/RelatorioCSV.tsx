@@ -65,7 +65,6 @@ export default function RelatorioCSV({
       return a.obra.localeCompare(b.obra);
     });
   };
-  console.log(data, "Dados para exportar CSV");
 
   // Aplicar a ordenacao aos itens
   const itensParaExportar = ordenarPorEditoraEFormato(filteredData || data);
@@ -114,7 +113,7 @@ export default function RelatorioCSV({
                 new Date(apuracaoCurrentData.data_final),
                 "dd/MM/yyyy"
               )}`
-            : periodo
+            : periodo || "Período não definido"
         }`,
         `# Status da Apuracao: ${
           apuracaoCurrentData?.status || "Nao informado"
