@@ -7,7 +7,7 @@ export const config = {
 
 const publicRoutes = ["/sign-in", "/sign-up", "/"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   //console.log(req.nextUrl);
 
   const pathname = req.nextUrl.pathname;
