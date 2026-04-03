@@ -3,7 +3,7 @@
 // import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import AuthService from "@/auth/util";
+
 
 export default function ButtonLogout() {
   const router = useRouter();
