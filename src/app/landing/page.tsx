@@ -63,7 +63,7 @@ export default function LandingPage() {
                   window.open(
                     "https://wa.me/5551998664776?text=Olá!%20Gostaria%20de%20agendar%20uma%20demonstração%20do%20software%20de%20cálculo%20de%20direitos%20autorais.",
                     "_blank",
-                    "noopener noreferrer"
+                    "noopener noreferrer",
                   )
                 }
               >
@@ -76,7 +76,7 @@ export default function LandingPage() {
                 alt="CD and DVD Collection"
                 width={2070}
                 height={400}
-                className="w-full h-[400px] object-cover"
+                className="w-full h-auto object-cover"
               />
             </div>
           </div>

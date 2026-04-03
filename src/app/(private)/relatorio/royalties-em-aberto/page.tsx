@@ -71,7 +71,7 @@ export default function RoyaltiesEmAbertoPage() {
   const [situacao, setSituacao] = useState<string>("Aberto");
   const [ordenacao, setOrdenacao] = useState<string>("dt_vencto");
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<"asc" | "desc">(
-    "asc"
+    "asc",
   );
 
   // Estados para o modal de pagamento
@@ -80,7 +80,7 @@ export default function RoyaltiesEmAbertoPage() {
   const [valorPagamento, setValorPagamento] = useState("");
   const [observacaoPagamento, setObservacaoPagamento] = useState("");
   const [dataPagamento, setDataPagamento] = useState(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [processandoPagamento, setProcessandoPagamento] = useState(false);
   const [resultadoPagamento, setResultadoPagamento] = useState<any>(null);
@@ -166,7 +166,7 @@ export default function RoyaltiesEmAbertoPage() {
     const totalItens = itens.length;
     const totalValor = itens.reduce(
       (acc: number, item: any) => acc + (item.valor || 0),
-      0
+      0,
     );
     const totalVencidos = itens.filter((item: any) => item.vencido).length;
 
@@ -215,8 +215,8 @@ export default function RoyaltiesEmAbertoPage() {
       "download",
       `royalties-${situacao.toLowerCase()}-${format(
         new Date(),
-        "yyyy-MM-dd"
-      )}.csv`
+        "yyyy-MM-dd",
+      )}.csv`,
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
@@ -463,7 +463,7 @@ export default function RoyaltiesEmAbertoPage() {
                     size="icon"
                     onClick={() =>
                       setDirecaoOrdenacao(
-                        direcaoOrdenacao === "asc" ? "desc" : "asc"
+                        direcaoOrdenacao === "asc" ? "desc" : "asc",
                       )
                     }
                   >
@@ -591,15 +591,15 @@ export default function RoyaltiesEmAbertoPage() {
                                   item.vencido
                                     ? "destructive"
                                     : item.diasAteVencimento <= 5
-                                    ? "outline"
-                                    : "secondary"
+                                      ? "outline"
+                                      : "secondary"
                                 }
                                 className={
                                   item.vencido
                                     ? "bg-red-100 text-red-800 hover:bg-red-100"
                                     : item.diasAteVencimento <= 5
-                                    ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                                    : "bg-green-100 text-green-800 hover:bg-green-100"
+                                      ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                                      : "bg-green-100 text-green-800 hover:bg-green-100"
                                 }
                               >
                                 {item.vencido ? (
@@ -634,7 +634,7 @@ export default function RoyaltiesEmAbertoPage() {
                                 href={`/relatorio/apuracao-por-produto-editora?id=${
                                   item.id_grupo || ""
                                 }&editora=${encodeURIComponent(
-                                  item.editora || ""
+                                  item.editora || "",
                                 )}`}
                               >
                                 <Button
@@ -672,7 +672,7 @@ export default function RoyaltiesEmAbertoPage() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      )
+                      ),
                     )}
                   </TableBody>
                 </Table>
@@ -705,28 +705,30 @@ export default function RoyaltiesEmAbertoPage() {
               Registrar Pagamento de Royalties
             </DialogTitle>
             <DialogDescription>
-              {royaltyParaPagar && (
-                <div className="mt-2 space-y-1 text-sm">
-                  <p>
-                    <span className="font-medium">Editora:</span>{" "}
-                    {royaltyParaPagar.editora}
-                  </p>
-                  <p>
-                    <span className="font-medium">Documento:</span>{" "}
-                    {royaltyParaPagar.documento}
-                  </p>
-                  <p>
-                    <span className="font-medium">Referente:</span>{" "}
-                    {royaltyParaPagar.referente || "-"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Valor Total:</span>{" "}
-                    {formatarMoeda(royaltyParaPagar.valor)}
-                  </p>
-                </div>
-              )}
+              Informe os dados do pagamento de royalties
             </DialogDescription>
           </DialogHeader>
+
+          {royaltyParaPagar && (
+            <div className="rounded-lg bg-muted p-4 space-y-2 text-sm mb-4">
+              <div className="flex justify-between">
+                <span className="font-medium">Editora:</span>
+                <span>{royaltyParaPagar.editora}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Documento:</span>
+                <span>{royaltyParaPagar.documento}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Referente:</span>
+                <span>{royaltyParaPagar.referente || "-"}</span>
+              </div>
+              <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
+                <span>Valor Total:</span>
+                <span>{formatarMoeda(royaltyParaPagar.valor)}</span>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">

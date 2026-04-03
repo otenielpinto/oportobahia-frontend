@@ -22,10 +22,10 @@ import {
 
 export default function DireitosAutoraisPage() {
   const [dataInicial, setDataInicial] = useState<string>(
-    format(startOfMonth(new Date()), "yyyy-MM-dd")
+    format(startOfMonth(new Date()), "yyyy-MM-dd"),
   );
   const [dataFinal, setDataFinal] = useState<string>(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [resultado, setResultado] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,8 +62,8 @@ export default function DireitosAutoraisPage() {
 
       // Chamar a função de apuração de royalties
       const result = await iniciarApuracao({
-        fromDate,
-        toDate,
+        fromDate: fromDate.toISOString(),
+        toDate: toDate.toISOString(),
       });
 
       // Armazenar o resultado
@@ -129,41 +129,43 @@ export default function DireitosAutoraisPage() {
               <AlertCircle className="h-5 w-5 mr-2 text-amber-500" />
               Confirmar Processamento
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              <div className="bg-amber-50 p-3 rounded-md border border-amber-200 mb-3">
-                <p className="font-medium text-amber-800 mb-1">
-                  Período selecionado:
-                </p>
-                <p className="text-amber-700">
-                  De:{" "}
-                  <span className="font-semibold">
-                    {format(
-                      parse(dataInicial, "yyyy-MM-dd", new Date()),
-                      "dd/MM/yyyy"
-                    )}
-                  </span>
-                </p>
-                <p className="text-amber-700">
-                  Até:{" "}
-                  <span className="font-semibold">
-                    {format(
-                      parse(dataFinal, "yyyy-MM-dd", new Date()),
-                      "dd/MM/yyyy"
-                    )}
-                  </span>
-                </p>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
+              <div className="font-medium text-amber-800 mb-1">
+                Período selecionado:
               </div>
-              <p className="mb-2">
+              <div className="text-amber-700">
+                De:{" "}
+                <span className="font-semibold">
+                  {format(
+                    parse(dataInicial, "yyyy-MM-dd", new Date()),
+                    "dd/MM/yyyy",
+                  )}
+                </span>
+              </div>
+              <div className="text-amber-700">
+                Até:{" "}
+                <span className="font-semibold">
+                  {format(
+                    parse(dataFinal, "yyyy-MM-dd", new Date()),
+                    "dd/MM/yyyy",
+                  )}
+                </span>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <div>
                 O relatório será processado através de uma fila e poderá demorar
                 até 15 minutos para ser concluído.
-              </p>
-              <p className="mb-2">
+              </div>
+              <div>
                 Durante este período, o sistema estará processando os dados e
                 calculando os royalties para cada item.
-              </p>
-              <p>Deseja continuar com o processamento?</p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+              </div>
+              <div>Deseja continuar com o processamento?</div>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handlePesquisar}>

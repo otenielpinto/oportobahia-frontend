@@ -67,10 +67,10 @@ interface Apuracao {
 export default function ConsultaApuracoesPage() {
   // Estado para armazenar as datas de filtro
   const [dataInicial, setDataInicial] = useState<string>(
-    format(startOfYear(new Date()), "yyyy-MM-dd")
+    format(startOfYear(new Date()), "yyyy-MM-dd"),
   );
   const [dataFinal, setDataFinal] = useState<string>(
-    format(endOfMonth(new Date()), "yyyy-MM-dd")
+    format(endOfMonth(new Date()), "yyyy-MM-dd"),
   );
 
   // Estados para controlar a interface
@@ -95,10 +95,10 @@ export default function ConsultaApuracoesPage() {
       const fromDate = parse(dataInicial, "yyyy-MM-dd", new Date());
       const toDate = parse(dataFinal, "yyyy-MM-dd", new Date());
 
-      // Chamar a função de consulta
+      // Chamar a função de consulta (converter para ISO string para compatibilidade)
       return await consultarApuracoesPorPeriodo({
-        fromDate,
-        toDate,
+        fromDate: fromDate.toISOString(),
+        toDate: toDate.toISOString(),
       });
     },
     enabled: false, // Não executar automaticamente ao montar o componente
@@ -157,7 +157,7 @@ export default function ConsultaApuracoesPage() {
         } catch (errProcessamento) {
           console.error(
             "Erro ao processar apuração fechada:",
-            errProcessamento
+            errProcessamento,
           );
           // Ainda consideramos o fechamento bem-sucedido, mas informamos sobre o erro no processamento
           setApuracaoFechada({
@@ -373,7 +373,7 @@ export default function ConsultaApuracoesPage() {
                 : `Foram encontradas ${
                     data.total
                   } apurações no período de ${formatarData(
-                    dataInicial
+                    dataInicial,
                   )} a ${formatarData(dataFinal)}.`}
             </CardDescription>
           </CardHeader>
@@ -412,15 +412,15 @@ export default function ConsultaApuracoesPage() {
                               apuracao.status === "fechado"
                                 ? "secondary"
                                 : apuracao.status === "aguardando"
-                                ? "outline"
-                                : "default"
+                                  ? "outline"
+                                  : "default"
                             }
                             className={
                               apuracao.status === "fechado"
                                 ? "bg-blue-100 text-blue-800 hover:bg-blue-100"
                                 : apuracao.status === "aguardando"
-                                ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                                : "bg-green-100 text-green-800 hover:bg-green-100"
+                                  ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                                  : "bg-green-100 text-green-800 hover:bg-green-100"
                             }
                           >
                             {apuracao.status === "fechado" ? (

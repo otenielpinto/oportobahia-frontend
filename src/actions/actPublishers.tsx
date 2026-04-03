@@ -1,6 +1,7 @@
 "use server";
 import { TMongo } from "@/infra/mongoClient";
 import { genId } from "./actGenerator";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 import {
   Publisher,
   PublisherFilterInterface,
@@ -32,7 +33,7 @@ export const createPublisher = async (publisher: any) => {
 
 export const updatePublisher = async (
   id: number,
-  updatedData: Partial<Publisher>
+  updatedData: Partial<Publisher>,
 ) => {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
@@ -48,7 +49,7 @@ export const updatePublisher = async (
     if (result.modifiedCount > 0) {
       await updateCatalogPublisherName(
         existingPublisher?.name,
-        updatedData?.name || ""
+        updatedData?.name || "",
       );
     }
 
@@ -80,16 +81,18 @@ export const getPublishers = async (): Promise<any[]> => {
     await TMongo.mongoDisconnect(client);
 
     const sortedPublishers = [...publishers].sort((a, b) =>
-      a.name.localeCompare(b.name)
+      a.name.localeCompare(b.name),
     );
 
-    return sortedPublishers.map((doc) => ({
-      id: doc.id,
-      name: doc.name,
-      status: doc.status,
-      cnpj: doc.cnpj,
-      account: doc.account,
-    }));
+    return serializeMongoData(
+      sortedPublishers.map((doc) => ({
+        id: doc.id,
+        name: doc.name,
+        status: doc.status,
+        cnpj: doc.cnpj,
+        account: doc.account,
+      })),
+    );
   } catch (error) {
     console.error("Error retrieving publishers:", error);
     throw error;
@@ -97,7 +100,7 @@ export const getPublishers = async (): Promise<any[]> => {
 };
 
 export async function fetchPublishers(
-  filter: PublisherFilterInterface
+  filter: PublisherFilterInterface,
 ): Promise<PublisherResponse> {
   let publishers = await getPublishers();
   publishers = [...publishers].sort((a, b) => a.name.localeCompare(b.name));
@@ -106,7 +109,7 @@ export async function fetchPublishers(
   if (filter.search) {
     const searchLower = filter.search.toLowerCase();
     filtered = filtered.filter((pub) =>
-      pub.name.toLowerCase().includes(searchLower)
+      pub.name.toLowerCase().includes(searchLower),
     );
   }
 
@@ -127,7 +130,7 @@ export async function fetchPublishers(
 
 export const updateCatalogPublisherName = async (
   oldName: string,
-  newName: string
+  newName: string,
 ): Promise<void> => {
   // 1. Verificar se oldName e newName são diferentes
   if (oldName === newName) {
@@ -160,7 +163,7 @@ export const updateCatalogPublisherName = async (
             { "track.publishers": { $exists: true } },
             { "pub.name": oldName },
           ],
-        }
+        },
       );
 
     // 3. Atualizar em todas as subTracks
@@ -180,7 +183,7 @@ export const updateCatalogPublisherName = async (
             { "subtrack.publishers": { $exists: true } },
             { "pub.name": oldName },
           ],
-        }
+        },
       );
 
     // 4. Registrar no log de alterações
@@ -195,7 +198,7 @@ export const updateCatalogPublisherName = async (
     // Feedback sobre atualizações
     console.log(`Catálogos atualizados: ${catalogUpdateResult.modifiedCount}`);
     console.log(
-      `Catálogos com subTracks atualizados: ${subTrackUpdateResult.modifiedCount}`
+      `Catálogos com subTracks atualizados: ${subTrackUpdateResult.modifiedCount}`,
     );
 
     // 5. Buscar os catálogos afetados para logging detalhado
@@ -211,16 +214,16 @@ export const updateCatalogPublisherName = async (
       .toArray();
 
     console.log(
-      `Catálogos afetados pela alteração: ${affectedCatalogs.length}`
+      `Catálogos afetados pela alteração: ${affectedCatalogs.length}`,
     );
     console.log(
       "Detalhes dos catálogos afetados:",
       affectedCatalogs
         .map(
           (c) =>
-            `ID: ${c.id}, Código: ${c.catalogCode}, Artista: ${c.artist}, Obra: ${c.workTitle}`
+            `ID: ${c.id}, Código: ${c.catalogCode}, Artista: ${c.artist}, Obra: ${c.workTitle}`,
         )
-        .join("\n")
+        .join("\n"),
     );
 
     await TMongo.mongoDisconnect(client);
@@ -229,7 +232,7 @@ export const updateCatalogPublisherName = async (
     throw new Error(
       `Falha ao atualizar nome da editora: ${
         error instanceof Error ? error.message : "Erro desconhecido"
-      }`
+      }`,
     );
   }
 };

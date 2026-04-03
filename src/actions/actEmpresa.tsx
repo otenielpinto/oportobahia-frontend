@@ -1,11 +1,12 @@
 "use server";
 import { TMongo } from "@/infra/mongoClient";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 export async function getAllEmpresa(): Promise<any[]> {
   const { client, clientdb } = await TMongo.connectToDatabase();
   const data = await clientdb.collection("empresa").find({}).toArray();
   await TMongo.mongoDisconnect(client);
-  return data;
+  return serializeMongoData(data);
 }
 
 export async function getEmpresaById(id: Number): Promise<any> {
@@ -16,7 +17,7 @@ export async function getEmpresaById(id: Number): Promise<any> {
       .collection("empresa")
       .findOne({ id: Number(id) });
     await TMongo.mongoDisconnect(client);
-    return data;
+    return serializeMongoData(data);
   } catch (error) {
     console.error("Erro ao buscar empresa:", error);
     throw error;

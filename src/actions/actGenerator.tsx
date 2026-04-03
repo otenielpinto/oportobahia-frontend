@@ -1,5 +1,6 @@
 "use server";
 import { TMongo } from "@/infra/mongoClient";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 //conforme documentacao do mongo precisar ter indice pelo campo name
 
@@ -9,7 +10,7 @@ export async function getNextSequence(name: string) {
     .collection("tmp_generator")
     .findOneAndUpdate({ name }, { $inc: { seq: 1 } }, { upsert: true });
   await TMongo.mongoDisconnect(client);
-  return data;
+  return serializeMongoData(data);
 }
 
 export async function genId(name: string): Promise<number> {

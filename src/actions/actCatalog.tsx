@@ -9,6 +9,7 @@ import {
 
 import { TMongo } from "@/infra/mongoClient";
 import { genId } from "./actGenerator";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 const collection = "tmp_catalog";
 const collection_produto = "product";
@@ -22,7 +23,7 @@ export async function getProductByGtin(barcode: string): Promise<any | null> {
       .collection(collection_produto)
       .findOne({ gtin: barcode });
     await TMongo.mongoDisconnect(client);
-    return product;
+    return serializeMongoData(product);
   } catch (error) {
     console.error("Error retrieving product by barcode:", error);
     throw error;
@@ -30,13 +31,13 @@ export async function getProductByGtin(barcode: string): Promise<any | null> {
 }
 
 export async function getCatalogByBarcode(
-  barcode: string
+  barcode: string,
 ): Promise<any | null> {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
     const catalog = await clientdb.collection(collection).findOne({ barcode });
     await TMongo.mongoDisconnect(client);
-    return catalog;
+    return serializeMongoData(catalog);
   } catch (error) {
     console.error("Error retrieving catalog by Code:", error);
     throw error;
@@ -48,7 +49,7 @@ export async function getCatalogById(id: string): Promise<any | null> {
     const { client, clientdb } = await TMongo.connectToDatabase();
     const catalog = await clientdb.collection(collection).findOne({ id });
     await TMongo.mongoDisconnect(client);
-    return catalog;
+    return serializeMongoData(catalog);
   } catch (error) {
     console.error("Erro ao recuperar catálogo por ID:", error);
     throw error;
@@ -58,7 +59,7 @@ export async function getCatalogById(id: string): Promise<any | null> {
 export async function getCatalogs(
   page = 1,
   limit = 100,
-  search = ""
+  search = "",
 ): Promise<{ data: any[]; total: number }> {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
@@ -88,10 +89,10 @@ export async function getCatalogs(
 
     await TMongo.mongoDisconnect(client);
 
-    return {
+    return serializeMongoData({
       data,
       total,
-    };
+    });
   } catch (error) {
     console.error("Erro ao recuperar catálogos:", error);
     throw error;
@@ -146,7 +147,7 @@ export async function deleteCatalog(id: string): Promise<void> {
 export async function getTracks(
   catalogId: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<{ data: any[]; total: number }> {
   const catalog = await getCatalogById(catalogId);
   const tracks = catalog.tracks ? catalog.tracks : [];
@@ -166,7 +167,7 @@ export async function getTracks(
 
 export async function createTrack(
   catalogId: string,
-  data: TrackFormData
+  data: TrackFormData,
 ): Promise<any> {
   const catalog = await getCatalogById(catalogId);
   const tracks = catalog.tracks ? catalog.tracks : [];
@@ -215,7 +216,7 @@ export async function updateTrack(catalogId: string, data: any): Promise<any> {
 
 export async function deleteTrack(
   catalogId: string,
-  idTrack: string
+  idTrack: string,
 ): Promise<void> {
   const catalog = await getCatalogById(catalogId);
   let tracks = catalog.tracks ? catalog.tracks : [];

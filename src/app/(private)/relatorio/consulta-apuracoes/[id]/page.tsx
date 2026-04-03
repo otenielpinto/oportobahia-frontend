@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useQuery } from "@tanstack/react-query";
 // import { format } from "date-fns";
 // import { ptBR } from "date-fns/locale";
@@ -40,9 +40,9 @@ import Link from "next/link";
 export default function DetalhesApuracaoPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = params.id;
+  const { id } = use(params);
   const [filtroBarcode, setFiltroBarcode] = useState("");
   const [filtroDescricao, setFiltroDescricao] = useState("");
 
@@ -92,11 +92,11 @@ export default function DetalhesApuracaoPage({
     const totalItens = itens.length;
     const totalValor = itens.reduce(
       (acc: number, item: any) => acc + (item.baseCalculo || 0),
-      0
+      0,
     );
     const totalRoyalties = itens.reduce(
       (acc: number, item: any) => acc + (item.valorRoyalties || 0),
-      0
+      0,
     );
 
     return { totalItens, totalValor, totalRoyalties };
@@ -130,7 +130,7 @@ export default function DetalhesApuracaoPage({
     });
 
     return Object.values(grupos).sort((a: any, b: any) =>
-      a.artista.localeCompare(b.artista)
+      a.artista.localeCompare(b.artista),
     );
   };
 
@@ -208,7 +208,7 @@ export default function DetalhesApuracaoPage({
                     !grupos[nomeEditora].itens.some(
                       (i: any) =>
                         i.barcode === item.barcode &&
-                        i.subTrack === subTrack.work
+                        i.subTrack === subTrack.work,
                     )
                   ) {
                     grupos[nomeEditora].totalItens += 1;
@@ -233,7 +233,7 @@ export default function DetalhesApuracaoPage({
     });
 
     return Object.values(grupos).sort((a: any, b: any) =>
-      a.editora.localeCompare(b.editora)
+      a.editora.localeCompare(b.editora),
     );
   };
 
@@ -510,7 +510,7 @@ export default function DetalhesApuracaoPage({
                           <h3 className="text-lg font-bold">
                             <Link
                               href={`/relatorio/apuracao-por-produto-editora?id=${id}&editora=${encodeURIComponent(
-                                grupo.editora
+                                grupo.editora,
                               )}`}
                               className="text-blue-600 hover:underline"
                             >
@@ -645,7 +645,7 @@ export default function DetalhesApuracaoPage({
                                       %
                                     </TableCell>
                                   </TableRow>
-                                )
+                                ),
                               )}
                             </TableBody>
                           </Table>
@@ -673,7 +673,7 @@ export default function DetalhesApuracaoPage({
                                     <TableCell className="font-medium">
                                       <Link
                                         href={`/relatorio/apuracao-por-produto-editora?id=${id}&editora=${encodeURIComponent(
-                                          grupo.editora
+                                          grupo.editora,
                                         )}`}
                                         className="text-blue-600 hover:underline"
                                       >
@@ -695,7 +695,7 @@ export default function DetalhesApuracaoPage({
                                       %
                                     </TableCell>
                                   </TableRow>
-                                )
+                                ),
                               )}
                             </TableBody>
                           </Table>

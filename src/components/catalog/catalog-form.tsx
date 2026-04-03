@@ -47,7 +47,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
 
   const handleFormatChange = async (formatName: string) => {
     try {
-      const formato = await getFormatoByName(formatName);
+      const formato = await getFormatoByName(formatName.trim());
       if (formato) {
         form.setValue("trackLimit", formato.limite_faixas);
         form.setValue("trackPercentage", formato.percentual_faixa);
@@ -91,7 +91,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
       trackLimit: 1,
       format: "",
       trackPercentage: 0,
-      majorGenre : "",
+      majorGenre: "",
     },
   });
 
@@ -103,13 +103,13 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
       toast.success(
         catalog
           ? "Catálogo atualizado com sucesso"
-          : "Catálogo criado com sucesso"
+          : "Catálogo criado com sucesso",
       );
       onSuccess();
     },
     onError: () => {
       toast.error(
-        catalog ? "Falha ao atualizar catálogo" : "Falha ao criar catálogo"
+        catalog ? "Falha ao atualizar catálogo" : "Falha ao criar catálogo",
       );
     },
   });
@@ -239,11 +239,26 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {formatos?.map((format: any) => (
-                      <SelectItem key={format.id} value={format.name}>
-                        {format.name}
-                      </SelectItem>
-                    ))}
+                    {formatos
+                      ?.reduce((uniqueFormatos: any[], format: any) => {
+                        const trimmedName = format.name.trim();
+                        if (
+                          !uniqueFormatos.find(
+                            (f: any) => f.name.trim() === trimmedName,
+                          )
+                        ) {
+                          uniqueFormatos.push(format);
+                        }
+                        return uniqueFormatos;
+                      }, [])
+                      .map((format: any, index: number) => (
+                        <SelectItem
+                          key={`format-${format.name.trim()}-${index}`}
+                          value={format.name.trim()}
+                        >
+                          {format.name.trim()}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

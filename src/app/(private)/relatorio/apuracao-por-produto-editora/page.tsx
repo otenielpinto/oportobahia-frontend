@@ -86,7 +86,7 @@ export default function ApuracaoPorProdutoEditoraPage() {
   const [filtroCodigoFaixa, setFiltroCodigoFaixa] = useState("");
   const [ordenacao, setOrdenacao] = useState<string>("codigoProduto");
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<"asc" | "desc">(
-    "asc"
+    "asc",
   );
 
   // Consulta para obter os dados agrupados
@@ -199,11 +199,11 @@ export default function ApuracaoPorProdutoEditoraPage() {
     const totalItens = itens.length;
     const totalVendas = itens.reduce(
       (acc: number, item: ProdutoEditoraItem) => acc + item.vendas,
-      0
+      0,
     );
     const totalValor = itens.reduce(
       (acc: number, item: ProdutoEditoraItem) => acc + item.valorPagamento,
-      0
+      0,
     );
 
     return { totalItens, totalVendas, totalValor };
@@ -242,27 +242,27 @@ export default function ApuracaoPorProdutoEditoraPage() {
                 {id_grupo
                   ? `Código da Apuração: ${id_grupo}`
                   : "Selecione uma apuração para visualizar os dados"}
-                {apuracaoCurrentData && (
-                  <div className="mt-2 text-sm">
-                    <p>
-                      Período:{" "}
-                      {new Date(
-                        apuracaoCurrentData.data_inicial
-                      ).toLocaleDateString("pt-BR")}{" "}
-                      a{" "}
-                      {new Date(
-                        apuracaoCurrentData.data_final
-                      ).toLocaleDateString("pt-BR")}
-                    </p>
-                    <p>
-                      Status:{" "}
-                      <span className="font-semibold">
-                        {apuracaoCurrentData.status}
-                      </span>
-                    </p>
-                  </div>
-                )}
               </CardDescription>
+              {apuracaoCurrentData && (
+                <div className="mt-2 text-sm space-y-1">
+                  <p>
+                    Período:{" "}
+                    {new Date(
+                      apuracaoCurrentData.data_inicial,
+                    ).toLocaleDateString("pt-BR")}{" "}
+                    a{" "}
+                    {new Date(
+                      apuracaoCurrentData.data_final,
+                    ).toLocaleDateString("pt-BR")}
+                  </p>
+                  <p>
+                    Status:{" "}
+                    <span className="font-semibold">
+                      {apuracaoCurrentData.status}
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
             {id_grupo && data && !isLoading && (
               <div className="flex gap-2">
@@ -347,8 +347,8 @@ export default function ApuracaoPorProdutoEditoraPage() {
                 {isLoading
                   ? "Carregando dados da apuração..."
                   : apuracaoCurrentLoading
-                  ? "Carregando detalhes da apuração..."
-                  : "Carregando dados da empresa..."}
+                    ? "Carregando detalhes da apuração..."
+                    : "Carregando dados da empresa..."}
               </span>
             </div>
           ) : null}
@@ -493,7 +493,7 @@ export default function ApuracaoPorProdutoEditoraPage() {
                     size="icon"
                     onClick={() =>
                       setDirecaoOrdenacao(
-                        direcaoOrdenacao === "asc" ? "desc" : "asc"
+                        direcaoOrdenacao === "asc" ? "desc" : "asc",
                       )
                     }
                   >
@@ -643,7 +643,7 @@ export default function ApuracaoPorProdutoEditoraPage() {
                             {formatarMoeda(item.valorPagamento)}
                           </TableCell>
                         </TableRow>
-                      )
+                      ),
                     )}
                   </TableBody>
                 </Table>

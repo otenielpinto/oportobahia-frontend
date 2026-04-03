@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Edit2Icon, TrashIcon, PlusIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +35,7 @@ import {
 import { useState } from "react";
 import { TrackForm } from "@/components/catalog/track-form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 interface TrackListProps {
   catalogId: string;
@@ -99,6 +105,9 @@ export function TrackList({ catalogId }: TrackListProps) {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-3xl">
+            <DialogTitle>
+              <VisuallyHidden>Adicionar Faixa</VisuallyHidden>
+            </DialogTitle>
             <TrackForm
               catalogId={catalogId}
               onSuccess={() => setIsOpen(false)}
@@ -137,6 +146,9 @@ export function TrackList({ catalogId }: TrackListProps) {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-3xl">
+                      <DialogTitle>
+                        <VisuallyHidden>Editar Faixa</VisuallyHidden>
+                      </DialogTitle>
                       <TrackForm
                         catalogId={catalogId}
                         track={editingTrack}

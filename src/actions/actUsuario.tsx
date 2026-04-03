@@ -5,6 +5,7 @@ import { TMongo } from "@/infra/mongoClient";
 import { User } from "@/auth/types/user";
 import { ObjectId } from "mongodb";
 import * as bcryptjs from "bcryptjs";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 //nao usado
 export const findUsers = createServerAction()
@@ -12,7 +13,7 @@ export const findUsers = createServerAction()
     z.object({
       value: z.string(),
       field: z.string(),
-    })
+    }),
   )
   .handler(async ({ input }) => {
     const { value, field } = input;
@@ -25,7 +26,7 @@ export const findUsers = createServerAction()
       .find({ [field]: value })
       .toArray();
     await TMongo.mongoDisconnect(client);
-    return data;
+    return serializeMongoData(data);
   });
 
 export const getAllUsers = createServerAction().handler(async () => {
@@ -42,14 +43,14 @@ export const getAllUsers = createServerAction().handler(async () => {
     data.push(u);
   }
   await TMongo.mongoDisconnect(client);
-  return data as User[];
+  return serializeMongoData(data as User[]);
 });
 
 export const getUserById = createServerAction()
   .input(
     z.object({
       _id: z.string(),
-    })
+    }),
   )
   .handler(async ({ input }) => {
     const { _id }: any = input;
@@ -60,7 +61,7 @@ export const getUserById = createServerAction()
       .find({ _id: _id })
       .toArray();
     await TMongo.mongoDisconnect(client);
-    return data;
+    return serializeMongoData(data);
   });
 
 export const createUser = createServerAction()
@@ -73,7 +74,7 @@ export const createUser = createServerAction()
       isAdmin: z.number(),
       password: z.string(),
       id_empresa: z.number(),
-    })
+    }),
   )
   .handler(async ({ input }) => {
     const { _id, email, name, active, isAdmin, password, id_empresa } = input;
@@ -92,7 +93,7 @@ export const deleteUser = createServerAction()
   .input(
     z.object({
       _id: z.string(),
-    })
+    }),
   )
   .handler(async ({ input }) => {
     const { _id }: any = input;
@@ -105,7 +106,7 @@ export const deleteUser = createServerAction()
     const data: any = await clientdb
       .collection("user")
       .deleteOne({ _id: new ObjectId(_id) });
-    
+
     await TMongo.mongoDisconnect(client);
     return data;
   });
@@ -120,7 +121,7 @@ export const updateUser = createServerAction()
       isAdmin: z.number(),
       password: z.string(),
       id_empresa: z.number(),
-    })
+    }),
   )
   .handler(async ({ input }) => {
     const { _id, email, name, active, isAdmin, password, id_empresa } = input;

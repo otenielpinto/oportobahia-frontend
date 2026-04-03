@@ -8,7 +8,13 @@ import { CatalogForm } from "@/components/catalog/catalog-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, SearchIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function CatalogList() {
@@ -64,6 +70,9 @@ export function CatalogList() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
+            <VisuallyHidden>
+              <DialogTitle>Novo Catalogo</DialogTitle>
+            </VisuallyHidden>
             <CatalogForm onSuccess={() => setIsOpen(false)} />
           </DialogContent>
         </Dialog>

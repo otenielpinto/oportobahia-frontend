@@ -1,12 +1,13 @@
 "use server";
 
 import { TMongo } from "@/infra/mongoClient";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 export async function getAllEmpresa(): Promise<any[]> {
   const { client, clientdb } = await TMongo.connectToDatabase();
   const data = await clientdb.collection("mpk_integracao").find({}).toArray();
   await TMongo.mongoDisconnect(client);
-  return data;
+  return serializeMongoData(data);
 }
 
 export async function getEmpresaById(id: Number): Promise<any> {
@@ -16,7 +17,7 @@ export async function getEmpresaById(id: Number): Promise<any> {
     .find({ id: id })
     .toArray();
   await TMongo.mongoDisconnect(client);
-  return data;
+  return serializeMongoData(data);
 }
 
 export async function getAllEmpresaSimples(): Promise<any[]> {

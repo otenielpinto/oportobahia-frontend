@@ -3,6 +3,7 @@
 import { TMongo } from "@/infra/mongoClient";
 import { v4 as uuidv4 } from "uuid";
 import { lib } from "@/lib/lib";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 // Collections utilizadas
 const collectionPeriodo = "tmp_apuracao_periodo";
@@ -19,7 +20,7 @@ const status_aguardando = "aguardando";
  */
 function converterParaTrimestre(
   dataInicial: Date | null,
-  dataFinal: Date | null
+  dataFinal: Date | null,
 ): string {
   // Verificar se as datas são válidas
   if (!dataInicial || !dataFinal) {
@@ -101,9 +102,12 @@ export async function iniciarApuracao({
   fromDate,
   toDate,
 }: {
-  fromDate: Date;
-  toDate: Date;
+  fromDate: string;
+  toDate: string;
 }) {
+  // Parse ISO strings back to Date objects
+  const parsedFromDate = new Date(fromDate);
+  const parsedToDate = new Date(toDate);
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
     let id = uuidv4();
@@ -114,8 +118,8 @@ export async function iniciarApuracao({
     // Salvar dados na collection tmp_apuracao_current
     await clientdb.collection(collectionCurrent).insertOne({
       id,
-      data_inicial: fromDate,
-      data_final: toDate,
+      data_inicial: parsedFromDate,
+      data_final: parsedToDate,
       data_apuracao: new Date(),
       status: status_aguardando,
       editoras,
@@ -124,12 +128,12 @@ export async function iniciarApuracao({
     });
     await TMongo.mongoDisconnect(client);
 
-    return {
+    return serializeMongoData({
       id,
-      data_inicial: fromDate,
-      data_final: toDate,
+      data_inicial: parsedFromDate,
+      data_final: parsedToDate,
       status: status_aguardando,
-    };
+    });
   } catch (error) {
     console.error("Erro ao iniciar apuração:", error);
     throw error;
@@ -158,7 +162,7 @@ export async function obterResultadosApuracao({
     await TMongo.mongoDisconnect(client);
 
     // Retornar os dados da apuração
-    return itensApuracao;
+    return serializeMongoData(itensApuracao);
   } catch (error) {
     console.error("Erro ao obter resultados da apuração:", error);
     throw error;
@@ -175,17 +179,20 @@ export async function consultarApuracoesPorPeriodo({
   fromDate,
   toDate,
 }: {
-  fromDate: Date;
-  toDate: Date;
+  fromDate: string;
+  toDate: string;
 }) {
+  // Parse ISO strings back to Date objects
+  const parsedFromDate = new Date(fromDate);
+  const parsedToDate = new Date(toDate);
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
 
     // Ajustar horas para garantir que o dia inteiro seja considerado
-    const dataInicial = new Date(fromDate);
+    const dataInicial = new Date(parsedFromDate);
     dataInicial.setUTCHours(0, 0, 0, 0);
 
-    const dataFinal = new Date(toDate);
+    const dataFinal = new Date(parsedToDate);
     dataFinal.setUTCHours(23, 59, 59, 999);
 
     // Buscar apurações no período
@@ -203,7 +210,7 @@ export async function consultarApuracoesPorPeriodo({
     await TMongo.mongoDisconnect(client);
 
     // Retornar as apurações encontradas
-    return {
+    return serializeMongoData({
       total: apuracoes.length,
       apuracoes: apuracoes.map((apuracao) => ({
         id: apuracao.id,
@@ -215,7 +222,7 @@ export async function consultarApuracoesPorPeriodo({
         has_error: apuracao.has_error || false,
         messages: apuracao.messages || [],
       })),
-    };
+    });
   } catch (error) {
     console.error("Erro ao consultar apurações por período:", error);
     throw error;
@@ -250,19 +257,19 @@ export async function fecharApuracao({ id }: { id: string }) {
       .collection(collectionCurrent)
       .updateOne(
         { id },
-        { $set: { status: "fechado", data_fechamento: new Date() } }
+        { $set: { status: "fechado", data_fechamento: new Date() } },
       );
 
     await TMongo.mongoDisconnect(client);
 
     // Retornar informações sobre o fechamento
-    return {
+    return serializeMongoData({
       sucesso: true,
       id,
       mensagem: `Apuração fechada com sucesso.`,
       data_apuracao: apuracao.data_apuracao,
       data_fechamento: new Date(),
-    };
+    });
   } catch (error) {
     console.error("Erro ao fechar apuração:", error);
     throw error;
@@ -302,11 +309,11 @@ export async function processarApuracaoFechada({ id }: { id: string }) {
     await TMongo.mongoDisconnect(client);
 
     // Retornar os dados processados
-    return {
+    return serializeMongoData({
       sucesso: true,
       id,
       mensagem: "Apuração processada com sucesso.",
-    };
+    });
   } catch (error) {
     console.error("Erro ao processar apuração fechada:", error);
     throw error;
@@ -334,7 +341,7 @@ export async function excluirApuracao({ id }: { id: string }) {
     // Verificar se a apuração está em um estado que permite exclusão
     if (apuracao.status !== "aberto" && apuracao.status !== "aguardando") {
       throw new Error(
-        `Não é possível excluir a apuração com código ${id} pois ela está ${apuracao.status}`
+        `Não é possível excluir a apuração com código ${id} pois ela está ${apuracao.status}`,
       );
     }
 
@@ -354,13 +361,13 @@ export async function excluirApuracao({ id }: { id: string }) {
     await TMongo.mongoDisconnect(client);
 
     // Retornar informações sobre a exclusão
-    return {
+    return serializeMongoData({
       sucesso: true,
       id,
       mensagem: `Apuração excluída com sucesso. ${resultadoExclusaoItens.deletedCount} itens relacionados foram excluídos.`,
       data_apuracao: apuracao.data_apuracao,
       itens_excluidos: resultadoExclusaoItens.deletedCount,
-    };
+    });
   } catch (error) {
     console.error("Erro ao excluir apuração:", error);
     throw error;
@@ -383,7 +390,7 @@ export async function consultarApuracaoCurrentById(id: string) {
 
     await TMongo.mongoDisconnect(client);
 
-    return apuracao;
+    return serializeMongoData(apuracao);
   } catch (error) {
     console.error("Erro ao buscar apuração por id:", error);
     throw error;
@@ -478,7 +485,7 @@ export async function agruparApuracoesPorEditora({ id }: { id: string }) {
       23,
       59,
       59,
-      999
+      999,
     );
 
     // Formatar as datas do período para o histórico
@@ -517,28 +524,30 @@ export async function agruparApuracoesPorEditora({ id }: { id: string }) {
           .padStart(2, "0")}`;
 
     // Ordenar os grupos por nome da editora e adicionar campos adicionais
-    return Object.values(grupos)
-      .map((grupo: any) => ({
-        ...grupo,
-        id: uuidv4(),
-        id_grupo: id,
-        dt_movto: dataAtual,
-        dt_vencto: ultimoDiaMes,
-        documento: documento,
-        valor: lib.round(grupo.totalRoyalties),
-        pago: 0,
-        saldo: lib.round(grupo.totalRoyalties),
-        situacao: "Aberto",
-        dt_pagto: null,
-        observacao: "",
-        referente:
-          trimestreFormatado ||
-          `${dataAtual.getFullYear()}/${(dataAtual.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}`,
-        historico: `Pagamento de Royalties - Período: ${periodoFormatado} (${trimestreFormatado})`,
-      }))
-      .sort((a: any, b: any) => a.editora.localeCompare(b.editora));
+    return serializeMongoData(
+      Object.values(grupos)
+        .map((grupo: any) => ({
+          ...grupo,
+          id: uuidv4(),
+          id_grupo: id,
+          dt_movto: dataAtual,
+          dt_vencto: ultimoDiaMes,
+          documento: documento,
+          valor: lib.round(grupo.totalRoyalties),
+          pago: 0,
+          saldo: lib.round(grupo.totalRoyalties),
+          situacao: "Aberto",
+          dt_pagto: null,
+          observacao: "",
+          referente:
+            trimestreFormatado ||
+            `${dataAtual.getFullYear()}/${(dataAtual.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}`,
+          historico: `Pagamento de Royalties - Período: ${periodoFormatado} (${trimestreFormatado})`,
+        }))
+        .sort((a: any, b: any) => a.editora.localeCompare(b.editora)),
+    );
   } catch (error) {
     console.error("Erro ao agrupar apurações por editora:", error);
     throw error;
@@ -776,7 +785,7 @@ export async function agruparApuracoesPorProdutoEditora({
       return a.obra.localeCompare(b.obra);
     });
 
-    return resultado;
+    return serializeMongoData(resultado);
   } catch (error) {
     console.error("Erro ao agrupar apurações por produto e editora:", error);
     throw error;
@@ -826,17 +835,17 @@ export async function consultarRoyalties({
         diasAteVencimento: dt_vencto
           ? Math.ceil(
               (dt_vencto.getTime() - new Date().getTime()) /
-                (1000 * 60 * 60 * 24)
+                (1000 * 60 * 60 * 24),
             )
           : null,
         vencido: dt_vencto ? dt_vencto < new Date() : false,
       };
     });
 
-    return {
+    return serializeMongoData({
       total: registrosFormatados.length,
       registros: registrosFormatados,
-    };
+    });
   } catch (error) {
     console.error("Erro ao consultar royalties em aberto:", error);
     throw error;
@@ -884,8 +893,8 @@ export async function registrarPagamentoRoyalties({
       await TMongo.mongoDisconnect(client);
       throw new Error(
         `Este registro já foi pago em ${new Date(
-          registro.dt_pagto
-        ).toLocaleDateString()}.`
+          registro.dt_pagto,
+        ).toLocaleDateString()}.`,
       );
     }
 
@@ -894,7 +903,7 @@ export async function registrarPagamentoRoyalties({
     if (registro.situacao === "Pago") {
       await TMongo.mongoDisconnect(client);
       throw new Error(
-        `Royalties com situação 'Pago' não podem receber pagamentos. Situação atual: ${registro.situacao}`
+        `Royalties com situação 'Pago' não podem receber pagamentos. Situação atual: ${registro.situacao}`,
       );
     }
 
@@ -906,8 +915,8 @@ export async function registrarPagamentoRoyalties({
             new Date().getHours(),
             new Date().getMinutes(),
             new Date().getSeconds(),
-            new Date().getMilliseconds()
-          )
+            new Date().getMilliseconds(),
+          ),
         )
       : new Date();
 
@@ -932,18 +941,18 @@ export async function registrarPagamentoRoyalties({
             saldo: novoSaldo,
             valorPago: pago,
           },
-        }
+        },
       );
 
     await TMongo.mongoDisconnect(client);
 
     if (resultado.modifiedCount === 0) {
       throw new Error(
-        "Não foi possível atualizar o registro. Tente novamente."
+        "Não foi possível atualizar o registro. Tente novamente.",
       );
     }
 
-    return {
+    return serializeMongoData({
       sucesso: true,
       mensagem: `Pagamento registrado com sucesso. Situação: ${novaSituacao}.`,
       id,
@@ -951,7 +960,7 @@ export async function registrarPagamentoRoyalties({
       dataPagamento,
       situacao: novaSituacao,
       saldo: novoSaldo,
-    };
+    });
   } catch (error) {
     console.error("Erro ao registrar pagamento:", error);
     throw error;

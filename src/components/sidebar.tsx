@@ -11,16 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-import Image from "next/image";
 import {
   Calendar,
   Clock,
@@ -132,7 +122,7 @@ const SideNav = () => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(
         "sidebarExpanded",
-        JSON.stringify(isSidebarExpanded)
+        JSON.stringify(isSidebarExpanded),
       );
     }
 
@@ -167,7 +157,6 @@ const SideNav = () => {
                 href="/home"
                 className="flex items-center gap-2 font-semibold"
               >
-                <Image src="/logo.png" width={32} height={32} alt="Logo" />
                 <span className="font-medium text-sm hidden md:flex">
                   {brandCompany}
                 </span>
@@ -241,7 +230,6 @@ const SideNav = () => {
                     href="#"
                     className="flex items-center gap-2 text-lg font-semibold"
                   >
-                    <Image src="/logo.png" width={32} height={32} alt="Logo" />
                     <span className="font-medium text-sm md:flex">
                       {brandCompany}
                     </span>

@@ -1,5 +1,6 @@
 "use server";
 import { TMongo } from "@/infra/mongoClient";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 const collection = "nota_fiscal";
 
@@ -66,16 +67,16 @@ export async function getNotasFiscaisPorPeriodo({
 
     await TMongo.mongoDisconnect(client);
 
-    return {
+    return serializeMongoData({
       data,
       total,
       page,
       limit,
-    };
+    });
   } catch (error: any) {
     console.error("Erro ao recuperar notas fiscais:", error);
     throw new Error(
-      `Erro ao buscar notas fiscais: ${error?.message || "Erro desconhecido"}`
+      `Erro ao buscar notas fiscais: ${error?.message || "Erro desconhecido"}`,
     );
   }
 }
