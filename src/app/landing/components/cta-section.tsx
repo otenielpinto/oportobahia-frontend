@@ -14,11 +14,11 @@ export function CTASection() {
 
   return (
     <section className="py-20 md:py-32 bg-[#121212] relative overflow-hidden">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#1DB954]/20 via-[#121212] to-[#121212]" />
+      {/* Gradient overlay - maintains readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#121212]/95 via-[#121212]/90 to-[#121212]/85 z-[1]" />
 
       {/* Ambient glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#1DB954]/10 rounded-full blur-[100px]" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#1DB954]/10 rounded-full blur-[100px] z-[2]" />
 
       <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">

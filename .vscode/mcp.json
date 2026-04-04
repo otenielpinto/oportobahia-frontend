@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "engram": {
+      "type": "stdio",
+      "command": "engram",
+      "args": ["mcp"]
+    }
+  }
+}

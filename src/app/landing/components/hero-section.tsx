@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 
@@ -38,31 +39,49 @@ export function HeroSection() {
         </Button>
       </div>
 
-      {/* Hero content - always visible */}
-      <div className="relative z-10 container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Bold headline with strong typography */}
-          <h1 className="font-sans text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8 tracking-tight">
-            Calcule direitos autorais com{" "}
-            <span className="text-[#1DB954]">precisão</span>{" "}
-            e{" "}
-            <span className="text-[#1DB954]">simplicidade</span>
-          </h1>
+      {/* Hero content - split layout on desktop */}
+      <div className="relative z-10 container mx-auto px-4 py-20 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
+          {/* Left: Headline + CTA */}
+          <div className="text-center lg:text-left order-2 lg:order-1">
+            {/* Bold headline with strong typography */}
+            <h1 className="font-sans text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-8 tracking-tight">
+              Calcule direitos autorais com{" "}
+              <span className="text-[#1DB954]">precisão</span>{" "}
+              e{" "}
+              <span className="text-[#1DB954]">simplicidade</span>
+            </h1>
 
-          {/* Premium subheadline */}
-          <p className="text-xl md:text-2xl text-[#B3B3B3] max-w-2xl mx-auto mb-12 leading-relaxed font-light">
-            Software especializado que automatiza seus cálculos de direitos
-            autorais de CDs e economiza horas do seu tempo.
-          </p>
+            {/* Premium subheadline */}
+            <p className="text-lg md:text-xl lg:text-2xl text-[#B3B3B3] max-w-xl mx-auto lg:mx-0 mb-12 leading-relaxed font-light">
+              Software especializado que automatiza seus cálculos de direitos
+              autorais de CDs e economiza horas do seu tempo.
+            </p>
 
-          {/* Pill CTA - Spotify style */}
-          <Button
-            size="pill"
-            className="bg-[#1DB954] hover:bg-[#1ed760] text-[#121212] font-bold tracking-wide shadow-lg shadow-[#1DB954]/30 transition-all hover:shadow-xl hover:shadow-[#1DB954]/40 hover:scale-105"
-            onClick={handleWhatsAppClick}
-          >
-            Agende uma Demo pelo WhatsApp
-          </Button>
+            {/* Pill CTA - Spotify style */}
+            <Button
+              size="pill"
+              className="bg-[#1DB954] hover:bg-[#1ed760] text-[#121212] font-bold tracking-wide shadow-lg shadow-[#1DB954]/30 transition-all hover:shadow-xl hover:shadow-[#1DB954]/40 hover:scale-105"
+              onClick={handleWhatsAppClick}
+            >
+              Agende uma Demo pelo WhatsApp
+            </Button>
+          </div>
+
+          {/* Right: Hero image */}
+          <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-md lg:max-w-lg xl:max-w-xl aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl shadow-[#1DB954]/10">
+              <Image
+                src="/images/landing/hero-primary.webp"
+                alt="Profissional de música satisfeito usando o software de royalties"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 50vw"
+                className="object-cover animate-fade-in"
+                priority
+                quality={90}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

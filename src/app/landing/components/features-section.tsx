@@ -1,31 +1,48 @@
 "use client";
 
 import { Calculator, Clock, Shield, TrendingUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const features = [
+interface Feature {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  thumbnail: string;
+  thumbnailAlt: string;
+}
+
+const features: Feature[] = [
   {
     icon: Calculator,
     title: "Cálculos Automatizados",
     description:
       "Automatize seus cálculos de direitos autorais com precisão. Elimine erros manuais e garanta resultados consistentes.",
+    thumbnail: "/images/landing/feature-dashboards.webp",
+    thumbnailAlt: "Executivo visualizando dashboard de analytics",
   },
   {
     icon: Clock,
     title: "Economia de Tempo",
     description:
       "Reduza horas de trabalho manual para minutos. O software processa seus dados instantaneamente.",
+    thumbnail: "/images/landing/feature-reports.webp",
+    thumbnailAlt: "Profissional revisando relatório em tablet",
   },
   {
     icon: Shield,
     title: "Conformidade Garantida",
     description:
       "Mantenha-se em conformidade com as regulamentações. O software é atualizado regularmente.",
+    thumbnail: "/images/landing/feature-erp.webp",
+    thumbnailAlt: "Gerente de operações com sistemas integrados",
   },
   {
     icon: TrendingUp,
     title: "Relatórios Detalhados",
     description:
       "Visualize seus dados com relatórios claros e detalhados. Exporte para PDF com facilidade.",
+    thumbnail: "/images/landing/feature-royalties.webp",
+    thumbnailAlt: "Artista celebrando ganhos de royalties",
   },
 ];
 
@@ -50,6 +67,18 @@ export function FeaturesSection() {
               key={index}
               className="group p-6 bg-[#282828] rounded-lg border border-[#B3B3B3]/10 hover:border-[#1DB954]/30 transition-all duration-300"
             >
+              {/* Thumbnail - Debug version with explicit dimensions */}
+              <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-[#121212]">
+                <img
+                  src={feature.thumbnail}
+                  alt={feature.thumbnailAlt}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                  width={400}
+                  height={300}
+                />
+              </div>
+
               {/* Icon */}
               <div className="w-12 h-12 rounded-lg bg-[#181818] flex items-center justify-center mb-4 group-hover:bg-[#1DB954]/10 transition-colors">
                 <feature.icon
