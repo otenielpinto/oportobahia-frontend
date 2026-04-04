@@ -47,6 +47,29 @@
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
   }
+
+  /* Spotify-inspired dark theme - scoped for landing page */
+  .spotify-dark {
+    --background: 0 0% 7%;        /* #121212 */
+    --foreground: 0 0% 98%;       /* #FFFFFF */
+    --card: 0 0% 15%;             /* #282828 */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;           /* #181818 */
+    --popover-foreground: 0 0% 98%;
+    --primary: 142 69% 58%;       /* #1DB954 */
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%; /* #B3B3B3 */
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 142 69% 58%;
+  }
 }
 
 /* Estilos para quebra de página na impressão */
