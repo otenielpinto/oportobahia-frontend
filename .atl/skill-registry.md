@@ -1,7 +1,7 @@
 # Skill Registry
 
 **Project**: oportobahia-frontend  
-**Generated**: 2026-04-03  
+**Generated**: 2026-04-07  
 **Mode**: engram
 
 ---
@@ -11,65 +11,65 @@
 | Skill | Trigger | Description |
 |-------|---------|-------------|
 | **go-testing** | Writing Go tests, using teatest, adding test coverage | Go testing patterns for Gentleman.Dots, including Bubbletea TUI testing |
-| **branch-pr** | Creating a pull request, opening a PR, preparing changes for review | PR creation workflow for Agent Teams Lite following the issue-first enforcement system |
-| **issue-creation** | Creating a GitHub issue, reporting a bug, requesting a feature | Issue creation workflow for Agent Teams Lite following the issue-first enforcement system |
-| **skill-creator** | User asks to create a new skill, add agent instructions, document patterns for AI | Creates new AI agent skills following the Agent Skills spec |
-| **judgment-day** | User says "judgment day", "judgment-day", "review adversarial", "dual review", "doble review", "juzgar", "que lo juzguen" | Parallel adversarial review protocol that launches two independent blind judge sub-agents simultaneously to review the same target, synthesizes their findings, applies fixes, and re-judges until both pass or escalates after 2 iterations |
-| **context7-mcp** | User asks about libraries, frameworks, API references, needs code examples | Use Context7 to fetch current documentation instead of relying on training data. Activates for setup questions, code generation involving libraries, or mentions of specific frameworks like React, Vue, Next.js, Prisma, Supabase, etc. |
-| **find-skills** | User asks "how do I do X", "find a skill for X", "is there a skill that can...", expresses interest in extending capabilities | Helps users discover and install agent skills from the open agent skills ecosystem |
-| **playwright-cli** | User needs to navigate websites, interact with web pages, fill forms, take screenshots, test web applications, extract information from web pages | Automates browser interactions for web testing, form filling, screenshots, and data extraction |
-| **dev** | User asks about rolling dependencies, releasing, other repo maintenance tasks | Development workflows for the playwright-cli repository |
+| **branch-pr** | Creating a pull request, opening a PR, preparing changes for review | PR creation workflow for Agent Teams Lite with issue-first enforcement |
+| **issue-creation** | Creating a GitHub issue, reporting a bug, requesting a feature | Issue creation workflow for Agent Teams Lite with issue-first enforcement |
+| **skill-creator** | User asks to create a new skill, add agent instructions, document AI patterns | Creates new AI agent skills following the Agent Skills spec |
+| **judgment-day** | User says "judgment day", "judgment-day", "review adversarial", "dual review", "doble review", "juzgar", "que lo juzguen" | Parallel adversarial dual-judge review protocol |
+| **context7-mcp** | User asks about libraries/frameworks/APIs or requests code examples | Fetches up-to-date docs via Context7 (resolve library ID → query docs) |
+| **playwright-cli** | User needs browser automation, form filling, screenshots, extraction | Automates browser interactions through playwright-cli |
+| **dev** | User asks about playwright-cli maintenance, roll/release workflows | Development workflows for the playwright-cli repository |
 
 ## Project-Level Skills
 
 | Skill | Trigger | Description | Location |
 |-------|---------|-------------|----------|
-| **frontend-design** | Build web components, pages, landing pages, dashboards, React components, HTML/CSS layouts, styling/beautifying web UI | Create distinctive, production-grade frontend interfaces with high design quality. Generates creative, polished code and UI design. | `.agents/skills/frontend-design/SKILL.md` |
-| **frontend-ui-ux-engineer** | Need stunning UI/UX without design mockups, visual polish, component styling | Designer-turned-developer who crafts stunning UI/UX even without design mockups. Code may be messy, visual output is fire. | `.agents/skills/frontend-ui-ux-engineer/SKILL.md` |
-| **vercel-react-best-practices** | Writing, reviewing, refactoring React/Next.js code, performance improvements, bundle optimization, data fetching patterns | React and Next.js performance optimization guidelines from Vercel Engineering. 40+ rules across 8 categories prioritized by impact. | `.agents/skills/vercel-react-best-practices/SKILL.md` |
+| **frontend-design** | Build/stylize web components, pages, dashboards, landing pages | Distinctive production-grade frontend UI with strong aesthetic direction | `.agents/skills/frontend-design/SKILL.md` |
+| **frontend-ui-ux-engineer** | Need polished UI/UX without design mockups | Designer-turned-developer focused on visual quality | `.agents/skills/frontend-ui-ux-engineer/SKILL.md` |
+| **vercel-react-best-practices** | Writing/reviewing/refactoring React/Next.js code and performance | Vercel React/Next.js optimization rules (waterfalls, bundle, server, rendering) | `.agents/skills/vercel-react-best-practices/SKILL.md` |
+| **find-skills** | Skill discovery and installation requests | Project override for skills ecosystem guidance | `.agents/skills/find-skills/SKILL.md` |
 
 ## Project Conventions
 
-- `.agents/skills/vercel-react-best-practices/AGENTS.md` — Vercel React Best Practices (40+ performance rules)
+- `.github/copilot-instructions.md` — ShadCN + Tailwind, dark/light mode, responsive layout, loading/error states, TypeScript-first, PT-BR text preference.
+- `.agents/skills/vercel-react-best-practices/AGENTS.md` — high-priority performance rules for React/Next.js execution and review.
 
 ## Compact Rules
 
-### vercel-react-best-practices (for React/Next.js work)
+### project-ui-conventions
+- Prefer **ShadCN components + Tailwind CSS** for UI composition.
+- Ensure **dark/light mode support**, responsive spacing/alignment, hover/focus accessibility states.
+- For data operations, include **loading + error + success feedback** (skeletons/toasts where relevant).
+- Keep components **properly typed in TypeScript** and align with Next.js App Router conventions.
+- Prefer **PT-BR copy** in user-facing text when generating UI content.
 
-**Waterfalls (CRITICAL)**: Check cheap conditions before async flags. Defer await until needed. Use `Promise.all()` for independent ops. Strategic Suspense boundaries.
+### vercel-react-best-practices
+- **Eliminate waterfalls**: cheap sync guards first, then async; use `Promise.all` for independent calls.
+- **Protect bundle size**: avoid barrel-import bloat, use dynamic imports for heavy modules.
+- **Server-side discipline**: authenticate server actions, avoid shared mutable module state, minimize RSC serialization.
+- **Render efficiency**: derive state during render, avoid inline component definitions, use `useTransition`/Suspense intentionally.
+- **Use caching intentionally**: React `cache()` for per-request dedupe; LRU for cross-request hot data.
 
-**Bundle Size (CRITICAL)**: Avoid barrel file imports (Next.js 13.5+ auto-transforms). Dynamic imports for heavy components. Preload based on user intent.
+### context7-mcp
+- For library/framework/API questions, **always** resolve library ID first, then query docs.
+- Prefer official/high-reputation docs and version-specific references when available.
 
-**Server-Side (HIGH)**: Authenticate server actions like API routes. Use `React.cache()` for per-request deduplication. Minimize serialization at RSC boundaries. Parallel data fetching with component composition.
+### branch-pr
+- Every PR must link an approved issue and include exactly one `type:*` label.
+- Keep branch naming `type/description` and use conventional commits.
 
-**Re-render (MEDIUM)**: Calculate derived state during render. Don't define components inside components. Use `useMemo` only for expensive computations. Extract to memoized components.
+### issue-creation
+- Use issue templates (no blank issues), include repro/context, and follow approval workflow.
 
-**Rendering (MEDIUM)**: CSS `content-visibility` for long lists. Hoist static JSX elements. Use `useTransition` over manual loading states.
+### go-testing
+- Use table-driven tests; keep tests deterministic and explicit on expected errors.
 
 ---
 
 ## How to Use This Registry
 
-When launching sub-agents, the orchestrator should:
+When launching sub-agents, resolve skills by code/task context and inject matching compact rule blocks under:
 
-1. **Resolve relevant skills** based on:
-   - Code context (file extensions/paths the sub-agent will touch)
-   - Task context (what actions it will perform)
-
-2. **Inject compact rules** into the sub-agent prompt as:
-   ```
-   ## Project Standards (auto-resolved)
-   [Relevant compact rule blocks]
-   ```
-
-3. **Skills are pre-digested** — sub-agents receive rules as text, not file paths.
-
-## Skill Resolution Examples
-
-- **Writing Go tests** → inject `go-testing` compact rules
-- **Creating a PR** → inject `branch-pr` compact rules
-- **Creating an issue** → inject `issue-creation` compact rules
-- **Fetching library docs** → invoke `context7-mcp` skill
-- **Adversarial review** → invoke `judgment-day` skill
-- **React/Next.js work** → inject `vercel-react-best-practices` compact rules
-- **UI design/polish** → invoke `frontend-design` or `frontend-ui-ux-engineer` skill
+```md
+## Project Standards (auto-resolved)
+[matching compact rules]
+```

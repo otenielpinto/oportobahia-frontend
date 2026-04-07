@@ -129,6 +129,11 @@ export default function DireitosAutoraisPage() {
               <AlertCircle className="h-5 w-5 mr-2 text-amber-500" />
               Confirmar Processamento
             </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja processar o relatório de direitos autorais
+              para o período selecionado? O processo pode demorar até 15
+              minutos.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
             <div className="bg-amber-50 p-3 rounded-md border border-amber-200">

@@ -1,37 +1,40 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
-import ReactQueryProvider from "@/providers/react-query";
-import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ 
+import { Toaster } from "@/components/ui/sonner";
+import ReactQueryProvider from "@/providers/react-query";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  variable: "--font-inter",
 });
 
-const playfair = Playfair_Display({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: "swap",
-  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "Gestor PRO | Home",
-  description: "Gestor Pro: Conduzindo Seu Negócio Rumo à Excelência",
+  title: "Embalamix - Controle de Requisições",
+  description: "Sistema de controle de requisições matriz e filial",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className={inter.className}>
-        <ReactQueryProvider>
-          {children}
-          <Toaster />
-        </ReactQueryProvider>
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <TooltipProvider>
+          <ReactQueryProvider>{children}</ReactQueryProvider>
+        </TooltipProvider>
+        <Toaster />
       </body>
     </html>
   );

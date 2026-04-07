@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TrackForm } from "@/components/catalog/track-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
@@ -47,11 +47,10 @@ export function TrackList({ catalogId }: TrackListProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
   const queryClient = useQueryClient();
-  const [isEdit, setIsEdit] = useState(false);
 
-  const toggleEdit = () => {
-    setIsEdit(!isEdit);
-  };
+  useEffect(() => {
+    setPage(1);
+  }, [catalogId]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["tracks", catalogId, page, LIMIT_PER_PAGE],
@@ -59,12 +58,9 @@ export function TrackList({ catalogId }: TrackListProps) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (track: any) => deleteTrack(catalogId, track.id),
+    mutationFn: (track: Track) => deleteTrack(catalogId, track.id),
     onSuccess: async () => {
-      // Invalida o cache e força uma nova busca
       await queryClient.invalidateQueries({ queryKey: ["tracks", catalogId] });
-      // Força um refetch imediato
-      await queryClient.refetchQueries({ queryKey: ["tracks", catalogId] });
       toast.success("Faixa excluída com sucesso");
     },
     onError: () => {
@@ -77,14 +73,13 @@ export function TrackList({ catalogId }: TrackListProps) {
       ...track,
       publishers: track.publishers || [], // Garantir que publishers existe
     });
-    toggleEdit();
   };
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between">
-          <Skeleton className="h-10 w-[100px]" />
+          <Skeleton className="h-10 w-25" />
         </div>
         {[...Array(3)].map((_, i) => (
           <Skeleton key={i} className="h-16 w-full" />
@@ -127,15 +122,20 @@ export function TrackList({ catalogId }: TrackListProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.data.map((track: any) => (
-            <TableRow key={track.trackCode}>
+          {data?.data?.map((track: Track) => (
+            <TableRow key={track.id}>
               <TableCell>{track.trackCode}</TableCell>
               <TableCell>{track.work}</TableCell>
               <TableCell>{track.authors}</TableCell>
               <TableCell>{track.isrc}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  <Dialog open={isEdit} onOpenChange={toggleEdit}>
+                  <Dialog
+                    open={editingTrack?.id === track.id}
+                    onOpenChange={(open) => {
+                      if (!open) setEditingTrack(null);
+                    }}
+                  >
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
@@ -154,7 +154,6 @@ export function TrackList({ catalogId }: TrackListProps) {
                         track={editingTrack}
                         onSuccess={() => {
                           setEditingTrack(null);
-                          toggleEdit();
                         }}
                       />
                     </DialogContent>

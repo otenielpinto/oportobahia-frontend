@@ -101,8 +101,14 @@ export function CatalogTable({
               <TableCell>
                 <div className="flex space-x-2">
                   <Dialog
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
+                    open={isEditDialogOpen && editingCatalog?.id === catalog.id}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        handleEditClose();
+                      } else {
+                        setIsEditDialogOpen(true);
+                      }
+                    }}
                   >
                     <DialogTrigger asChild>
                       <Button
@@ -113,7 +119,7 @@ export function CatalogTable({
                         <Edit2Icon className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
+                    <DialogContent className="sm:max-w-150">
                       <DialogHeader>
                         <DialogTitle>Editar Catálogo</DialogTitle>
                         <DialogDescription>
@@ -138,7 +144,7 @@ export function CatalogTable({
                         <Music2Icon className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[900px]">
+                    <DialogContent className="sm:max-w-225">
                       <DialogHeader>
                         <DialogTitle>Gerenciar Faixas</DialogTitle>
                         <DialogDescription>

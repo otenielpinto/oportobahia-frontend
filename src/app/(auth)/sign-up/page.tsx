@@ -25,7 +25,7 @@ const Page = () => {
   const router = useRouter();
 
   const onSubmit = async ({ email, password, name }: TAuthSchema) => {
-    let user: any = {
+    const user: User = {
       email,
       name,
       active: 0,
@@ -36,9 +36,7 @@ const Page = () => {
     const res = await createUser(user);
 
     if (res.insertedId) {
-      toast.success(
-        "Conta criada com sucesso, solicite ao administrador para ativar sua conta"
-      );
+      toast.success("Conta criada com sucesso!");
       router.push("/sign-in");
     } else {
       toast.error("Erro ao criar conta ou email já cadastrado");
@@ -48,7 +46,7 @@ const Page = () => {
   return (
     <>
       <div className="container relative flex pt-20 flex-col items-center justify-center lg:px-0">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-87.5">
           <div className="flex flex-col items-center space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
               Criar sua conta

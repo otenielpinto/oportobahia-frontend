@@ -17,7 +17,6 @@ import { useForm } from "react-hook-form";
 import { authSchema, TAuthSchema } from "@/auth/schema/authSchema";
 import { login } from "@/auth/actions/auth-actions";
 import { useTransition } from "react";
-import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -27,11 +26,7 @@ export function LoginForm({
 
   async function handleLogin(formData: FormData) {
     startTransition(async () => {
-      try {
-        await login(formData);
-      } catch (e) {
-        toast.error("Usuário ou senha inválidos");
-      }
+      await login(formData);
     });
   }
 
@@ -70,7 +65,7 @@ export function LoginForm({
                   {...register("email")}
                   id="email"
                   type="email"
-                  placeholder="Informe o seu email"
+                  placeholder="informe seu email"
                   required
                 />
 
@@ -92,7 +87,7 @@ export function LoginForm({
                   {...register("password")}
                   id="password"
                   type="password"
-                  placeholder="Informe sua senha"
+                  placeholder="informe sua senha"
                   required
                 />
 

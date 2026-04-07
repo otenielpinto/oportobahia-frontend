@@ -7,6 +7,7 @@ export type User = {
   active?: number | 0 | 1;
   emp_acesso?: Number[];
   id_empresa?: Number;
+  id_tenant?: Number;
   codigo?: string;
   createdAt?: Date;
   updatedAt?: Date;

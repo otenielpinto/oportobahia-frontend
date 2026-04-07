@@ -11,11 +11,12 @@ export async function createAccount(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const hashPassword = bcryptjs.hashSync(password, 10);
+
   const res: User = await createUser({
     name,
     email,
-    password: hashPassword,
+    password,
+    codigo: Date.now().toString(),
   });
 
   redirect("/sign-in");
@@ -37,7 +38,6 @@ export async function login(formData: FormData) {
   const isMatch = await bcryptjs.compare(password, user.password);
   if (!isMatch) {
     console.log("Usuário ou senha inválidos");
-    alert("Usuário ou senha inválidos");
     redirect("/sign-in");
   }
 
@@ -47,15 +47,18 @@ export async function login(formData: FormData) {
     name: user.name,
     email: user.email,
     active: user.active,
-    isAdmin: user.isAdmin,
+    isAdmin: user?.isAdmin || 0,
     codigo: user.codigo,
     emp_acesso: user.emp_acesso || [],
-    empresa: user.emp_acesso[0] ? user.emp_acesso[0] : 0,
+    id_empresa: user.emp_acesso[0] ? user.emp_acesso[0] : 0,
+    id_tenant: user.id_tenant,
   });
 
-  redirect(
-    (process.env.NEXT_PUBLIC_KOMACHE_AFTER_SIGN_IN_URL as string) || "/home"
-  );
+  if (user) {
+    redirect(
+      (process.env.NEXT_PUBLIC_KOMACHE_AFTER_SIGN_IN_URL as string) || "/home"
+    );
+  }
 }
 
 export async function getUsers() {
@@ -75,21 +78,19 @@ export async function createUser(body: User): Promise<any> {
   let response: any = await clientdb.collection("user").findOne(query);
 
   if (!response) {
-    let salt = await bcryptjs.genSalt(10);
-    let hashPassword = bcryptjs.hashSync(password, salt);
-
     let user: User = {
-      id: uuidv4(),
+      id: await getNewId(),
       email,
       name,
       active: 0,
       isAdmin: 0,
-      password: hashPassword,
-      codigo: name,
+      password: await hashPassword(password),
+      codigo: Date.now().toString(),
       emp_acesso: [],
-      id_empresa: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
+      id_empresa: 0,
+      id_tenant: 0,
     };
     response = await clientdb.collection("user").insertOne(user);
   }
@@ -110,22 +111,31 @@ export async function getUserByEmail(email: any): Promise<any> {
 
   //mover isso para o create route
   if (!response && email == admin_email) {
-    let salt = await bcryptjs.genSalt(10);
-
     let user: User = {
-      id: uuidv4(),
+      id: await getNewId(),
       email,
       name: "Admin",
       active: 1,
       isAdmin: 1,
-      password: bcryptjs.hashSync(admin_password, salt),
-      codigo: uuidv4(),
+      password: await hashPassword(admin_password),
+      codigo: Date.now().toString(),
       emp_acesso: [],
       createdAt: new Date(),
       updatedAt: new Date(),
+      id_empresa: 0,
+      id_tenant: 0,
     };
     response = await clientdb.collection("user").insertOne(user);
   }
   await TAuthMongo.mongoDisconnect(client);
   return response;
+}
+
+export async function hashPassword(password: string) {
+  let salt = await bcryptjs.genSalt(10);
+  return bcryptjs.hashSync(password, salt);
+}
+
+export async function getNewId() {
+  return uuidv4();
 }

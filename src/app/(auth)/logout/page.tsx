@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * Página de logout com design minimalista e mensagem positiva
- * Aguarda 2 segundos e automaticamente finaliza a sessão do usuário
+ * Aguarda 1 segundo e automaticamente finaliza a sessão do usuário
  */
 export default function LogoutPage() {
   const [isLoggingOut, setIsLoggingOut] = useState(true);
@@ -15,33 +15,50 @@ export default function LogoutPage() {
 
   useEffect(() => {
     /**
-     * Aguarda 2 segundos e depois destroi a sessão do usuário via API route
+     * Aguarda 1 segundo e depois destroi a sessão do usuário via API route
      */
-    const handleLogout = async () => {
-      try {
-        // Aguarda 2 segundos antes de finalizar a sessão
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+    const controller = new AbortController();
+    let isMounted = true;
 
+    const timeoutId = window.setTimeout(async () => {
+      try {
         // Finaliza a sessão do usuário via API route
-        await fetch("/api/logout", {
+        const response = await fetch("/api/logout", {
           method: "GET",
           credentials: "same-origin",
+          cache: "no-store",
+          signal: controller.signal,
         });
 
-        setIsLoggingOut(false);
-      } catch (error) {
-        console.error("Erro ao finalizar sessão:", error);
-        setIsLoggingOut(false);
-        // Mesmo com erro, redireciona para o login por segurança
-        router.push("/sign-in");
-      }
-    };
+        if (!response.ok) {
+          throw new Error(`Falha ao finalizar sessão: ${response.status}`);
+        }
 
-    handleLogout();
+        if (isMounted) {
+          setIsLoggingOut(false);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        console.error("Erro ao finalizar sessão:", error);
+
+        if (isMounted) {
+          setIsLoggingOut(false);
+          // Mesmo com erro, redireciona para o login por segurança
+          router.push("/sign-in");
+        }
+      }
+    }, 1000);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8 text-center">
         {/* Ícone de sucesso */}
         <div className="flex justify-center">

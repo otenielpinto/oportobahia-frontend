@@ -131,3 +131,5 @@ dist
 
 instrucoes
 instrucoes/
+# next-agents-md
+.next-docs/
