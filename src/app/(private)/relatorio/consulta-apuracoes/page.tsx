@@ -383,7 +383,7 @@ export default function ConsultaApuracoesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[250px]">
+                      <TableHead className="w-62.5">
                         Código Identificador
                       </TableHead>
                       <TableHead>Período da Apuração</TableHead>
@@ -394,8 +394,8 @@ export default function ConsultaApuracoesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.apuracoes.map((apuracao: Apuracao, index: number) => (
-                      <TableRow key={index}>
+                    {data.apuracoes.map((apuracao: Apuracao) => (
+                      <TableRow key={apuracao.id}>
                         <TableCell className="font-mono text-xs">
                           {apuracao.id}
                         </TableCell>
