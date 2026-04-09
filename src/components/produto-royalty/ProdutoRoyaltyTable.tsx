@@ -122,7 +122,7 @@ export default function ProdutoRoyaltyTable({
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     if (confirm("Tem certeza que deseja excluir este produto royalty?")) {
       deleteMutation.mutate(id);
     }

@@ -3,7 +3,7 @@
 export const COLLECTION_NAME = "tmp_produto_royalty";
 
 export interface ProdutoRoyalty {
-  // Campos da tabela tmp_planilha_copyright (exceto gtinEanNumero)
+  // Campos da tabela tmp_planilha_royalty (exceto gtinEanNumero)
   sku: string;
   gtinEan: string;
   descricaoTitulo: string;
@@ -28,7 +28,7 @@ export interface ProdutoRoyalty {
   loteImportacao: string;
 
   // Campos adicionais obrigatórios
-  id: number;
+  id: string;
   id_empresa: number;
   id_tenant: number;
   parceiro: string;

@@ -5,7 +5,7 @@ import {
   ProdutoRoyalty,
   ProdutoRoyaltyFormData,
 } from "@/types/produtoRoyaltyTypes";
-import { gen_id } from "@/actions/generatorAction";
+import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/sessionAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 import { revalidatePath } from "next/cache";
@@ -13,7 +13,7 @@ import { revalidatePath } from "next/cache";
 type ProdutoRoyaltyCreateInput = Omit<ProdutoRoyaltyFormData, "id_tenant">;
 
 type ProdutoRoyaltyUpdateInput = Partial<ProdutoRoyaltyCreateInput> & {
-  id: number;
+  id: string;
 };
 
 const COLLECTION_NAME = "tmp_produto_royalty";
@@ -65,7 +65,7 @@ export async function getAllProdutoRoyalties(
   }
 }
 
-export async function getProdutoRoyaltyById(id: number) {
+export async function getProdutoRoyaltyById(id: string) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -74,7 +74,7 @@ export async function getProdutoRoyaltyById(id: number) {
 
     const { client, clientdb } = await TMongo.connectToDatabase();
     const produto = await clientdb.collection(COLLECTION_NAME).findOne({
-      id: Number(id),
+      id,
       id_tenant: user.id_tenant,
       ...(user.id_empresa && { id_empresa: user.id_empresa }),
     });
@@ -170,16 +170,7 @@ export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    const row = await gen_id("produto_royalty");
-    if (!row.success || !row.data) {
-      await TMongo.mongoDisconnect(client);
-      return {
-        success: false,
-        error: "Falha ao gerar ID para o produto royalty.",
-      };
-    }
-
-    const newId = parseInt(String(row.data), 10);
+    const newId = uuidv4();
     const now = new Date();
 
     const produtoData: ProdutoRoyalty = {
@@ -249,7 +240,7 @@ export async function updateProdutoRoyalty(data: ProdutoRoyaltyUpdateInput) {
 
     const { client, clientdb } = await TMongo.connectToDatabase();
     const result = await clientdb.collection(COLLECTION_NAME).updateOne(
-      { id: Number(id), id_tenant: user.id_tenant },
+      { id, id_tenant: user.id_tenant },
       {
         $set: {
           ...updateFields,
@@ -288,7 +279,7 @@ export async function updateProdutoRoyalty(data: ProdutoRoyaltyUpdateInput) {
   }
 }
 
-export async function deleteProdutoRoyalty(id: number) {
+export async function deleteProdutoRoyalty(id: string) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -298,7 +289,7 @@ export async function deleteProdutoRoyalty(id: number) {
     const { client, clientdb } = await TMongo.connectToDatabase();
     const result = await clientdb
       .collection(COLLECTION_NAME)
-      .deleteOne({ id: Number(id), id_tenant: user.id_tenant });
+      .deleteOne({ id, id_tenant: user.id_tenant });
     await TMongo.mongoDisconnect(client);
 
     if (result.deletedCount === 0) {

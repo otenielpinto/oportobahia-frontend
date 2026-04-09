@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EditProdutoRoyaltyPage({ params }: Props) {
   const { id } = await params;
-  const { data: produto, success } = await getProdutoRoyaltyById(Number(id));
+  const { data: produto, success } = await getProdutoRoyaltyById(id);
 
   if (!success || !produto) {
     notFound();
