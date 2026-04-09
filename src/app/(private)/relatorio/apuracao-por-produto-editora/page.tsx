@@ -5,8 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import {
   agruparApuracoesPorProdutoEditora,
   consultarApuracaoCurrentById,
-} from "@/actions/actApurarRoyalties";
-import { getEmpresaById } from "@/actions/actEmpresa";
+} from "@/actions/apurarRoyaltiesAction";
+import { getEmpresaById } from "@/actions/empresaAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -111,7 +111,11 @@ export default function ApuracaoPorProdutoEditoraPage() {
     queryFn: async () => {
       try {
         const result = await getEmpresaById(1);
-        return result;
+        if (!result?.success) {
+          throw new Error(result?.error || "Erro ao buscar empresa");
+        }
+
+        return result.data;
       } catch (error) {
         console.error("Erro ao buscar empresa:", error);
         throw error;

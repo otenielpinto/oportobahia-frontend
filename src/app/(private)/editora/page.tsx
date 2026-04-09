@@ -13,7 +13,7 @@ import {
   fetchPublishers,
   updatePublisher,
   createPublisher,
-} from "@/actions/actPublishers";
+} from "@/actions/publishersAction";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";

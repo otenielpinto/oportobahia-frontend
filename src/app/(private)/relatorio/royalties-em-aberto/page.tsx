@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   consultarRoyalties,
   registrarPagamentoRoyalties,
-} from "@/actions/actApurarRoyalties";
+} from "@/actions/apurarRoyaltiesAction";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";

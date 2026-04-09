@@ -4,7 +4,7 @@ import { useState, use } from "react";
 import { useQuery } from "@tanstack/react-query";
 // import { format } from "date-fns";
 // import { ptBR } from "date-fns/locale";
-import { obterResultadosApuracao } from "@/actions/actApurarRoyalties";
+import { obterResultadosApuracao } from "@/actions/apurarRoyaltiesAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { trackSchema } from "@/lib/schemas";
 import { type Track, type TrackFormData } from "@/types/catalogTypes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { updateTrack, createTrack } from "@/actions/actCatalog";
-import { getPublishers } from "@/actions/actPublishers";
+import { updateTrack, createTrack } from "@/actions/catalogAction";
+import { getPublishers } from "@/actions/publishersAction";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +79,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tracks", catalogId] });
       toast.success(
-        track ? "Faixa atualizada com sucesso" : "Faixa criada com sucesso"
+        track ? "Faixa atualizada com sucesso" : "Faixa criada com sucesso",
       );
       form.reset();
       setSelectedPublishers([]);
@@ -101,7 +101,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
         toast.error(
           track
             ? "Falha ao atualizar faixa. Tente novamente."
-            : "Falha ao criar faixa. Tente novamente."
+            : "Falha ao criar faixa. Tente novamente.",
         );
       }
     },
@@ -118,7 +118,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     track?.publishers?.map((pub) => ({
       ...pub,
       publisherCode: pub.publisherCode || "",
-    })) || []
+    })) || [],
   );
   const [currentPublisher, setCurrentPublisher] = useState("");
   const [currentPublisherCode, setCurrentPublisherCode] = useState("");
@@ -142,7 +142,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     track?.subTracks?.map((subTrack) => ({
       ...subTrack,
       publishers: subTrack.publishers || [],
-    })) || []
+    })) || [],
   );
 
   // Estado para o subTrack atual em edição
@@ -180,7 +180,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
         track.publishers.map((pub) => ({
           ...pub,
           publisherCode: pub.publisherCode || "",
-        }))
+        })),
       );
     }
     if (track?.subTracks) {
@@ -188,7 +188,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
         track.subTracks.map((subTrack) => ({
           ...subTrack,
           publishers: subTrack.publishers || [],
-        }))
+        })),
       );
     }
   }, [track]);
@@ -196,7 +196,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   useEffect(() => {
     const total = selectedPublishers.reduce(
       (sum, pub) => sum + pub.participationPercentage,
-      0
+      0,
     );
     setTotalPercentage(total);
   }, [selectedPublishers]);
@@ -206,7 +206,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     if (currentSubTrack.publishers.length > 0) {
       const total = currentSubTrack.publishers.reduce(
         (sum, pub) => sum + pub.participationPercentage,
-        0
+        0,
       );
       setTotalSubTrackPercentage(total);
     } else {
@@ -276,7 +276,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
 
     if (
       currentSubTrack.publishers.some(
-        (pub) => pub.name === currentSubTrackPublisher
+        (pub) => pub.name === currentSubTrackPublisher,
       )
     ) {
       toast.error("Esta editora já foi adicionada para esta obra");
@@ -392,11 +392,11 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
     console.log("Dados do formulário:", JSON.stringify(data, null, 2));
     console.log(
       "Publishers selecionados:",
-      JSON.stringify(selectedPublishers, null, 2)
+      JSON.stringify(selectedPublishers, null, 2),
     );
     console.log(
       "SubTracks selecionados:",
-      JSON.stringify(selectedSubTracks, null, 2)
+      JSON.stringify(selectedSubTracks, null, 2),
     );
     console.log("Estado do formulário:", {
       isValid: form.formState.isValid,
@@ -459,7 +459,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
         // Atualiza a UI após sucesso
         queryClient.invalidateQueries({ queryKey: ["tracks", catalogId] });
         toast.success(
-          track ? "Faixa atualizada com sucesso" : "Faixa criada com sucesso"
+          track ? "Faixa atualizada com sucesso" : "Faixa criada com sucesso",
         );
 
         // Limpa o formulário
@@ -486,7 +486,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
           toast.error(
             track
               ? "Falha ao atualizar faixa. Tente novamente."
-              : "Falha ao criar faixa. Tente novamente."
+              : "Falha ao criar faixa. Tente novamente.",
           );
         }
         throw error;
@@ -504,7 +504,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
         toast.error(
           track
             ? "Falha ao atualizar faixa. Tente novamente."
-            : "Falha ao criar faixa. Tente novamente."
+            : "Falha ao criar faixa. Tente novamente.",
         );
       }
       console.groupEnd();
@@ -900,7 +900,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                                 value={currentSubTrackPublisherPercentage || ""}
                                 onChange={(e) =>
                                   setCurrentSubTrackPublisherPercentage(
-                                    Number(e.target.value)
+                                    Number(e.target.value),
                                   )
                                 }
                               />
@@ -1044,8 +1044,8 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
             {mutation.isPending
               ? "Processando..."
               : track
-              ? "Atualizar Faixa"
-              : "Criar Faixa"}
+                ? "Atualizar Faixa"
+                : "Criar Faixa"}
           </Button>
 
           {process.env.NODE_ENV !== "production" && (

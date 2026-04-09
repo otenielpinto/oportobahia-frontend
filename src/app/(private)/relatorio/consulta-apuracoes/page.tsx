@@ -9,7 +9,7 @@ import {
   excluirApuracao,
   fecharApuracao,
   processarApuracaoFechada,
-} from "@/actions/actApurarRoyalties";
+} from "@/actions/apurarRoyaltiesAction";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
