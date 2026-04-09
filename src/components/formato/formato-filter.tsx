@@ -25,7 +25,7 @@ export function FormatoFilter({ filter, onFilterChange }: FormatoFilterProps) {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       debouncedSearch(e.target.value);
     },
-    [debouncedSearch]
+    [debouncedSearch],
   );
 
   const handleStatusChange = useCallback(
@@ -35,13 +35,14 @@ export function FormatoFilter({ filter, onFilterChange }: FormatoFilterProps) {
         status: value === "all" ? undefined : (value as "active" | "inactive"),
       });
     },
-    [filter, onFilterChange]
+    [filter, onFilterChange],
   );
 
   return (
     <div className="flex space-x-4">
       <Input
         placeholder="Pesquisar..."
+        autoComplete="off"
         onChange={handleSearchChange}
         defaultValue={filter.search}
       />

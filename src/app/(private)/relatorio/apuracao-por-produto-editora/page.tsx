@@ -617,7 +617,7 @@ export default function ApuracaoPorProdutoEditoraPage() {
                           <TableCell>{item.formato}</TableCell>
                           <TableCell>{item.editora}</TableCell>
                           <TableCell
-                            className="max-w-[200px] truncate"
+                            className="max-w-50 truncate"
                             title={item.obra}
                           >
                             {item.obra}

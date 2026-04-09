@@ -24,7 +24,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 const formatoSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
+  name: z.string().trim().min(1, "Nome é obrigatório"),
   limite_faixas: z.number().int().min(1, "Limite de faixas é obrigatório"),
   percentual_faixa: z.number().nonnegative(),
   status: z.enum(["active", "inactive"]),
@@ -92,11 +92,15 @@ export function FormatoEditDialog({
       toast.success(
         isCreating
           ? "Formato criado com sucesso"
-          : "Formato atualizado com sucesso"
+          : "Formato atualizado com sucesso",
       );
       onClose();
     } catch (error) {
-      toast.error("Erro ao salvar formato " + error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Erro inesperado ao salvar formato";
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -110,11 +114,11 @@ export function FormatoEditDialog({
             {isCreating ? "Criar Formato" : "Editar Formato"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
           <div className="space-y-4">
             <div>
               <Label htmlFor="name">Nome</Label>
-              <Input id="name" {...register("name")} />
+              <Input id="name" autoComplete="off" {...register("name")} />
               {errors.name && (
                 <p className="text-red-600">{errors.name.message}</p>
               )}

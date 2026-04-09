@@ -31,7 +31,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingPublisher, setEditingPublisher] = useState<Publisher | null>(
-    null
+    null,
   );
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -58,7 +58,7 @@ export default function Home() {
     (newFilter: PublisherFilterInterface) => {
       setFilter(newFilter);
     },
-    []
+    [],
   );
 
   const handlePageChange = useCallback((page: number) => {
@@ -117,7 +117,7 @@ export default function Home() {
       </div>
 
       {loading && !response ? (
-        <div className="flex justify-center items-center min-h-[400px]">
+        <div className="flex justify-center items-center min-h-100">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : (

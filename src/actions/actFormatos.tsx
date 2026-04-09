@@ -9,21 +9,43 @@ import {
 
 const collection = "formato";
 
-export const createFormato = async (formato: Partial<Formato>) => {
-  let id: number = await genId(collection);
-  //return await insertInitialData();
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+export const createFormato = async (formato: Partial<Formato>) => {
   try {
+    let id: number = await genId(collection);
     const { client, clientdb } = await TMongo.connectToDatabase();
+    const normalizedName = formato.name?.trim();
+
+    if (!normalizedName) {
+      await TMongo.mongoDisconnect(client);
+      throw new Error("Nome do formato é obrigatório");
+    }
+
+    const existing = await clientdb.collection(collection).findOne({
+      name: { $regex: `^${escapeRegex(normalizedName)}$`, $options: "i" },
+    });
+
+    if (existing) {
+      await TMongo.mongoDisconnect(client);
+      throw new Error("Já existe um formato com esse nome");
+    }
+
     const result = await clientdb.collection(collection).insertOne({
       id,
-      name: formato.name,
+      name: normalizedName,
       limite_faixas: formato.limite_faixas,
       percentual_faixa: formato.percentual_faixa,
       status: formato.status,
     });
     await TMongo.mongoDisconnect(client);
-    return result.insertedId;
+    if (!result.acknowledged) {
+      throw new Error("Falha ao criar formato");
+    }
+
+    // Retorna apenas valor serializável para evitar erro de server action no client.
+    return id;
   } catch (error) {
     console.error("Error inserting formato:", error);
     throw error;
@@ -32,13 +54,36 @@ export const createFormato = async (formato: Partial<Formato>) => {
 
 export const updateFormato = async (
   id: number,
-  updatedData: Partial<Formato>
+  updatedData: Partial<Formato>,
 ) => {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
+    const normalizedData: Partial<Formato> = { ...updatedData };
+
+    if (typeof updatedData.name === "string") {
+      const normalizedName = updatedData.name.trim();
+
+      if (!normalizedName) {
+        await TMongo.mongoDisconnect(client);
+        throw new Error("Nome do formato é obrigatório");
+      }
+
+      const existing = await clientdb.collection(collection).findOne({
+        id: { $ne: Number(id) },
+        name: { $regex: `^${escapeRegex(normalizedName)}$`, $options: "i" },
+      });
+
+      if (existing) {
+        await TMongo.mongoDisconnect(client);
+        throw new Error("Já existe um formato com esse nome");
+      }
+
+      normalizedData.name = normalizedName;
+    }
+
     const result = await clientdb
       .collection(collection)
-      .updateOne({ id: Number(id) }, { $set: updatedData });
+      .updateOne({ id: Number(id) }, { $set: normalizedData });
     await TMongo.mongoDisconnect(client);
 
     return result.modifiedCount > 0;
@@ -80,13 +125,20 @@ export const getFormatos = async (): Promise<Formato[]> => {
 };
 
 export const getFormatoByName = async (
-  name: string
+  name: string,
 ): Promise<Formato | null> => {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
-    const formato = await clientdb
-      .collection(collection)
-      .findOne({ name: name });
+    const normalizedName = name.trim();
+
+    if (!normalizedName) {
+      await TMongo.mongoDisconnect(client);
+      return null;
+    }
+
+    const formato = await clientdb.collection(collection).findOne({
+      name: { $regex: `^${escapeRegex(normalizedName)}$`, $options: "i" },
+    });
     await TMongo.mongoDisconnect(client);
 
     if (!formato) {
@@ -107,7 +159,7 @@ export const getFormatoByName = async (
 };
 
 export async function fetchFormatos(
-  filter: FormatoFilterInterface
+  filter: FormatoFilterInterface,
 ): Promise<FormatoResponse> {
   const formatos = await getFormatos();
   let filtered: Formato[] = [...formatos];
@@ -115,7 +167,7 @@ export async function fetchFormatos(
   if (filter.search) {
     const searchLower = filter.search.toLowerCase();
     filtered = filtered.filter((form) =>
-      form.name.toLowerCase().includes(searchLower)
+      form.name.toLowerCase().includes(searchLower),
     );
   }
 

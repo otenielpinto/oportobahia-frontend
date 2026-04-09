@@ -8,6 +8,7 @@ import {
   PlusIcon,
   ShoppingCart,
   ReceiptText,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export const navigationData = {
@@ -40,8 +41,8 @@ export const navigationData = {
         },
 
         {
-          title: "Produtos royalties",
-          url: "/royalties",
+          title: "Produtos Autoral",
+          url: "/produto-autoral",
         },
       ],
     },
@@ -95,6 +96,18 @@ export const navigationData = {
         {
           title: "Royalties em Aberto",
           url: "/relatorio/royalties-em-aberto",
+        },
+      ],
+    },
+
+    {
+      title: "Arquivo",
+      url: "#",
+      icon: FileSpreadsheet,
+      items: [
+        {
+          title: "Importar produtos via Planilha",
+          url: "/royalties",
         },
       ],
     },

@@ -54,7 +54,7 @@ export default function Home() {
     (newFilter: FormatoFilterInterface) => {
       setFilter(newFilter);
     },
-    []
+    [],
   );
 
   const handlePageChange = useCallback((page: number) => {
@@ -106,7 +106,7 @@ export default function Home() {
         />
       </div>
       {loading && !response ? (
-        <div className="flex justify-center items-center min-h-[400px]">
+        <div className="flex justify-center items-center min-h-100">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : (

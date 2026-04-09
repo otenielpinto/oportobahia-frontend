@@ -137,13 +137,13 @@ export function PublisherEditDialog({
       toast.success(
         isCreating
           ? "Editora criada com sucesso"
-          : "Editora atualizada com sucesso"
+          : "Editora atualizada com sucesso",
       );
       onClose();
     } catch (error) {
       console.error(error);
       toast.error(
-        isCreating ? "Falha ao criar editora" : "Falha ao atualizar editora"
+        isCreating ? "Falha ao criar editora" : "Falha ao atualizar editora",
       );
     } finally {
       setIsSaving(false);
@@ -157,7 +157,7 @@ export function PublisherEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-175">
         <DialogHeader>
           <DialogTitle>
             {isCreating ? "Criar Editora" : "Editar Editora"}
@@ -345,8 +345,8 @@ export function PublisherEditDialog({
               {isSaving
                 ? "Salvando..."
                 : isCreating
-                ? "Criar"
-                : "Salvar Alterações"}
+                  ? "Criar"
+                  : "Salvar Alterações"}
             </Button>
           </DialogFooter>
         </form>
