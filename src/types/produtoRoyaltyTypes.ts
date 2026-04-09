@@ -1,8 +1,8 @@
-// Tipos para produto autoral
+// Tipos para produto royalty
 
-export const COLLECTION_NAME = "tmp_produto_autoral";
+export const COLLECTION_NAME = "tmp_produto_royalty";
 
-export interface ProdutoAutoral {
+export interface ProdutoRoyalty {
   // Campos da tabela tmp_planilha_copyright (exceto gtinEanNumero)
   sku: string;
   gtinEan: string;
@@ -36,7 +36,7 @@ export interface ProdutoAutoral {
   updated_at: Date;
 }
 
-export interface ProdutoAutoralFormData {
+export interface ProdutoRoyaltyFormData {
   // Campos editáveis do formulário (sem id, timestamps e tenant)
   sku?: string;
   gtinEan?: string;

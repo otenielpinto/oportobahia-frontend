@@ -2,23 +2,23 @@
 
 import { TMongo } from "@/infra/mongoClient";
 import {
-  ProdutoAutoral as ProdutoCopyright,
-  ProdutoAutoralFormData as ProdutoCopyrightFormData,
-} from "@/types/produtoAutoralTypes";
+  ProdutoRoyalty,
+  ProdutoRoyaltyFormData,
+} from "@/types/produtoRoyaltyTypes";
 import { gen_id } from "@/actions/generatorAction";
 import { getUser } from "@/actions/sessionAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 import { revalidatePath } from "next/cache";
 
-type ProdutoCopyrightCreateInput = Omit<ProdutoCopyrightFormData, "id_tenant">;
+type ProdutoRoyaltyCreateInput = Omit<ProdutoRoyaltyFormData, "id_tenant">;
 
-type ProdutoCopyrightUpdateInput = Partial<ProdutoCopyrightCreateInput> & {
+type ProdutoRoyaltyUpdateInput = Partial<ProdutoRoyaltyCreateInput> & {
   id: number;
 };
 
-const COLLECTION_NAME = "tmp_produto_copyright";
+const COLLECTION_NAME = "tmp_produto_royalty";
 
-export async function getAllProdutoCopyrights(
+export async function getAllProdutoRoyalties(
   page: number = 1,
   limit: number = 25,
 ) {
@@ -57,16 +57,15 @@ export async function getAllProdutoCopyrights(
       },
     };
   } catch (error: any) {
-    console.error("Erro ao buscar todos os produtos copyright:", error);
+    console.error("Erro ao buscar todos os produtos royalty:", error);
     return {
       success: false,
-      error:
-        error.message || "Não foi possível carregar os produtos copyright.",
+      error: error.message || "Não foi possível carregar os produtos royalty.",
     };
   }
 }
 
-export async function getProdutoCopyrightById(id: number) {
+export async function getProdutoRoyaltyById(id: number) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -82,21 +81,21 @@ export async function getProdutoCopyrightById(id: number) {
     await TMongo.mongoDisconnect(client);
 
     if (!produto) {
-      return { success: false, error: "Produto copyright não encontrado." };
+      return { success: false, error: "Produto royalty não encontrado." };
     }
 
     const serializedProduto = serializeMongoData(produto);
     return { success: true, data: serializedProduto };
   } catch (error: any) {
-    console.error(`Erro ao buscar produto copyright com ID ${id}:`, error);
+    console.error(`Erro ao buscar produto royalty com ID ${id}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar o produto copyright.",
+      error: error.message || "Não foi possível carregar o produto royalty.",
     };
   }
 }
 
-export async function getProdutoCopyrightBySku(sku: string) {
+export async function getProdutoRoyaltyBySku(sku: string) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -114,22 +113,22 @@ export async function getProdutoCopyrightBySku(sku: string) {
     if (!produto) {
       return {
         success: false,
-        error: "Produto copyright não encontrado pelo SKU.",
+        error: "Produto royalty não encontrado pelo SKU.",
       };
     }
 
     const serializedProduto = serializeMongoData(produto);
     return { success: true, data: serializedProduto };
   } catch (error: any) {
-    console.error(`Erro ao buscar produto copyright com SKU ${sku}:`, error);
+    console.error(`Erro ao buscar produto royalty com SKU ${sku}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar o produto copyright.",
+      error: error.message || "Não foi possível carregar o produto royalty.",
     };
   }
 }
 
-export async function getProdutoCopyrightByGtin(gtin: string) {
+export async function getProdutoRoyaltyByGtin(gtin: string) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -147,24 +146,22 @@ export async function getProdutoCopyrightByGtin(gtin: string) {
     if (!produto) {
       return {
         success: false,
-        error: "Produto copyright não encontrado pelo GTIN.",
+        error: "Produto royalty não encontrado pelo GTIN.",
       };
     }
 
     const serializedProduto = serializeMongoData(produto);
     return { success: true, data: serializedProduto };
   } catch (error: any) {
-    console.error(`Erro ao buscar produto copyright com GTIN ${gtin}:`, error);
+    console.error(`Erro ao buscar produto royalty com GTIN ${gtin}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar o produto copyright.",
+      error: error.message || "Não foi possível carregar o produto royalty.",
     };
   }
 }
 
-export async function createProdutoCopyright(
-  data: ProdutoCopyrightCreateInput,
-) {
+export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -173,19 +170,19 @@ export async function createProdutoCopyright(
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    const row = await gen_id("produto_copyright");
+    const row = await gen_id("produto_royalty");
     if (!row.success || !row.data) {
       await TMongo.mongoDisconnect(client);
       return {
         success: false,
-        error: "Falha ao gerar ID para o produto copyright.",
+        error: "Falha ao gerar ID para o produto royalty.",
       };
     }
 
     const newId = parseInt(String(row.data), 10);
     const now = new Date();
 
-    const produtoData: ProdutoCopyright = {
+    const produtoData: ProdutoRoyalty = {
       ...data,
       id: newId,
       id_tenant: user.id_tenant,
@@ -223,27 +220,25 @@ export async function createProdutoCopyright(
     await TMongo.mongoDisconnect(client);
 
     if (!result.acknowledged) {
-      return { success: false, error: "Falha ao criar produto copyright." };
+      return { success: false, error: "Falha ao criar produto royalty." };
     }
 
-    revalidatePath("/produto-copyright");
+    revalidatePath("/produto-royalty");
     return {
       success: true,
-      message: "Produto copyright criado com sucesso.",
+      message: "Produto royalty criado com sucesso.",
       id: newId,
     };
   } catch (error: any) {
-    console.error("Erro ao criar produto copyright:", error);
+    console.error("Erro ao criar produto royalty:", error);
     return {
       success: false,
-      error: error.message || "Não foi possível criar o produto copyright.",
+      error: error.message || "Não foi possível criar o produto royalty.",
     };
   }
 }
 
-export async function updateProdutoCopyright(
-  data: ProdutoCopyrightUpdateInput,
-) {
+export async function updateProdutoRoyalty(data: ProdutoRoyaltyUpdateInput) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -267,34 +262,33 @@ export async function updateProdutoCopyright(
     if (result.matchedCount === 0) {
       return {
         success: false,
-        error:
-          "Produto copyright não encontrado ou não pertence ao seu tenant.",
+        error: "Produto royalty não encontrado ou não pertence ao seu tenant.",
       };
     }
     if (result.modifiedCount === 0) {
       return { success: false, message: "Nenhuma alteração detectada." };
     }
 
-    revalidatePath("/produto-copyright");
-    revalidatePath(`/produto-copyright/view/${id}`);
-    revalidatePath(`/produto-copyright/edit/${id}`);
+    revalidatePath("/produto-royalty");
+    revalidatePath(`/produto-royalty/view/${id}`);
+    revalidatePath(`/produto-royalty/edit/${id}`);
     return {
       success: true,
-      message: "Produto copyright atualizado com sucesso.",
+      message: "Produto royalty atualizado com sucesso.",
     };
   } catch (error: any) {
     console.error(
-      `Erro ao atualizar produto copyright com ID ${data.id}:`,
+      `Erro ao atualizar produto royalty com ID ${data.id}:`,
       error,
     );
     return {
       success: false,
-      error: error.message || "Não foi possível atualizar o produto copyright.",
+      error: error.message || "Não foi possível atualizar o produto royalty.",
     };
   }
 }
 
-export async function deleteProdutoCopyright(id: number) {
+export async function deleteProdutoRoyalty(id: number) {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -310,26 +304,25 @@ export async function deleteProdutoCopyright(id: number) {
     if (result.deletedCount === 0) {
       return {
         success: false,
-        error:
-          "Produto copyright não encontrado ou não pertence ao seu tenant.",
+        error: "Produto royalty não encontrado ou não pertence ao seu tenant.",
       };
     }
 
-    revalidatePath("/produto-copyright");
+    revalidatePath("/produto-royalty");
     return {
       success: true,
-      message: "Produto copyright excluído com sucesso.",
+      message: "Produto royalty excluído com sucesso.",
     };
   } catch (error: any) {
-    console.error(`Erro ao excluir produto copyright com ID ${id}:`, error);
+    console.error(`Erro ao excluir produto royalty com ID ${id}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível excluir o produto copyright.",
+      error: error.message || "Não foi possível excluir o produto royalty.",
     };
   }
 }
 
-export async function getAllProdutoCopyrightsSemPaginacao() {
+export async function getAllProdutoRoyaltiesSemPaginacao() {
   try {
     const user: any = await getUser();
     if (!user || !user?.id_tenant) {
@@ -346,11 +339,10 @@ export async function getAllProdutoCopyrightsSemPaginacao() {
     const serializedProdutos = serializeMongoData(produtos);
     return { success: true, data: serializedProdutos };
   } catch (error: any) {
-    console.error("Erro ao buscar todos os produtos copyright:", error);
+    console.error("Erro ao buscar todos os produtos royalty:", error);
     return {
       success: false,
-      error:
-        error.message || "Não foi possível carregar os produtos copyright.",
+      error: error.message || "Não foi possível carregar os produtos royalty.",
     };
   }
 }

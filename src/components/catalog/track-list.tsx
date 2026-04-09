@@ -2,7 +2,7 @@
 
 import { Track } from "@/types/catalogTypes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTracks, deleteTrack } from "@/actions/catalogAction";
+import { getTracks, deleteTrack } from "@/actions/catalogCopyrightAction";
 
 import { toast } from "sonner";
 import {

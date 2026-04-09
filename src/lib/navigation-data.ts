@@ -36,13 +36,13 @@ export const navigationData = {
           url: "/formato",
         },
         {
-          title: "Produtos copyright",
+          title: "Produtos Catálogo",
           url: "/catalogo",
         },
 
         {
           title: "Produtos Royalties",
-          url: "/produto-copyright",
+          url: "/produto-royalty",
         },
       ],
     },
@@ -106,8 +106,8 @@ export const navigationData = {
       icon: FileSpreadsheet,
       items: [
         {
-          title: "Importar produtos via Planilha",
-          url: "/arquivo/importar-planilha-copyright",
+          title: "Importar Planilha Royalty",
+          url: "/arquivo/importar-planilha-royalty",
         },
       ],
     },

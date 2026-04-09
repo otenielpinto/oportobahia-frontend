@@ -31,25 +31,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  getAllProdutoCopyrights,
-  deleteProdutoCopyright,
-} from "@/actions/produtoCopyrightAction";
-import { ProdutoAutoral } from "@/types/produtoAutoralTypes";
+  getAllProdutoRoyalties,
+  deleteProdutoRoyalty,
+} from "@/actions/produtoRoyaltyAction";
+import { ProdutoRoyalty } from "@/types/produtoRoyaltyTypes";
 import { toast } from "sonner";
 
-interface ProdutoAutoralTableProps {
-  data?: ProdutoAutoral[];
+interface ProdutoRoyaltyTableProps {
+  data?: ProdutoRoyalty[];
 }
 
-export default function ProdutoAutoralTable({
+export default function ProdutoRoyaltyTable({
   data: initialData,
-}: ProdutoAutoralTableProps) {
+}: ProdutoRoyaltyTableProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [sortField, setSortField] = useState<keyof ProdutoAutoral>("id");
+  const [sortField, setSortField] = useState<keyof ProdutoRoyalty>("id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 25;
@@ -60,8 +60,8 @@ export default function ProdutoAutoralTable({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["produto-autorais", currentPage, limit],
-    queryFn: async () => await getAllProdutoCopyrights(currentPage, limit),
+    queryKey: ["produto-royalties", currentPage, limit],
+    queryFn: async () => await getAllProdutoRoyalties(currentPage, limit),
     enabled: !initialData,
   });
 
@@ -70,17 +70,17 @@ export default function ProdutoAutoralTable({
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteProdutoCopyright,
+    mutationFn: deleteProdutoRoyalty,
     onSuccess: (data) => {
       if (data.success) {
-        toast.success(data.message || "Produto autoral excluído com sucesso.");
-        queryClient.invalidateQueries({ queryKey: ["produto-autorais"] });
+        toast.success(data.message || "Produto royalty excluído com sucesso.");
+        queryClient.invalidateQueries({ queryKey: ["produto-royalties"] });
       } else {
-        toast.error(data.error || "Falha ao excluir produto autoral.");
+        toast.error(data.error || "Falha ao excluir produto royalty.");
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || "Falha ao excluir produto autoral.");
+      toast.error(error.message || "Falha ao excluir produto royalty.");
     },
   });
 
@@ -113,7 +113,7 @@ export default function ProdutoAutoralTable({
       });
   }, [produtos, search, filter, sortField, sortDirection]);
 
-  const handleSort = (field: keyof ProdutoAutoral) => {
+  const handleSort = (field: keyof ProdutoRoyalty) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -123,7 +123,7 @@ export default function ProdutoAutoralTable({
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este produto autoral?")) {
+    if (confirm("Tem certeza que deseja excluir este produto royalty?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -131,7 +131,7 @@ export default function ProdutoAutoralTable({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="ml-2">Carregando produtos autorais...</span>
+        <span className="ml-2">Carregando produtos royalty...</span>
       </div>
     );
   }
@@ -139,7 +139,7 @@ export default function ProdutoAutoralTable({
   if (error) {
     return (
       <div className="flex items-center justify-center h-64 text-red-500">
-        <span>Erro ao carregar produtos autorais.</span>
+        <span>Erro ao carregar produtos royalty.</span>
       </div>
     );
   }
@@ -147,9 +147,9 @@ export default function ProdutoAutoralTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Produtos Autoral</CardTitle>
+        <CardTitle>Produtos Royalties</CardTitle>
         <CardDescription>
-          Gerencie os produtos autorais do sistema.
+          Gerencie os produtos royalties do sistema.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -163,7 +163,7 @@ export default function ProdutoAutoralTable({
               className="pl-8"
             />
           </div>
-          <Button onClick={() => router.push("/produto-copyright/new")}>
+          <Button onClick={() => router.push("/produto-royalty/new")}>
             <Plus className="mr-2 h-4 w-4" />
             Novo
           </Button>
@@ -217,7 +217,7 @@ export default function ProdutoAutoralTable({
               {filteredAndSortedProdutos.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">
-                    Nenhum produto autoral encontrado.
+                    Nenhum produto royalty encontrado.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -254,18 +254,14 @@ export default function ProdutoAutoralTable({
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
                           <DropdownMenuItem
                             onClick={() =>
-                              router.push(
-                                `/produto-copyright/view/${produto.id}`,
-                              )
+                              router.push(`/produto-royalty/view/${produto.id}`)
                             }
                           >
                             Visualizar
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
-                              router.push(
-                                `/produto-copyright/edit/${produto.id}`,
-                              )
+                              router.push(`/produto-royalty/edit/${produto.id}`)
                             }
                           >
                             Editar

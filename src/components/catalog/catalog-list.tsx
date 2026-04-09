@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getCatalogs } from "@/actions/catalogAction";
+import { getCatalogs } from "@/actions/catalogCopyrightAction";
 import { CatalogTable } from "@/components/catalog/catalog-table";
 import { CatalogForm } from "@/components/catalog/catalog-form";
 import { Button } from "@/components/ui/button";

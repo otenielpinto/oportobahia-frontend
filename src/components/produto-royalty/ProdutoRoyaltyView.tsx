@@ -9,15 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ProdutoAutoral } from "@/types/produtoAutoralTypes";
+import { ProdutoRoyalty } from "@/types/produtoRoyaltyTypes";
 
-interface ProdutoAutoralViewProps {
-  produto: ProdutoAutoral;
+interface ProdutoRoyaltyViewProps {
+  produto: ProdutoRoyalty;
 }
 
-export default function ProdutoAutoralView({
+export default function ProdutoRoyaltyView({
   produto,
-}: ProdutoAutoralViewProps) {
+}: ProdutoRoyaltyViewProps) {
   const router = useRouter();
 
   const formatCurrency = (value: number | undefined | null) => {
@@ -38,12 +38,12 @@ export default function ProdutoAutoralView({
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          onClick={() => router.push("/produto-copyright")}
+          onClick={() => router.push("/produto-royalty")}
         >
           Voltar
         </Button>
         <Button
-          onClick={() => router.push(`/produto-copyright/edit/${produto.id}`)}
+          onClick={() => router.push(`/produto-royalty/edit/${produto.id}`)}
         >
           Editar
         </Button>
@@ -52,7 +52,7 @@ export default function ProdutoAutoralView({
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
-            {produto.descricaoTitulo || "Produto Autoral"}
+            {produto.descricaoTitulo || "Produto Royalty"}
           </CardTitle>
           <CardDescription>ID: {produto.id}</CardDescription>
         </CardHeader>

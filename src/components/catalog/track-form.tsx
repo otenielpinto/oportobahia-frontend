@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { trackSchema } from "@/lib/schemas";
 import { type Track, type TrackFormData } from "@/types/catalogTypes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { updateTrack, createTrack } from "@/actions/catalogAction";
+import { updateTrack, createTrack } from "@/actions/catalogCopyrightAction";
 import { getPublishers } from "@/actions/publishersAction";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

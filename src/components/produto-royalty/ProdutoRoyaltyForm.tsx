@@ -17,13 +17,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  createProdutoCopyright,
-  updateProdutoCopyright,
-} from "@/actions/produtoCopyrightAction";
-import {
-  ProdutoAutoral,
-  ProdutoAutoralFormData,
-} from "@/types/produtoAutoralTypes";
+  createProdutoRoyalty,
+  updateProdutoRoyalty,
+} from "@/actions/produtoRoyaltyAction";
+import { ProdutoRoyalty } from "@/types/produtoRoyaltyTypes";
 import {
   Form,
   FormControl,
@@ -61,15 +58,15 @@ const formSchema = z.object({
   parceiro: z.string().optional(),
 });
 
-interface ProdutoAutoralFormProps {
+interface ProdutoRoyaltyFormProps {
   isEdit?: boolean;
-  produto?: ProdutoAutoral;
+  produto?: ProdutoRoyalty;
 }
 
-export default function ProdutoAutoralForm({
+export default function ProdutoRoyaltyForm({
   isEdit = false,
   produto,
-}: ProdutoAutoralFormProps) {
+}: ProdutoRoyaltyFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -142,22 +139,22 @@ export default function ProdutoAutoralForm({
       let response;
 
       if (isEdit && produto?.id) {
-        response = await updateProdutoCopyright({ id: produto.id, ...data });
+        response = await updateProdutoRoyalty({ id: produto.id, ...data });
       } else {
-        response = await createProdutoCopyright(data);
+        response = await createProdutoRoyalty(data);
       }
 
       if (response.success) {
-        toast.success(response.message || "Produto autoral salvo com sucesso.");
-        router.push("/produto-copyright");
+        toast.success(response.message || "Produto royalty salvo com sucesso.");
+        router.push("/produto-royalty");
       } else {
-        throw new Error(response.error || "Falha ao salvar o produto autoral.");
+        throw new Error(response.error || "Falha ao salvar o produto royalty.");
       }
     } catch (error: any) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Falha ao salvar o produto autoral.",
+          : "Falha ao salvar o produto royalty.",
       );
     } finally {
       setIsSubmitting(false);
@@ -169,13 +166,13 @@ export default function ProdutoAutoralForm({
       <CardHeader>
         <CardTitle>
           {isEdit
-            ? `Editar Produto Autoral: ${produto?.descricaoTitulo || "Produto"}`
-            : "Novo Produto Autoral"}
+            ? `Editar Produto Royalty: ${produto?.descricaoTitulo || "Produto"}`
+            : "Novo Produto Royalty"}
         </CardTitle>
         <CardDescription>
           {isEdit
-            ? "Edite as informações do produto autoral."
-            : "Preencha os dados para criar um novo produto autoral."}
+            ? "Edite as informações do produto royalty."
+            : "Preencha os dados para criar um novo produto royalty."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -576,7 +573,7 @@ export default function ProdutoAutoralForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/produto-copyright")}
+                onClick={() => router.push("/produto-royalty")}
                 disabled={isSubmitting}
               >
                 Cancelar

@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit2Icon, TrashIcon, Music2Icon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteCatalog } from "@/actions/catalogAction";
+import { deleteCatalog } from "@/actions/catalogCopyrightAction";
 import { toast } from "sonner";
 import {
   AlertDialog,

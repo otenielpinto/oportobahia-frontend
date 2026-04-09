@@ -313,10 +313,10 @@ export default function RoyaltiesEmAbertoPage() {
             <div>
               <CardTitle className="flex items-center">
                 <DollarSign className="mr-2 h-5 w-5" />
-                Royalties
+                Copyright
               </CardTitle>
               <CardDescription>
-                Consulta de royalties por situação
+                Consulta de copyright por situação
               </CardDescription>
             </div>
             {data && data.registros && !isLoading && (

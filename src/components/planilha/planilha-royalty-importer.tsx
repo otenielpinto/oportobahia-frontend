@@ -39,13 +39,13 @@ import {
   validateFileSize,
   importProdutoRoyalties,
   deleteProdutoRoyaltiesByLote,
-} from "@/actions/planilhaCopyrightAction";
+} from "@/actions/planilhaRoyaltyAction";
 import {
   EXCEL_REQUIRED_COLUMNS,
   MAX_FILE_SIZE_MB,
   type ImportResult,
   type ValidationResult,
-} from "@/types/planilhaCopyrightTypes";
+} from "@/types/planilhaRoyaltyTypes";
 
 interface ImportState {
   step: "idle" | "validating" | "confirmed" | "importing" | "done" | "error";
@@ -65,7 +65,7 @@ const INITIAL_STATE: ImportState = {
   progress: 0,
 };
 
-export function PlanilhaCopyrightImporter() {
+export function PlanilhaRoyaltyImporter() {
   const [state, setState] = useState<ImportState>(INITIAL_STATE);
   const [parsedData, setParsedData] = useState<{
     headers: string[];

@@ -10,7 +10,7 @@ import {
   getCatalogByBarcode,
   createCatalog,
   updateCatalog,
-} from "@/actions/catalogAction";
+} from "@/actions/catalogCopyrightAction";
 import { getFormatos, getFormatoByName } from "@/actions/formatoAction";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
