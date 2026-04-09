@@ -1,6 +1,6 @@
 "use server";
 import { TMongo } from "@/infra/mongoClient";
-import { genId } from "./actGenerator";
+import { generateId } from "./generatorAction";
 import {
   Formato,
   FormatoFilterInterface,
@@ -14,7 +14,7 @@ const escapeRegex = (value: string) =>
 
 export const createFormato = async (formato: Partial<Formato>) => {
   try {
-    let id: number = await genId(collection);
+    let id: number = await generateId(collection);
     const { client, clientdb } = await TMongo.connectToDatabase();
     const normalizedName = formato.name?.trim();
 
@@ -214,7 +214,7 @@ const initialData = [
 ];
 
 export const insertInitialData = async () => {
-  await genId(collection);
+  await generateId(collection);
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
     const formattedData = initialData.map((data, index) => ({

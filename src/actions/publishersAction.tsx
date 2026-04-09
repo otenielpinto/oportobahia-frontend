@@ -1,6 +1,6 @@
 "use server";
 import { TMongo } from "@/infra/mongoClient";
-import { genId } from "./actGenerator";
+import { generateId } from "./generatorAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 import {
   Publisher,
@@ -12,7 +12,7 @@ const collection = "editora";
 const tmp_log_editora = "tmp_log_editora";
 
 export const createPublisher = async (publisher: any) => {
-  let id: number = await genId(collection);
+  let id: number = await generateId(collection);
 
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();

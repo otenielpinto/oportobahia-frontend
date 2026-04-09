@@ -8,7 +8,7 @@ import {
 } from "@/types/catalogTypes";
 
 import { TMongo } from "@/infra/mongoClient";
-import { genId } from "./actGenerator";
+import { generateId } from "./generatorAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 
 const collection = "tmp_catalog";
@@ -104,7 +104,7 @@ export async function createCatalog(data: CatalogFormData): Promise<Catalog> {
   if (hasCatalog) {
     throw new Error("Catálogo já existe com este código de barras");
   }
-  const id = String(await genId(collection));
+  const id = String(await generateId(collection));
   const body: Catalog = { id, ...data };
 
   try {
