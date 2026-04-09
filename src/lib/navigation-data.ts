@@ -36,12 +36,12 @@ export const navigationData = {
           url: "/formato",
         },
         {
-          title: "Produtos catalogo",
+          title: "Produtos copyright",
           url: "/catalogo",
         },
 
         {
-          title: "Produtos Autoral",
+          title: "Produtos Royalties",
           url: "/produto-autoral",
         },
       ],
@@ -94,8 +94,8 @@ export const navigationData = {
           url: "/relatorio/consulta-apuracoes",
         },
         {
-          title: "Royalties em Aberto",
-          url: "/relatorio/royalties-em-aberto",
+          title: "Copyright em Aberto",
+          url: "/relatorio/copyright-em-aberto",
         },
       ],
     },

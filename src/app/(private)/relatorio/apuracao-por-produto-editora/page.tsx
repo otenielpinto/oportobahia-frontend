@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   agruparApuracoesPorProdutoEditora,
   consultarApuracaoCurrentById,
-} from "@/actions/apurarRoyaltiesAction";
+} from "@/actions/apurarCopyrightAction";
 import { getEmpresaById } from "@/actions/empresaAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

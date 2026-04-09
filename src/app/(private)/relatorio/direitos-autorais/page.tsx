@@ -8,7 +8,7 @@ import { startOfMonth, format, parse } from "date-fns";
 import {
   iniciarApuracao,
   consultarApuracoesPorPeriodo,
-} from "@/actions/apurarRoyaltiesAction";
+} from "@/actions/apurarCopyrightAction";
 import {
   AlertDialog,
   AlertDialogAction,

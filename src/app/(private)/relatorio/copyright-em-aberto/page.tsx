@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   consultarRoyalties,
   registrarPagamentoRoyalties,
-} from "@/actions/apurarRoyaltiesAction";
+} from "@/actions/apurarCopyrightAction";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -87,7 +87,7 @@ export default function RoyaltiesEmAbertoPage() {
 
   // Consulta para obter os dados de royalties com base na situação selecionada
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["royalties-em-aberto", situacao],
+    queryKey: ["copyright-em-aberto", situacao],
     queryFn: async () => {
       return await consultarRoyalties({ situacao });
     },
