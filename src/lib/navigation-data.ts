@@ -36,8 +36,8 @@ export const navigationData = {
           url: "/formato",
         },
         {
-          title: "Produtos Catálogo",
-          url: "/catalogo",
+          title: "Produtos Copyright",
+          url: "/catalogo-copyright",
         },
 
         {
