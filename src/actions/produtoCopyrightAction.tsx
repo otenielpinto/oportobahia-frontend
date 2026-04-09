@@ -1,83 +1,80 @@
 "use server";
 
 import { TMongo } from "@/infra/mongoClient";
-import { ProdutoAutoral, ProdutoAutoralFormData } from "@/types/produtoAutoralTypes";
+import {
+  ProdutoAutoral as ProdutoCopyright,
+  ProdutoAutoralFormData as ProdutoCopyrightFormData,
+} from "@/types/produtoAutoralTypes";
 import { gen_id } from "@/actions/generatorAction";
 import { getUser } from "@/actions/sessionAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 import { revalidatePath } from "next/cache";
 
-// Define types for create and update operations
-type ProdutoAutoralCreateInput = Omit<
-  ProdutoAutoralFormData,
-  "id_tenant" // id_tenant will be injected by the server action
->;
+type ProdutoCopyrightCreateInput = Omit<ProdutoCopyrightFormData, "id_tenant">;
 
-type ProdutoAutoralUpdateInput = Partial<ProdutoAutoralCreateInput> & {
-  id: number; // id is required for update
+type ProdutoCopyrightUpdateInput = Partial<ProdutoCopyrightCreateInput> & {
+  id: number;
 };
 
-/**
- * getAllProdutoAutorais - Lista todos os produtos autorais com paginação
- */
-export async function getAllProdutoAutorais(page: number = 1, limit: number = 25) {
+const COLLECTION_NAME = "tmp_produto_copyright";
+
+export async function getAllProdutoCopyrights(
+  page: number = 1,
+  limit: number = 25,
+) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const skip = (page - 1) * limit;
-
     const { client, clientdb } = await TMongo.connectToDatabase();
-    
+
     const [produtos, total] = await Promise.all([
       clientdb
-        .collection("tmp_produto_autoral")
+        .collection(COLLECTION_NAME)
         .find({ id_tenant: user.id_tenant })
         .skip(skip)
         .limit(limit)
         .toArray(),
       clientdb
-        .collection("tmp_produto_autoral")
+        .collection(COLLECTION_NAME)
         .countDocuments({ id_tenant: user.id_tenant }),
     ]);
-    
+
     await TMongo.mongoDisconnect(client);
 
     const serializedProdutos = serializeMongoData(produtos);
-
-    return { 
-      success: true, 
+    return {
+      success: true,
       data: serializedProdutos,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   } catch (error: any) {
-    console.error("Erro ao buscar todos os produtos autorais:", error);
+    console.error("Erro ao buscar todos os produtos copyright:", error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar os produtos autorais.",
+      error:
+        error.message || "Não foi possível carregar os produtos copyright.",
     };
   }
 }
 
-/**
- * getProdutoAutoralById - Busca produto autoral por ID
- */
-export async function getProdutoAutoralById(id: number) {
+export async function getProdutoCopyrightById(id: number) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const { client, clientdb } = await TMongo.connectToDatabase();
-    const produto = await clientdb.collection("tmp_produto_autoral").findOne({
+    const produto = await clientdb.collection(COLLECTION_NAME).findOne({
       id: Number(id),
       id_tenant: user.id_tenant,
       ...(user.id_empresa && { id_empresa: user.id_empresa }),
@@ -85,65 +82,62 @@ export async function getProdutoAutoralById(id: number) {
     await TMongo.mongoDisconnect(client);
 
     if (!produto) {
-      return { success: false, error: "Produto autoral não encontrado." };
+      return { success: false, error: "Produto copyright não encontrado." };
     }
 
     const serializedProduto = serializeMongoData(produto);
     return { success: true, data: serializedProduto };
   } catch (error: any) {
-    console.error(`Erro ao buscar produto autoral com ID ${id}:`, error);
+    console.error(`Erro ao buscar produto copyright com ID ${id}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar o produto autoral.",
+      error: error.message || "Não foi possível carregar o produto copyright.",
     };
   }
 }
 
-/**
- * getProdutoAutoralBySku - Busca produto autoral por SKU
- */
-export async function getProdutoAutoralBySku(sku: string) {
+export async function getProdutoCopyrightBySku(sku: string) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const { client, clientdb } = await TMongo.connectToDatabase();
-    const produto = await clientdb.collection("tmp_produto_autoral").findOne({
-      sku: sku,
+    const produto = await clientdb.collection(COLLECTION_NAME).findOne({
+      sku,
       id_tenant: user.id_tenant,
       ...(user.id_empresa && { id_empresa: user.id_empresa }),
     });
     await TMongo.mongoDisconnect(client);
 
     if (!produto) {
-      return { success: false, error: "Produto autoral não encontrado pelo SKU." };
+      return {
+        success: false,
+        error: "Produto copyright não encontrado pelo SKU.",
+      };
     }
 
     const serializedProduto = serializeMongoData(produto);
     return { success: true, data: serializedProduto };
   } catch (error: any) {
-    console.error(`Erro ao buscar produto autoral com SKU ${sku}:`, error);
+    console.error(`Erro ao buscar produto copyright com SKU ${sku}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar o produto autoral.",
+      error: error.message || "Não foi possível carregar o produto copyright.",
     };
   }
 }
 
-/**
- * getProdutoAutoralByGtin - Busca produto autoral por GTIN
- */
-export async function getProdutoAutoralByGtin(gtin: string) {
+export async function getProdutoCopyrightByGtin(gtin: string) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const { client, clientdb } = await TMongo.connectToDatabase();
-    const produto = await clientdb.collection("tmp_produto_autoral").findOne({
+    const produto = await clientdb.collection(COLLECTION_NAME).findOne({
       gtinEan: gtin,
       id_tenant: user.id_tenant,
       ...(user.id_empresa && { id_empresa: user.id_empresa }),
@@ -151,50 +145,54 @@ export async function getProdutoAutoralByGtin(gtin: string) {
     await TMongo.mongoDisconnect(client);
 
     if (!produto) {
-      return { success: false, error: "Produto autoral não encontrado pelo GTIN." };
+      return {
+        success: false,
+        error: "Produto copyright não encontrado pelo GTIN.",
+      };
     }
 
     const serializedProduto = serializeMongoData(produto);
     return { success: true, data: serializedProduto };
   } catch (error: any) {
-    console.error(`Erro ao buscar produto autoral com GTIN ${gtin}:`, error);
+    console.error(`Erro ao buscar produto copyright com GTIN ${gtin}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar o produto autoral.",
+      error: error.message || "Não foi possível carregar o produto copyright.",
     };
   }
 }
 
-/**
- * createProdutoAutoral - Cria um novo produto autoral
- */
-export async function createProdutoAutoral(data: ProdutoAutoralCreateInput) {
+export async function createProdutoCopyright(
+  data: ProdutoCopyrightCreateInput,
+) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    const row = await gen_id("produto_autoral");
+    const row = await gen_id("produto_copyright");
     if (!row.success || !row.data) {
       await TMongo.mongoDisconnect(client);
-      return { success: false, error: "Falha ao gerar ID para o produto autoral." };
+      return {
+        success: false,
+        error: "Falha ao gerar ID para o produto copyright.",
+      };
     }
-    const newId = parseInt(String(row.data));
 
+    const newId = parseInt(String(row.data), 10);
     const now = new Date();
-    const produtoData: ProdutoAutoral = {
+
+    const produtoData: ProdutoCopyright = {
       ...data,
       id: newId,
       id_tenant: user.id_tenant,
       id_empresa: user.id_empresa || 0,
       created_at: now,
       updated_at: now,
-      // Fix TypeScript: ensure release is Date | null, not undefined
       release: data.release ?? null,
-      // Ensure required fields
       sku: data.sku || "",
       gtinEan: data.gtinEan || "",
       descricaoTitulo: data.descricaoTitulo || "",
@@ -219,30 +217,35 @@ export async function createProdutoAutoral(data: ProdutoAutoralCreateInput) {
       parceiro: data.parceiro || "",
     };
 
-    const result = await clientdb.collection("tmp_produto_autoral").insertOne(produtoData);
+    const result = await clientdb
+      .collection(COLLECTION_NAME)
+      .insertOne(produtoData);
     await TMongo.mongoDisconnect(client);
 
     if (!result.acknowledged) {
-      return { success: false, error: "Falha ao criar produto autoral." };
+      return { success: false, error: "Falha ao criar produto copyright." };
     }
 
-    revalidatePath("/produto-autoral");
-    return { success: true, message: "Produto autoral criado com sucesso.", id: newId };
+    revalidatePath("/produto-copyright");
+    return {
+      success: true,
+      message: "Produto copyright criado com sucesso.",
+      id: newId,
+    };
   } catch (error: any) {
-    console.error("Erro ao criar produto autoral:", error);
+    console.error("Erro ao criar produto copyright:", error);
     return {
       success: false,
-      error: error.message || "Não foi possível criar o produto autoral.",
+      error: error.message || "Não foi possível criar o produto copyright.",
     };
   }
 }
 
-/**
- * updateProdutoAutoral - Atualiza um produto autoral existente
- */
-export async function updateProdutoAutoral(data: ProdutoAutoralUpdateInput) {
+export async function updateProdutoCopyright(
+  data: ProdutoCopyrightUpdateInput,
+) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
@@ -250,7 +253,7 @@ export async function updateProdutoAutoral(data: ProdutoAutoralUpdateInput) {
     const { id, ...updateFields } = data;
 
     const { client, clientdb } = await TMongo.connectToDatabase();
-    const result = await clientdb.collection("tmp_produto_autoral").updateOne(
+    const result = await clientdb.collection(COLLECTION_NAME).updateOne(
       { id: Number(id), id_tenant: user.id_tenant },
       {
         $set: {
@@ -264,73 +267,78 @@ export async function updateProdutoAutoral(data: ProdutoAutoralUpdateInput) {
     if (result.matchedCount === 0) {
       return {
         success: false,
-        error: "Produto autoral não encontrado ou não pertence ao seu tenant.",
+        error:
+          "Produto copyright não encontrado ou não pertence ao seu tenant.",
       };
     }
     if (result.modifiedCount === 0) {
       return { success: false, message: "Nenhuma alteração detectada." };
     }
 
-    revalidatePath("/produto-autoral");
-    revalidatePath(`/produto-autoral/view/${id}`);
-    revalidatePath(`/produto-autoral/edit/${id}`);
-    return { success: true, message: "Produto autoral atualizado com sucesso." };
+    revalidatePath("/produto-copyright");
+    revalidatePath(`/produto-copyright/view/${id}`);
+    revalidatePath(`/produto-copyright/edit/${id}`);
+    return {
+      success: true,
+      message: "Produto copyright atualizado com sucesso.",
+    };
   } catch (error: any) {
-    console.error(`Erro ao atualizar produto autoral com ID ${data.id}:`, error);
+    console.error(
+      `Erro ao atualizar produto copyright com ID ${data.id}:`,
+      error,
+    );
     return {
       success: false,
-      error: error.message || "Não foi possível atualizar o produto autoral.",
+      error: error.message || "Não foi possível atualizar o produto copyright.",
     };
   }
 }
 
-/**
- * deleteProdutoAutoral - Remove um produto autoral
- */
-export async function deleteProdutoAutoral(id: number) {
+export async function deleteProdutoCopyright(id: number) {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const { client, clientdb } = await TMongo.connectToDatabase();
     const result = await clientdb
-      .collection("tmp_produto_autoral")
+      .collection(COLLECTION_NAME)
       .deleteOne({ id: Number(id), id_tenant: user.id_tenant });
     await TMongo.mongoDisconnect(client);
 
     if (result.deletedCount === 0) {
       return {
         success: false,
-        error: "Produto autoral não encontrado ou não pertence ao seu tenant.",
+        error:
+          "Produto copyright não encontrado ou não pertence ao seu tenant.",
       };
     }
 
-    revalidatePath("/produto-autoral");
-    return { success: true, message: "Produto autoral excluído com sucesso." };
+    revalidatePath("/produto-copyright");
+    return {
+      success: true,
+      message: "Produto copyright excluído com sucesso.",
+    };
   } catch (error: any) {
-    console.error(`Erro ao excluir produto autoral com ID ${id}:`, error);
+    console.error(`Erro ao excluir produto copyright com ID ${id}:`, error);
     return {
       success: false,
-      error: error.message || "Não foi possível excluir o produto autoral.",
+      error: error.message || "Não foi possível excluir o produto copyright.",
     };
   }
 }
 
-/**
- * getAllProdutoAutoraisSemPaginacao - Lista todos os produtos autorais sem paginação
- */
-export async function getAllProdutoAutoraisSemPaginacao() {
+export async function getAllProdutoCopyrightsSemPaginacao() {
   try {
-    let user: any = await getUser();
+    const user: any = await getUser();
     if (!user || !user?.id_tenant) {
       return { success: false, error: "Não autorizado" };
     }
 
     const { client, clientdb } = await TMongo.connectToDatabase();
     const produtos = await clientdb
-      .collection("tmp_produto_autoral")
+      .collection(COLLECTION_NAME)
       .find({ id_tenant: user.id_tenant })
       .toArray();
     await TMongo.mongoDisconnect(client);
@@ -338,10 +346,11 @@ export async function getAllProdutoAutoraisSemPaginacao() {
     const serializedProdutos = serializeMongoData(produtos);
     return { success: true, data: serializedProdutos };
   } catch (error: any) {
-    console.error("Erro ao buscar todos os produtos autorais:", error);
+    console.error("Erro ao buscar todos os produtos copyright:", error);
     return {
       success: false,
-      error: error.message || "Não foi possível carregar os produtos autorais.",
+      error:
+        error.message || "Não foi possível carregar os produtos copyright.",
     };
   }
 }

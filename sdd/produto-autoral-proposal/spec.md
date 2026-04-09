@@ -194,7 +194,7 @@ export interface ProdutoAutoralFormData {
   // Core identification
   sku: string;
   gtinEan: string;
-  
+
   // Product details
   descricaoTitulo: string;
   release: Date | null;
@@ -207,22 +207,22 @@ export interface ProdutoAutoralFormData {
   fornecedor: string;
   categoriaProduto: string;
   marca: string;
-  
+
   // Royalty information
   nivelRoyalty: string;
   percentual: number;
   tipo: string;
-  
+
   // Music-specific details
   numeroDiscos: number;
   numeroFaixas: number;
   gravadora: string;
   peso: number;
-  
+
   // Import metadata
   importadoEm?: Date;
   loteImportacao?: string;
-  
+
   // Relational
   parceiro: string;
 }
@@ -235,7 +235,7 @@ export interface ProdutoAutoral extends ProdutoAutoralFormData {
   id: number;
   id_tenant: number;
   id_empresa: number;
-  
+
   // Timestamps
   created_at: Date;
   updated_at: Date;
@@ -277,15 +277,15 @@ export interface ProdutoAutoralResponse {
 {
   // Primary key
   id: Number,           // Sequential, unique within tenant
-  
+
   // Tenant isolation
   id_tenant: Number,    // Required, indexed
   id_empresa: Number,   // Required
-  
+
   // Core identification
   sku: String,          // Required, indexed, unique within tenant
   gtinEan: String,      // Required, indexed
-  
+
   // Product details
   descricaoTitulo: String,
   release: Date,
@@ -298,25 +298,25 @@ export interface ProdutoAutoralResponse {
   fornecedor: String,
   categoriaProduto: String,
   marca: String,
-  
+
   // Royalty
   nivelRoyalty: String,
   percentual: Number,
   tipo: String,
-  
+
   // Music details
   numeroDiscos: Number,
   numeroFaixas: Number,
   gravadora: String,
   peso: Number,
-  
+
   // Import metadata
   importadoEm: Date,
   loteImportacao: String,
-  
+
   // Relational
   parceiro: String,
-  
+
   // Timestamps
   created_at: Date,
   updated_at: Date
@@ -324,6 +324,7 @@ export interface ProdutoAutoralResponse {
 ```
 
 **Indexes Required:**
+
 - `{ id: 1, id_tenant: 1 }` — Primary lookup
 - `{ sku: 1, id_tenant: 1 }` — SKU lookup
 - `{ gtinEan: 1, id_tenant: 1 }` — GTIN lookup
@@ -339,35 +340,48 @@ All actions follow the pattern established in `empresaAction.tsx` and use `"use 
 ```typescript
 "use server";
 
-import { ProdutoAutoralFormData, ProdutoAutoralUpdateInput, ProdutoAutoralListResponse, ProdutoAutoralResponse } from "@/types/produtoAutoralTypes";
+import {
+  ProdutoAutoralFormData,
+  ProdutoAutoralUpdateInput,
+  ProdutoAutoralListResponse,
+  ProdutoAutoralResponse,
+} from "@/types/produtoAutoralTypes";
 
 /**
  * Creates a new autoral product.
  * @param data - Product data (without system fields)
  * @returns ProdutoAutoralResponse
  */
-export async function createProdutoAutoral(data: ProdutoAutoralFormData): Promise<ProdutoAutoralResponse>;
+export async function createProdutoAutoral(
+  data: ProdutoAutoralFormData,
+): Promise<ProdutoAutoralResponse>;
 
 /**
  * Retrieves a product by its unique ID.
  * @param id - Product ID (number)
  * @returns ProdutoAutoralResponse
  */
-export async function getProdutoAutoralById(id: number): Promise<ProdutoAutoralResponse>;
+export async function getProdutoAutoralById(
+  id: number,
+): Promise<ProdutoAutoralResponse>;
 
 /**
  * Retrieves a product by its SKU.
  * @param sku - Product SKU (string)
  * @returns ProdutoAutoralResponse
  */
-export async function getProdutoAutoralBySku(sku: string): Promise<ProdutoAutoralResponse>;
+export async function getProdutoAutoralBySku(
+  sku: string,
+): Promise<ProdutoAutoralResponse>;
 
 /**
  * Retrieves a product by its GTIN/EAN.
  * @param gtin - GTIN/EAN code (string)
  * @returns ProdutoAutoralResponse
  */
-export async function getProdutoAutoralByGtin(gtin: string): Promise<ProdutoAutoralResponse>;
+export async function getProdutoAutoralByGtin(
+  gtin: string,
+): Promise<ProdutoAutoralResponse>;
 
 /**
  * Lists all products with pagination.
@@ -375,46 +389,58 @@ export async function getProdutoAutoralByGtin(gtin: string): Promise<ProdutoAuto
  * @param limit - Items per page (default: 20)
  * @returns ProdutoAutoralListResponse
  */
-export async function listProdutoAutoral(page?: number, limit?: number): Promise<ProdutoAutoralListResponse>;
+export async function listProdutoAutoral(
+  page?: number,
+  limit?: number,
+): Promise<ProdutoAutoralListResponse>;
 
 /**
  * Updates an existing product.
  * @param data - Update data including id
  * @returns ProdutoAutoralResponse
  */
-export async function updateProdutoAutoral(data: ProdutoAutoralUpdateInput): Promise<ProdutoAutoralResponse>;
+export async function updateProdutoAutoral(
+  data: ProdutoAutoralUpdateInput,
+): Promise<ProdutoAutoralResponse>;
 
 /**
  * Deletes a product by its ID.
  * @param id - Product ID (number)
  * @returns ProdutoAutoralResponse
  */
-export async function deleteProdutoAutoral(id: number): Promise<ProdutoAutoralResponse>;
+export async function deleteProdutoAutoral(
+  id: number,
+): Promise<ProdutoAutoralResponse>;
 ```
 
 ### 4.2 Response Patterns
 
 **Success Response (create, update, delete):**
+
 ```typescript
 { success: true, message: "Produto autoral criado/atualizado/excluído com sucesso." }
 ```
 
 **Success Response (getById, getBySku, getByGtin):**
+
 ```typescript
 { success: true, data: { ...ProdutoAutoral } }
 ```
 
 **Success Response (list):**
+
 ```typescript
 { success: true, data: [...], total: 100, page: 1, limit: 20 }
 ```
 
 **Error Response:**
+
 ```typescript
 { success: false, error: "Mensagem de erro específica" }
 ```
 
 **Not Found Response:**
+
 ```typescript
 { success: false, error: "Produto autoral não encontrado." }
 ```
@@ -423,12 +449,12 @@ export async function deleteProdutoAutoral(id: number): Promise<ProdutoAutoralRe
 
 ## 5. Dependencies
 
-| Dependency | Purpose |
-|------------|---------|
-| `@/infra/mongoClient` | MongoDB connection (`TMongo`) |
-| `@/actions/generatorAction` | ID generation (`gen_id`) |
-| `@/actions/sessionAction` | User authentication (`getUser`) |
-| `next/cache` | Path revalidation (`revalidatePath`) |
+| Dependency                  | Purpose                              |
+| --------------------------- | ------------------------------------ |
+| `@/infra/mongoClient`       | MongoDB connection (`TMongo`)        |
+| `@/actions/generatorAction` | ID generation (`gen_id`)             |
+| `@/actions/sessionAction`   | User authentication (`getUser`)      |
+| `next/cache`                | Path revalidation (`revalidatePath`) |
 
 ---
 
@@ -436,4 +462,4 @@ export async function deleteProdutoAutoral(id: number): Promise<ProdutoAutoralRe
 
 - **Reference Action**: `/src/actions/empresaAction.tsx` — Pattern for CRUD operations
 - **Reference Generator**: `/src/actions/generatorAction.tsx` — Sequential ID generation
-- **Reference Types**: `/src/types/produtoRoyaltyTypes.ts` — Base product fields (excluding `gtinEanNumero`)
+- **Reference Types**: `/src/types/planilhaCopyrightTypes.ts` — Base product fields (excluding `gtinEanNumero`)

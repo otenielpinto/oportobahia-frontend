@@ -23,11 +23,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  getAllProdutoAutorais,
-  deleteProdutoAutoral,
-} from "@/actions/produtoAutoralAction";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  getAllProdutoCopyrights,
+  deleteProdutoCopyright,
+} from "@/actions/produtoCopyrightAction";
 import { ProdutoAutoral } from "@/types/produtoAutoralTypes";
 import { toast } from "sonner";
 
@@ -49,9 +55,13 @@ export default function ProdutoAutoralTable({
   const limit = 25;
 
   // Fetch data
-  const { data: response, isLoading, error } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["produto-autorais", currentPage, limit],
-    queryFn: async () => await getAllProdutoAutorais(currentPage, limit),
+    queryFn: async () => await getAllProdutoCopyrights(currentPage, limit),
     enabled: !initialData,
   });
 
@@ -60,7 +70,7 @@ export default function ProdutoAutoralTable({
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteProdutoAutoral,
+    mutationFn: deleteProdutoCopyright,
     onSuccess: (data) => {
       if (data.success) {
         toast.success(data.message || "Produto autoral excluído com sucesso.");
@@ -94,9 +104,10 @@ export default function ProdutoAutoralTable({
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
 
-        const comparison = typeof aValue === "string"
-          ? aValue.localeCompare(bValue)
-          : Number(aValue) - Number(bValue);
+        const comparison =
+          typeof aValue === "string"
+            ? aValue.localeCompare(bValue)
+            : Number(aValue) - Number(bValue);
 
         return sortDirection === "asc" ? comparison : -comparison;
       });
@@ -152,7 +163,7 @@ export default function ProdutoAutoralTable({
               className="pl-8"
             />
           </div>
-          <Button onClick={() => router.push("/produto-autoral/new")}>
+          <Button onClick={() => router.push("/produto-copyright/new")}>
             <Plus className="mr-2 h-4 w-4" />
             Novo
           </Button>
@@ -162,7 +173,7 @@ export default function ProdutoAutoralTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]">
+                <TableHead className="w-12.5">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -199,7 +210,7 @@ export default function ProdutoAutoralTable({
                 <TableHead>Parceiro</TableHead>
                 <TableHead>Marca</TableHead>
                 <TableHead className="text-right">Preço Oporto</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-12.5"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -216,7 +227,7 @@ export default function ProdutoAutoralTable({
                     <TableCell>
                       <Badge variant="outline">{produto.sku || "-"}</Badge>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
+                    <TableCell className="max-w-50 truncate">
                       {produto.descricaoTitulo || "-"}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
@@ -243,14 +254,18 @@ export default function ProdutoAutoralTable({
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
                           <DropdownMenuItem
                             onClick={() =>
-                              router.push(`/produto-autoral/view/${produto.id}`)
+                              router.push(
+                                `/produto-copyright/view/${produto.id}`,
+                              )
                             }
                           >
                             Visualizar
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
-                              router.push(`/produto-autoral/edit/${produto.id}`)
+                              router.push(
+                                `/produto-copyright/edit/${produto.id}`,
+                              )
                             }
                           >
                             Editar
@@ -276,9 +291,9 @@ export default function ProdutoAutoralTable({
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              Mostrando {((pagination.page - 1) * pagination.limit) + 1} -{" "}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} de{" "}
-              {pagination.total} registros
+              Mostrando {(pagination.page - 1) * pagination.limit + 1} -{" "}
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              de {pagination.total} registros
             </div>
             <div className="flex items-center gap-2">
               <Button

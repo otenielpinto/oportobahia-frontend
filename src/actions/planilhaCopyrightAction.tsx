@@ -11,7 +11,7 @@ import {
   type ProdutoRoyaltyExcel,
   type ImportResult,
   type ValidationResult,
-} from "@/types/produtoRoyaltyTypes";
+} from "@/types/planilhaCopyrightTypes";
 import { v4 as uuidv4 } from "uuid";
 
 type ExcelCell = string | number | boolean | Date | null | undefined;

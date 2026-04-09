@@ -9,10 +9,30 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createProdutoAutoral, updateProdutoAutoral } from "@/actions/produtoAutoralAction";
-import { ProdutoAutoral, ProdutoAutoralFormData } from "@/types/produtoAutoralTypes";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  createProdutoCopyright,
+  updateProdutoCopyright,
+} from "@/actions/produtoCopyrightAction";
+import {
+  ProdutoAutoral,
+  ProdutoAutoralFormData,
+} from "@/types/produtoAutoralTypes";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 // Schema de validação
 const formSchema = z.object({
@@ -76,7 +96,9 @@ export default function ProdutoAutoralForm({
       numeroFaixas: produto?.numeroFaixas || 0,
       gravadora: produto?.gravadora || "",
       peso: produto?.peso || 0,
-      importadoEm: produto?.importadoEm ? new Date(produto.importadoEm) : undefined,
+      importadoEm: produto?.importadoEm
+        ? new Date(produto.importadoEm)
+        : undefined,
       loteImportacao: produto?.loteImportacao || "",
       parceiro: produto?.parceiro || "",
     },
@@ -105,7 +127,9 @@ export default function ProdutoAutoralForm({
         numeroFaixas: produto.numeroFaixas || 0,
         gravadora: produto.gravadora || "",
         peso: produto.peso || 0,
-        importadoEm: produto.importadoEm ? new Date(produto.importadoEm) : undefined,
+        importadoEm: produto.importadoEm
+          ? new Date(produto.importadoEm)
+          : undefined,
         loteImportacao: produto.loteImportacao || "",
         parceiro: produto.parceiro || "",
       });
@@ -116,21 +140,25 @@ export default function ProdutoAutoralForm({
     setIsSubmitting(true);
     try {
       let response;
-      
+
       if (isEdit && produto?.id) {
-        response = await updateProdutoAutoral({ id: produto.id, ...data });
+        response = await updateProdutoCopyright({ id: produto.id, ...data });
       } else {
-        response = await createProdutoAutoral(data);
+        response = await createProdutoCopyright(data);
       }
 
       if (response.success) {
         toast.success(response.message || "Produto autoral salvo com sucesso.");
-        router.push("/produto-autoral");
+        router.push("/produto-copyright");
       } else {
         throw new Error(response.error || "Falha ao salvar o produto autoral.");
       }
     } catch (error: any) {
-      toast.error(error instanceof Error ? error.message : "Falha ao salvar o produto autoral.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Falha ao salvar o produto autoral.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -140,7 +168,9 @@ export default function ProdutoAutoralForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          {isEdit ? `Editar Produto Autoral: ${produto?.descricaoTitulo || "Produto"}` : "Novo Produto Autoral"}
+          {isEdit
+            ? `Editar Produto Autoral: ${produto?.descricaoTitulo || "Produto"}`
+            : "Novo Produto Autoral"}
         </CardTitle>
         <CardDescription>
           {isEdit
@@ -160,7 +190,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>SKU</FormLabel>
                     <FormControl>
-                      <Input placeholder="Código SKU" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Código SKU"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -173,7 +207,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>GTIN/EAN</FormLabel>
                     <FormControl>
-                      <Input placeholder="Código GTIN/EAN" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Código GTIN/EAN"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,7 +224,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Parceiro</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome do parceiro" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Nome do parceiro"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -203,7 +245,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Título/Descrição</FormLabel>
                     <FormControl>
-                      <Input placeholder="Título do produto" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Título do produto"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -216,7 +262,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Marca</FormLabel>
                     <FormControl>
-                      <Input placeholder="Marca" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Marca"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -229,7 +279,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Gravadora</FormLabel>
                     <FormControl>
-                      <Input placeholder="Gravadora" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Gravadora"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -251,7 +305,9 @@ export default function ProdutoAutoralForm({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -270,7 +326,9 @@ export default function ProdutoAutoralForm({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -289,7 +347,9 @@ export default function ProdutoAutoralForm({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -303,7 +363,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Lista Preço</FormLabel>
                     <FormControl>
-                      <Input placeholder="Lista de preço" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Lista de preço"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -320,7 +384,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>NCM</FormLabel>
                     <FormControl>
-                      <Input placeholder="Código NCM" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Código NCM"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -333,7 +401,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Origem</FormLabel>
                     <FormControl>
-                      <Input placeholder="Origem do produto" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Origem do produto"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -346,7 +418,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Tipo de produto" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Tipo de produto"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -359,7 +435,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Fornecedor</FormLabel>
                     <FormControl>
-                      <Input placeholder="Fornecedor" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Fornecedor"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -376,7 +456,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
                     <FormControl>
-                      <Input placeholder="Categoria do produto" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Categoria do produto"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -389,7 +473,11 @@ export default function ProdutoAutoralForm({
                   <FormItem>
                     <FormLabel>Nível Royalty</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nível de royalty" autoComplete="off" {...field} />
+                      <Input
+                        placeholder="Nível de royalty"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -407,7 +495,9 @@ export default function ProdutoAutoralForm({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -426,7 +516,9 @@ export default function ProdutoAutoralForm({
                         step="0.001"
                         placeholder="0.000"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -448,7 +540,9 @@ export default function ProdutoAutoralForm({
                         type="number"
                         placeholder="0"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -466,7 +560,9 @@ export default function ProdutoAutoralForm({
                         type="number"
                         placeholder="0"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -480,7 +576,7 @@ export default function ProdutoAutoralForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/produto-autoral")}
+                onClick={() => router.push("/produto-copyright")}
                 disabled={isSubmitting}
               >
                 Cancelar

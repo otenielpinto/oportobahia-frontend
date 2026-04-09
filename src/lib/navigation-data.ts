@@ -42,7 +42,7 @@ export const navigationData = {
 
         {
           title: "Produtos Royalties",
-          url: "/produto-autoral",
+          url: "/produto-copyright",
         },
       ],
     },
@@ -107,7 +107,7 @@ export const navigationData = {
       items: [
         {
           title: "Importar produtos via Planilha",
-          url: "/royalties",
+          url: "/arquivo/importar-planilha-copyright",
         },
       ],
     },

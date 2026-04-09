@@ -3,7 +3,7 @@
 export const COLLECTION_NAME = "tmp_produto_autoral";
 
 export interface ProdutoAutoral {
-  // Campos da tabela tmp_produto_royalties_excel (exceto gtinEanNumero)
+  // Campos da tabela tmp_planilha_copyright (exceto gtinEanNumero)
   sku: string;
   gtinEan: string;
   descricaoTitulo: string;
@@ -26,7 +26,7 @@ export interface ProdutoAutoral {
   peso: number;
   importadoEm: Date;
   loteImportacao: string;
-  
+
   // Campos adicionais obrigatórios
   id: number;
   id_empresa: number;
