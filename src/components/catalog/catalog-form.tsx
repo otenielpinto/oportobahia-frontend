@@ -11,7 +11,7 @@ import {
   createCatalog,
   updateCatalog,
 } from "@/actions/actCatalog";
-import { getFormatos, getFormatoByName } from "@/actions/actFormatos";
+import { getFormatos, getFormatoByName } from "@/actions/formatoAction";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {

@@ -13,7 +13,7 @@ import {
   fetchFormatos,
   updateFormato,
   createFormato,
-} from "@/actions/actFormatos";
+} from "@/actions/formatoAction";
 
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
