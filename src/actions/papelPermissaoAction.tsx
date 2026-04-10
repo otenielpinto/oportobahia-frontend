@@ -9,6 +9,7 @@ import {
 import { getUser } from "@/actions/sessionAction";
 import { revalidatePath } from "next/cache";
 import { ObjectId } from "mongodb";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 /**
  * Busca todos os papel_permissao com filtros opcionais
@@ -59,7 +60,10 @@ export async function getPapelPermissoes(filters: PapelPermissaoFilters = {}) {
 
     client.close();
 
-    return { success: true, data: formattedPapelPermissoes };
+    return {
+      success: true,
+      data: serializeMongoData(formattedPapelPermissoes),
+    };
   } catch (error) {
     console.error("Erro ao buscar papel_permissao:", error);
     return {

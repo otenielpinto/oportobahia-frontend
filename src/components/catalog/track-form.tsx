@@ -55,7 +55,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
       publishers: track?.publishers || [],
       catalogId: catalogId,
       playLength: track?.playLength || "",
-      originalPublisher: track?.originalPublisher,
+      originalPublisher: track?.originalPublisher || "",
       subTracks: track?.subTracks || [],
     },
   });
@@ -553,8 +553,8 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <ScrollArea className="h-[calc(100vh-10rem)] pr-4 max-w-[95%] w-full">
-          <div className="space-y-4">
+        <ScrollArea className="h-[calc(100vh-10rem)] px-4 w-full">
+          <div className="space-y-4 px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="col-span-1">
                 <FormField
@@ -564,7 +564,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                     <FormItem>
                       <FormLabel>Nº da Faixa</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} autoComplete="off" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -579,7 +579,11 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                     <FormItem>
                       <FormLabel>ISRC</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="BR-XXX-YY-NNNNN" />
+                        <Input
+                          {...field}
+                          placeholder="BR-XXX-YY-NNNNN"
+                          autoComplete="off"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -594,7 +598,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                 <FormItem>
                   <FormLabel>Obra</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} autoComplete="off" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -607,7 +611,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                 <FormItem>
                   <FormLabel>Autores</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} autoComplete="off" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -645,6 +649,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                         <Input
                           {...field}
                           placeholder="Nome da editora original"
+                          autoComplete="off"
                           required
                         />
                       </FormControl>
@@ -701,6 +706,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                               setCurrentPublisherCode(e.target.value)
                             }
                             placeholder="Código da obra"
+                            autoComplete="off"
                           />
                         </FormItem>
                       </div>
@@ -732,7 +738,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                     </div>
 
                     <div className="border rounded-md p-2">
-                      <ScrollArea className="h-10">
+                      <ScrollArea className="h-32">
                         <div className="flex flex-wrap gap-2 p-1">
                           {selectedPublishers.map((pub) => (
                             <Badge
@@ -799,6 +805,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                                 }))
                               }
                               placeholder="Digite o nome da obra"
+                              autoComplete="off"
                             />
                           </FormItem>
                         </div>
@@ -814,6 +821,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                                 }))
                               }
                               placeholder="Digite o nome dos autores"
+                              autoComplete="off"
                             />
                           </FormItem>
                         </div>
@@ -842,6 +850,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                                 }))
                               }
                               placeholder="Digite o nome da editora original"
+                              autoComplete="off"
                             />
                           </FormItem>
                         </div>
@@ -886,6 +895,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
                                 setCurrentSubTrackPublisherCode(e.target.value)
                               }
                               placeholder="Código da obra"
+                              autoComplete="off"
                             />
                           </FormItem>
                         </div>
@@ -919,7 +929,7 @@ export function TrackForm({ catalogId, track, onSuccess }: TrackFormProps) {
 
                       {/* Lista de editoras adicionadas para o subTrack atual */}
                       <div className="border rounded-md p-2 mb-4">
-                        <ScrollArea className="h-10">
+                        <ScrollArea className="h-32">
                           <div className="flex flex-wrap gap-2 p-1">
                             {currentSubTrack.publishers.map((pub, idx) => (
                               <Badge

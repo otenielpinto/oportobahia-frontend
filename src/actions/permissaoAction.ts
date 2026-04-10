@@ -11,6 +11,7 @@ import { getUser } from "@/actions/sessionAction";
 import { revalidatePath } from "next/cache";
 import { cruzarPermissoes, cruzarMenusSubmenus } from "@/types/ListaPermissao";
 import { v4 as uuidv4 } from "uuid";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 /**
  * Busca todas as permissões com filtros opcionais
@@ -49,10 +50,12 @@ export async function getPermissoes(filters: PermissaoFilters = {}) {
     await TMongo.mongoDisconnect(client);
 
     // Serializar documentos MongoDB para Client Components
-    const serializedPermissoes = permissoes.map((permissao) => ({
-      ...permissao,
-      _id: permissao._id.toString(),
-    }));
+    const serializedPermissoes = serializeMongoData(
+      permissoes.map((permissao) => ({
+        ...permissao,
+        _id: permissao._id.toString(),
+      })),
+    );
 
     return { success: true, data: serializedPermissoes };
   } catch (error: any) {
@@ -175,7 +178,7 @@ export async function updatePermissao(data: PermissaoUpdateInput) {
           ...updateFields,
           updatedAt: new Date(),
         },
-      }
+      },
     );
     await TMongo.mongoDisconnect(client);
 

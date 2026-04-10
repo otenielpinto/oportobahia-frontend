@@ -131,6 +131,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
                 <FormControl>
                   <Input
                     {...field}
+                    autoComplete="off"
                     onBlur={() => handleBarcodeChange(field.value)}
                   />
                 </FormControl>
@@ -145,7 +146,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
               <FormItem>
                 <FormLabel>Código do Catálogo</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} autoComplete="off" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -159,7 +160,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
             <FormItem>
               <FormLabel>Artista</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} autoComplete="off" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -172,7 +173,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
             <FormItem>
               <FormLabel>Título da Obra</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} autoComplete="off" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -186,7 +187,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
               <FormItem>
                 <FormLabel>Código Original</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} autoComplete="off" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -199,7 +200,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
               <FormItem>
                 <FormLabel>Data Lanc. Original</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input type="date" {...field} autoComplete="off" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -212,7 +213,7 @@ export function CatalogForm({ catalog, onSuccess }: CatalogFormProps) {
               <FormItem>
                 <FormLabel>Gênero Principal</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} autoComplete="off" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

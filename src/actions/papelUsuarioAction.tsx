@@ -9,6 +9,7 @@ import {
 import { gen_id } from "@/actions/generatorAction";
 import { getUser } from "@/actions/sessionAction";
 import { revalidatePath } from "next/cache";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 // AIDEV-NOTE: multi-tenant-security; todas as operações filtradas por id_tenant e id_empresa
 
@@ -102,34 +103,16 @@ export async function getPapeisUsuario(filters: PapelUsuarioFilters = {}) {
       createdAt: papelUsuario.createdAt,
       updatedAt: papelUsuario.updatedAt,
       usuario: papelUsuario.usuario[0]
-        ? {
-            ...papelUsuario.usuario[0],
-            _id: papelUsuario.usuario[0]._id.toString(),
-            createdAt:
-              papelUsuario.usuario[0].createdAt?.toISOString?.() ||
-              papelUsuario.usuario[0].createdAt,
-            updatedAt:
-              papelUsuario.usuario[0].updatedAt?.toISOString?.() ||
-              papelUsuario.usuario[0].updatedAt,
-          }
+        ? serializeMongoData(papelUsuario.usuario[0])
         : null,
       papel: papelUsuario.papel[0]
-        ? {
-            ...papelUsuario.papel[0],
-            _id: papelUsuario.papel[0]._id.toString(),
-            createdAt:
-              papelUsuario.papel[0].createdAt?.toISOString?.() ||
-              papelUsuario.papel[0].createdAt,
-            updatedAt:
-              papelUsuario.papel[0].updatedAt?.toISOString?.() ||
-              papelUsuario.papel[0].updatedAt,
-          }
+        ? serializeMongoData(papelUsuario.papel[0])
         : null,
     }));
 
     client.close();
 
-    return { success: true, data: formattedPapeisUsuario };
+    return { success: true, data: serializeMongoData(formattedPapeisUsuario) };
   } catch (error) {
     console.error("Erro ao buscar papéis de usuário:", error);
     return {
@@ -316,7 +299,7 @@ export async function updatePapelUsuario(data: PapelUsuarioUpdateInput) {
           ...updateFields,
           updatedAt: new Date(),
         },
-      }
+      },
     );
     await TMongo.mongoDisconnect(client);
 
@@ -340,7 +323,7 @@ export async function updatePapelUsuario(data: PapelUsuarioUpdateInput) {
   } catch (error: any) {
     console.error(
       `Erro ao atualizar papel de usuário com ID ${data.id}:`,
-      error
+      error,
     );
     return {
       success: false,

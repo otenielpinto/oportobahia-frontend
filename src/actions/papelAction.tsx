@@ -9,6 +9,7 @@ import {
 import { gen_id } from "@/actions/generatorAction";
 import { getUser } from "@/actions/sessionAction";
 import { revalidatePath } from "next/cache";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 /**
  * Busca todos os papéis com filtros opcionais
@@ -61,7 +62,7 @@ export async function getPapeis(filters: PapelFilters = {}) {
 
     client.close();
 
-    return { success: true, data: formattedPapeis };
+    return { success: true, data: serializeMongoData(formattedPapeis) };
   } catch (error) {
     console.error("Erro ao buscar papéis:", error);
     return {
@@ -188,7 +189,7 @@ export async function updatePapel(data: PapelUpdateInput) {
           ...updateFields,
           updatedAt: new Date(),
         },
-      }
+      },
     );
     await TMongo.mongoDisconnect(client);
 

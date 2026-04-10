@@ -5,6 +5,7 @@ import { Usuario, UsuarioFormData } from "@/types/UsuarioType";
 import { getUser } from "@/actions/sessionAction";
 import { revalidatePath } from "next/cache";
 import { hashPassword, getNewId } from "@/auth/actions/auth-actions";
+import { serializeMongoData } from "@/lib/serializeMongoData";
 
 export async function getUsuarios() {
   const { client, clientdb } = await TMongo.connectToDatabase();
@@ -22,10 +23,12 @@ export async function getUsuarios() {
     .toArray();
 
   await TMongo.mongoDisconnect(client);
-  return usuarios.map((usuario) => ({
-    ...usuario,
-    _id: usuario._id.toString(),
-  }));
+  return serializeMongoData(
+    usuarios.map((usuario) => ({
+      ...usuario,
+      _id: usuario._id.toString(),
+    })),
+  );
 }
 
 export async function getUsuarioById(id: string) {
@@ -44,7 +47,7 @@ export async function getUsuarioById(id: string) {
   await TMongo.mongoDisconnect(client);
 
   if (usuario) {
-    return { ...usuario, _id: usuario._id.toString() };
+    return serializeMongoData({ ...usuario, _id: usuario._id.toString() });
   }
   return null;
 }
@@ -123,7 +126,7 @@ export async function updateUsuario(id: string, data: UsuarioFormData) {
       id_tenant: Number(session.id_tenant),
       id_empresa: Number(session.id_empresa),
     },
-    { $set: { ...data, updatedAt: new Date() } }
+    { $set: { ...data, updatedAt: new Date() } },
   );
 
   await TMongo.mongoDisconnect(client);

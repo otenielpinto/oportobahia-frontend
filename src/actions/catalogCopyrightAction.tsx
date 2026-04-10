@@ -13,6 +13,7 @@ import { serializeMongoData } from "@/lib/serializeMongoData";
 
 const collection = "tmp_catalog";
 const collection_produto = "product";
+const collection_log = "tmp_catalog_log";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -111,7 +112,7 @@ export async function createCatalog(data: CatalogFormData): Promise<Catalog> {
     const { client, clientdb } = await TMongo.connectToDatabase();
     await clientdb.collection(collection).insertOne(body);
     await TMongo.mongoDisconnect(client);
-    return body;
+    return serializeMongoData(body);
   } catch (error) {
     console.error("Erro ao inserir Catálogo:", error);
     throw error;
@@ -121,12 +122,14 @@ export async function createCatalog(data: CatalogFormData): Promise<Catalog> {
 export async function updateCatalog(id: string, data: any): Promise<Catalog> {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
+    // Remove _id from data to avoid MongoDB immutable field error
+    const { _id, ...updateData } = data;
     const updatedCatalog = await clientdb
       .collection(collection)
-      .updateOne({ id }, { $set: data }, { upsert: true });
+      .updateOne({ id }, { $set: updateData }, { upsert: true });
     await TMongo.mongoDisconnect(client);
     if (!updatedCatalog) throw new Error("Catálogo não encontrado");
-    return data;
+    return serializeMongoData(data);
   } catch (error) {
     console.error("Erro ao atualizar Catálogo:", error);
     throw error;
@@ -136,7 +139,24 @@ export async function updateCatalog(id: string, data: any): Promise<Catalog> {
 export async function deleteCatalog(id: string): Promise<void> {
   try {
     const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Get the catalog before deleting to log it
+    const catalog = await clientdb.collection(collection).findOne({ id });
+
+    if (!catalog) throw new Error("Catálogo não encontrado");
+
+    // Delete the catalog
     await clientdb.collection(collection).deleteOne({ id });
+
+    // Log the deletion
+    await clientdb.collection(collection_log).insertOne({
+      type: "delete",
+      entity: "catalog",
+      deletedId: id,
+      deletedData: serializeMongoData(catalog),
+      deletedAt: new Date(),
+    });
+
     await TMongo.mongoDisconnect(client);
   } catch (error) {
     console.error("Erro ao deletar Catálogo:", error);
@@ -182,7 +202,7 @@ export async function createTrack(
   catalog.tracks = tracks;
 
   await updateCatalog(catalogId, catalog);
-  return newTrack;
+  return serializeMongoData(newTrack);
 }
 
 export async function updateTrack(catalogId: string, data: any): Promise<any> {
@@ -211,7 +231,7 @@ export async function updateTrack(catalogId: string, data: any): Promise<any> {
     console.error("Erro ao atualizar Catálogo:", error);
     throw error;
   }
-  return data;
+  return serializeMongoData(data);
 }
 
 export async function deleteTrack(
