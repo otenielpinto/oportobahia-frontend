@@ -150,7 +150,7 @@ export default function ProdutoRoyaltyTable({
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-4">
-          <form onSubmit={handleSearchSubmit} className="flex gap-2 w-2/3">
+          <form onSubmit={handleSearchSubmit} className="flex gap-2 w-1/2">
             <Input
               placeholder="Buscar por SKU, título, GTIN, marca, gravadora ou categoria..."
               value={search}

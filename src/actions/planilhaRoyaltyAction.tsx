@@ -131,6 +131,21 @@ function mapRowToProduto(
     return isNaN(parsed) ? 0 : parsed;
   };
 
+  /**
+   * Converte percentual: se o valor estiver entre 0 e 1 (formato decimal),
+   * multiplica por 100. Caso contrário, retorna como está.
+   * Ex: 0.36 → 36.00, 36 → 36
+   */
+  const getPercentual = (col: string): number => {
+    const num = getNum(col);
+    // Se o valor está entre 0 e 1, é um percentual decimal do Excel
+    if (num > 0 && num < 1) {
+      return num * 100;
+    }
+    // Caso contrário, retorna o valor como está
+    return num;
+  };
+
   const sku = getStr("SKU");
   if (!sku) return { produto: null }; // Linha sem SKU é ignorada
 
@@ -167,7 +182,7 @@ function mapRowToProduto(
       categoriaProduto: getStr("Categoria do produto"),
       marca: getStr("Marca"),
       nivelRoyalty: getStr("Nível de Royalty"),
-      percentual: getNum("Percentual"),
+      percentual: getPercentual("Percentual"),
       tipo: getStr("Tipo"),
       numeroDiscos: getNum("Número de Discos"),
       numeroFaixas: getNum("Número de Faixas"),
