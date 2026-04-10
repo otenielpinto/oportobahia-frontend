@@ -97,6 +97,10 @@ export const navigationData = {
           title: "Copyright em Aberto",
           url: "/relatorio/copyright-em-aberto",
         },
+        {
+          title: "Produto Royalty",
+          url: "/relatorio/exportar-produto-royalty",
+        },
       ],
     },
 

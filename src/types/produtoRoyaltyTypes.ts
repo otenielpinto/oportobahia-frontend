@@ -60,3 +60,26 @@ export interface ProdutoRoyaltyFormData {
   importadoEm?: Date;
   loteImportacao?: string;
 }
+
+// Tipos para exportação com filtros
+export interface ProdutoRoyaltyFilterOptions {
+  listaPreco: string[];
+  origem: string[];
+  categoriaProduto: string[];
+  marca: string[];
+  nivelRoyalty: string[];
+  tipo: string[];
+  gravadora: string[];
+  fornecedor: string[];
+}
+
+export interface ProdutoRoyaltyExportFilters {
+  listaPreco?: string;
+  origem?: string;
+  categoriaProduto?: string;
+  marca?: string;
+  nivelRoyalty?: string;
+  tipo?: string;
+  gravadora?: string;
+  fornecedor?: string;
+}

@@ -4,6 +4,8 @@ import { TMongo } from "@/infra/mongoClient";
 import {
   ProdutoRoyalty,
   ProdutoRoyaltyFormData,
+  ProdutoRoyaltyFilterOptions,
+  ProdutoRoyaltyExportFilters,
 } from "@/types/produtoRoyaltyTypes";
 import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/sessionAction";
@@ -423,6 +425,148 @@ export async function getAllProdutoRoyaltiesSemPaginacao() {
     return {
       success: false,
       error: error.message || "Não foi possível carregar os produtos royalty.",
+    };
+  }
+}
+
+export async function getProdutoRoyaltyFilterOptions(): Promise<{
+  success: boolean;
+  data?: ProdutoRoyaltyFilterOptions;
+  error?: string;
+}> {
+  try {
+    const user: any = await getUser();
+    if (!user || !user?.id_tenant) {
+      return { success: false, error: "Não autorizado" };
+    }
+
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Usar $facet para obter todos os valores distintos em uma única query
+    const filterOptions = await clientdb
+      .collection(COLLECTION_NAME)
+      .aggregate([
+        { $match: { id_tenant: user.id_tenant } },
+        {
+          $facet: {
+            listaPreco: [
+              { $group: { _id: "$listaPreco" } },
+              { $sort: { _id: 1 } },
+            ],
+            origem: [
+              { $group: { _id: "$origem" } },
+              { $sort: { _id: 1 } },
+            ],
+            categoriaProduto: [
+              { $group: { _id: "$categoriaProduto" } },
+              { $sort: { _id: 1 } },
+            ],
+            marca: [
+              { $group: { _id: "$marca" } },
+              { $sort: { _id: 1 } },
+            ],
+            nivelRoyalty: [
+              { $group: { _id: "$nivelRoyalty" } },
+              { $sort: { _id: 1 } },
+            ],
+            tipo: [
+              { $group: { _id: "$tipo" } },
+              { $sort: { _id: 1 } },
+            ],
+            gravadora: [
+              { $group: { _id: "$gravadora" } },
+              { $sort: { _id: 1 } },
+            ],
+            fornecedor: [
+              { $group: { _id: "$fornecedor" } },
+              { $sort: { _id: 1 } },
+            ],
+          },
+        },
+      ])
+      .toArray();
+
+    await TMongo.mongoDisconnect(client);
+
+    // Extrair valores do resultado do $facet
+    const result = filterOptions[0] || {};
+    const extractedOptions: ProdutoRoyaltyFilterOptions = {
+      listaPreco: result.listaPreco?.map((item: any) => item._id || "") || [],
+      origem: result.origem?.map((item: any) => item._id || "") || [],
+      categoriaProduto:
+        result.categoriaProduto?.map((item: any) => item._id || "") || [],
+      marca: result.marca?.map((item: any) => item._id || "") || [],
+      nivelRoyalty: result.nivelRoyalty?.map((item: any) => item._id || "") || [],
+      tipo: result.tipo?.map((item: any) => item._id || "") || [],
+      gravadora: result.gravadora?.map((item: any) => item._id || "") || [],
+      fornecedor: result.fornecedor?.map((item: any) => item._id || "") || [],
+    };
+
+    return { success: true, data: extractedOptions };
+  } catch (error: any) {
+    console.error("Erro ao buscar opções de filtro:", error);
+    return {
+      success: false,
+      error:
+        error.message || "Não foi possível carregar as opções de filtro.",
+    };
+  }
+}
+
+export async function exportProdutoRoyalty(
+  filters: ProdutoRoyaltyExportFilters,
+): Promise<{
+  success: boolean;
+  data?: ProdutoRoyalty[];
+  error?: string;
+  count?: number;
+}> {
+  try {
+    const user: any = await getUser();
+    if (!user || !user?.id_tenant) {
+      return { success: false, error: "Não autorizado" };
+    }
+
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Construir query com filtros opcionais (AND combinados)
+    const query: any = { id_tenant: user.id_tenant };
+
+    if (filters.listaPreco) query.listaPreco = filters.listaPreco;
+    if (filters.origem) query.origem = filters.origem;
+    if (filters.categoriaProduto)
+      query.categoriaProduto = filters.categoriaProduto;
+    if (filters.marca) query.marca = filters.marca;
+    if (filters.nivelRoyalty) query.nivelRoyalty = filters.nivelRoyalty;
+    if (filters.tipo) query.tipo = filters.tipo;
+    if (filters.gravadora) query.gravadora = filters.gravadora;
+    if (filters.fornecedor) query.fornecedor = filters.fornecedor;
+
+    const produtos = await clientdb
+      .collection(COLLECTION_NAME)
+      .find(query)
+      .toArray();
+
+    await TMongo.mongoDisconnect(client);
+
+    // Serializar e excluir campos internos
+    const serializedProdutos = serializeMongoData(produtos);
+    const filteredData = serializedProdutos.map((produto: any) => {
+      const { _id, id_empresa, id_tenant, loteImportacao, ...rest } = produto;
+      return rest;
+    });
+
+    return {
+      success: true,
+      data: filteredData,
+      count: filteredData.length,
+    };
+  } catch (error: any) {
+    console.error("Erro ao exportar produtos royalty:", error);
+    return {
+      success: false,
+      error:
+        error.message || "Não foi possível exportar os produtos royalty.",
     };
   }
 }
