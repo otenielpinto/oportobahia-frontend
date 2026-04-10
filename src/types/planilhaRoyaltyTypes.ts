@@ -3,7 +3,6 @@
 export const EXCEL_REQUIRED_COLUMNS = [
   "SKU",
   "GTIN/EAN",
-  "GTIN/EAN - Número",
   "Descrição/título",
   "Release",
   "Lista de preço",
@@ -30,7 +29,6 @@ export type ExcelColumnName = (typeof EXCEL_REQUIRED_COLUMNS)[number];
 export const COLUMN_TO_FIELD: Record<ExcelColumnName, string> = {
   SKU: "sku",
   "GTIN/EAN": "gtinEan",
-  "GTIN/EAN - Número": "gtinEanNumero",
   "Descrição/título": "descricaoTitulo",
   Release: "release",
   "Lista de preço": "listaPreco",
@@ -54,7 +52,6 @@ export const COLUMN_TO_FIELD: Record<ExcelColumnName, string> = {
 export interface ProdutoRoyaltyExcel {
   sku: string;
   gtinEan: string;
-  gtinEanNumero: string;
   descricaoTitulo: string;
   release: Date | null;
   listaPreco: string;

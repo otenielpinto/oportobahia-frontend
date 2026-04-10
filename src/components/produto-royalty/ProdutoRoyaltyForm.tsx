@@ -55,7 +55,6 @@ const formSchema = z.object({
   peso: z.number().optional(),
   importadoEm: z.date().optional(),
   loteImportacao: z.string().optional(),
-  parceiro: z.string().optional(),
 });
 
 interface ProdutoRoyaltyFormProps {
@@ -97,7 +96,6 @@ export default function ProdutoRoyaltyForm({
         ? new Date(produto.importadoEm)
         : undefined,
       loteImportacao: produto?.loteImportacao || "",
-      parceiro: produto?.parceiro || "",
     },
   });
 
@@ -128,7 +126,6 @@ export default function ProdutoRoyaltyForm({
           ? new Date(produto.importadoEm)
           : undefined,
         loteImportacao: produto.loteImportacao || "",
-        parceiro: produto.parceiro || "",
       });
     }
   }, [produto, form]);
@@ -178,8 +175,8 @@ export default function ProdutoRoyaltyForm({
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Linha 1: SKU, GTIN/EAN, Parceiro */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Linha 1: SKU, GTIN/EAN */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="sku"
@@ -206,23 +203,6 @@ export default function ProdutoRoyaltyForm({
                     <FormControl>
                       <Input
                         placeholder="Código GTIN/EAN"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="parceiro"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parceiro</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Nome do parceiro"
                         autoComplete="off"
                         {...field}
                       />

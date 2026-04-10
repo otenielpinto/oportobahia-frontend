@@ -11,6 +11,7 @@ import { PlusIcon, SearchIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTrigger,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -39,8 +40,8 @@ export function CatalogList() {
     return (
       <div className="space-y-4">
         <div className="flex justify-between">
-          <Skeleton className="h-10 w-[250px]" />
-          <Skeleton className="h-10 w-[100px]" />
+          <Skeleton className="h-10 w-62.5" />
+          <Skeleton className="h-10 w-25" />
         </div>
         {[...Array(5)].map((_, i) => (
           <Skeleton key={i} className="h-20 w-full" />
@@ -69,9 +70,12 @@ export function CatalogList() {
               Novo Catalogo
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-150">
             <VisuallyHidden>
               <DialogTitle>Novo Catalogo</DialogTitle>
+              <DialogDescription>
+                Formulário para criar um novo catálogo
+              </DialogDescription>
             </VisuallyHidden>
             <CatalogForm onSuccess={() => setIsOpen(false)} />
           </DialogContent>

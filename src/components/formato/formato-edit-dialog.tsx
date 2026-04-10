@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -113,6 +114,11 @@ export function FormatoEditDialog({
           <DialogTitle>
             {isCreating ? "Criar Formato" : "Editar Formato"}
           </DialogTitle>
+          <DialogDescription>
+            {isCreating
+              ? "Preencha os dados para criar um novo formato."
+              : "Atualize os dados do formato abaixo."}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
           <div className="space-y-4">

@@ -155,7 +155,6 @@ function mapRowToProduto(
     produto: {
       sku,
       gtinEan: getStr("GTIN/EAN"),
-      gtinEanNumero: getStr("GTIN/EAN - Número"),
       descricaoTitulo,
       release: releaseDate,
       listaPreco: getStr("Lista de preço"),

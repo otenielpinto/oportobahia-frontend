@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -162,6 +163,11 @@ export function PublisherEditDialog({
           <DialogTitle>
             {isCreating ? "Criar Editora" : "Editar Editora"}
           </DialogTitle>
+          <DialogDescription>
+            {isCreating
+              ? "Preencha os dados para criar uma nova editora."
+              : "Atualize os dados da editora abaixo."}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

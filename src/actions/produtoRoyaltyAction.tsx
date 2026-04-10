@@ -21,6 +21,7 @@ const COLLECTION_NAME = "tmp_produto_royalty";
 export async function getAllProdutoRoyalties(
   page: number = 1,
   limit: number = 25,
+  search: string = "",
 ) {
   try {
     const user: any = await getUser();
@@ -31,16 +32,31 @@ export async function getAllProdutoRoyalties(
     const skip = (page - 1) * limit;
     const { client, clientdb } = await TMongo.connectToDatabase();
 
+    // Create search query if search parameter exists
+    const query = search
+      ? {
+          id_tenant: user.id_tenant,
+          $or: [
+            { sku: { $regex: search, $options: "i" } },
+            { descricaoTitulo: { $regex: search, $options: "i" } },
+            { gtinEan: { $regex: search, $options: "i" } },
+            { marca: { $regex: search, $options: "i" } },
+            { gravadora: { $regex: search, $options: "i" } },
+            { categoriaProduto: { $regex: search, $options: "i" } },
+          ],
+        }
+      : { id_tenant: user.id_tenant };
+
     const [produtos, total] = await Promise.all([
       clientdb
         .collection(COLLECTION_NAME)
-        .find({ id_tenant: user.id_tenant })
+        .find(query)
         .skip(skip)
         .limit(limit)
         .toArray(),
       clientdb
         .collection(COLLECTION_NAME)
-        .countDocuments({ id_tenant: user.id_tenant }),
+        .countDocuments(query),
     ]);
 
     await TMongo.mongoDisconnect(client);
@@ -170,6 +186,41 @@ export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
+    // Validação de unicidade para sku, gtinEan e descricaoTitulo
+    const duplicates: string[] = [];
+    
+    if (data.sku && data.sku.trim()) {
+      const existingSku = await clientdb.collection(COLLECTION_NAME).findOne({
+        sku: data.sku,
+        id_tenant: user.id_tenant,
+      });
+      if (existingSku) duplicates.push(`SKU "${data.sku}"`);
+    }
+
+    if (data.gtinEan && data.gtinEan.trim()) {
+      const existingGtin = await clientdb.collection(COLLECTION_NAME).findOne({
+        gtinEan: data.gtinEan,
+        id_tenant: user.id_tenant,
+      });
+      if (existingGtin) duplicates.push(`GTIN/EAN "${data.gtinEan}"`);
+    }
+
+    if (data.descricaoTitulo && data.descricaoTitulo.trim()) {
+      const existingTitulo = await clientdb.collection(COLLECTION_NAME).findOne({
+        descricaoTitulo: data.descricaoTitulo,
+        id_tenant: user.id_tenant,
+      });
+      if (existingTitulo) duplicates.push(`Título "${data.descricaoTitulo}"`);
+    }
+
+    if (duplicates.length > 0) {
+      await TMongo.mongoDisconnect(client);
+      return {
+        success: false,
+        error: `Já existe produto(s) com: ${duplicates.join(", ")}. Verifique os dados e tente novamente.`,
+      };
+    }
+
     const newId = uuidv4();
     const now = new Date();
 
@@ -202,7 +253,6 @@ export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
       peso: data.peso || 0,
       importadoEm: data.importadoEm || now,
       loteImportacao: data.loteImportacao || "",
-      parceiro: data.parceiro || "",
     };
 
     const result = await clientdb
@@ -239,6 +289,45 @@ export async function updateProdutoRoyalty(data: ProdutoRoyaltyUpdateInput) {
     const { id, ...updateFields } = data;
 
     const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Validação de unicidade para sku, gtinEan e descricaoTitulo (exclui registro atual)
+    const duplicates: string[] = [];
+
+    if (updateFields.sku && updateFields.sku.trim()) {
+      const existingSku = await clientdb.collection(COLLECTION_NAME).findOne({
+        sku: updateFields.sku,
+        id_tenant: user.id_tenant,
+        id: { $ne: id },
+      });
+      if (existingSku) duplicates.push(`SKU "${updateFields.sku}"`);
+    }
+
+    if (updateFields.gtinEan && updateFields.gtinEan.trim()) {
+      const existingGtin = await clientdb.collection(COLLECTION_NAME).findOne({
+        gtinEan: updateFields.gtinEan,
+        id_tenant: user.id_tenant,
+        id: { $ne: id },
+      });
+      if (existingGtin) duplicates.push(`GTIN/EAN "${updateFields.gtinEan}"`);
+    }
+
+    if (updateFields.descricaoTitulo && updateFields.descricaoTitulo.trim()) {
+      const existingTitulo = await clientdb.collection(COLLECTION_NAME).findOne({
+        descricaoTitulo: updateFields.descricaoTitulo,
+        id_tenant: user.id_tenant,
+        id: { $ne: id },
+      });
+      if (existingTitulo) duplicates.push(`Título "${updateFields.descricaoTitulo}"`);
+    }
+
+    if (duplicates.length > 0) {
+      await TMongo.mongoDisconnect(client);
+      return {
+        success: false,
+        error: `Já existe produto(s) com: ${duplicates.join(", ")}. Verifique os dados e tente novamente.`,
+      };
+    }
+
     const result = await clientdb.collection(COLLECTION_NAME).updateOne(
       { id, id_tenant: user.id_tenant },
       {

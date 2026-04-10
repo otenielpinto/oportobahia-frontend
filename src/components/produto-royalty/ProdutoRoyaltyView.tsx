@@ -70,12 +70,6 @@ export default function ProdutoRoyaltyView({
               <p className="text-base font-mono">{produto.gtinEan || "-"}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Parceiro
-              </p>
-              <p className="text-base">{produto.parceiro || "-"}</p>
-            </div>
-            <div>
               <p className="text-sm font-medium text-muted-foreground">Marca</p>
               <p className="text-base">{produto.marca || "-"}</p>
             </div>

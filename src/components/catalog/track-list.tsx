@@ -18,6 +18,7 @@ import { Edit2Icon, TrashIcon, PlusIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTrigger,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -103,6 +104,11 @@ export function TrackList({ catalogId }: TrackListProps) {
             <DialogTitle>
               <VisuallyHidden>Adicionar Faixa</VisuallyHidden>
             </DialogTitle>
+            <DialogDescription>
+              <VisuallyHidden>
+                Formulário para adicionar uma nova faixa ao catálogo
+              </VisuallyHidden>
+            </DialogDescription>
             <TrackForm
               catalogId={catalogId}
               onSuccess={() => setIsOpen(false)}
@@ -149,6 +155,11 @@ export function TrackList({ catalogId }: TrackListProps) {
                       <DialogTitle>
                         <VisuallyHidden>Editar Faixa</VisuallyHidden>
                       </DialogTitle>
+                      <DialogDescription>
+                        <VisuallyHidden>
+                          Formulário para editar a faixa selecionada
+                        </VisuallyHidden>
+                      </DialogDescription>
                       <TrackForm
                         catalogId={catalogId}
                         track={editingTrack}
