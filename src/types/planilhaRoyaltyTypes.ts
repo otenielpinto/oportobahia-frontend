@@ -23,6 +23,14 @@ export const EXCEL_REQUIRED_COLUMNS = [
   "Peso",
 ] as const;
 
+// Colunas opcionais que serão lidas se presentes na planilha
+export const EXCEL_OPTIONAL_COLUMNS = [
+  "Parceiro",
+  "Custo Operativo",
+  "Royalty Mín. Garantido (USD)",
+  "Royalty Mín. Garantido (BRL)",
+] as const;
+
 export type ExcelColumnName = (typeof EXCEL_REQUIRED_COLUMNS)[number];
 
 // Mapeamento de colunas do Excel para campos do banco
@@ -70,6 +78,11 @@ export interface ProdutoRoyaltyExcel {
   numeroFaixas: number;
   gravadora: string;
   peso: number;
+  // Campos opcionais da planilha (presentes somente em novos produtos)
+  parceiro?: string;
+  custo_operativo?: number;
+  royalty_min_garantido_dolar?: number;
+  royalty_min_garantido_reais?: number;
   importadoEm: Date;
   loteImportacao: string;
   id_tenant: number;

@@ -27,6 +27,12 @@ export interface ProdutoRoyalty {
   importadoEm: Date;
   loteImportacao: string;
 
+  // Campos adicionais para produtos cadastrados manualmente
+  parceiro?: string;
+  custo_operativo?: number;
+  royalty_min_garantido_dolar?: number;
+  royalty_min_garantido_reais?: number;
+
   // Campos adicionais obrigatórios
   id: string;
   id_empresa: number;
@@ -59,6 +65,11 @@ export interface ProdutoRoyaltyFormData {
   peso?: number;
   importadoEm?: Date;
   loteImportacao?: string;
+  // Campos adicionais para produtos novos
+  parceiro?: string;
+  custo_operativo?: number;
+  royalty_min_garantido_dolar?: number;
+  royalty_min_garantido_reais?: number;
 }
 
 // Tipos para exportação com filtros

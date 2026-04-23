@@ -55,6 +55,10 @@ const formSchema = z.object({
   peso: z.number().optional(),
   importadoEm: z.date().optional(),
   loteImportacao: z.string().optional(),
+  parceiro: z.string().optional(),
+  custo_operativo: z.number().optional(),
+  royalty_min_garantido_dolar: z.number().optional(),
+  royalty_min_garantido_reais: z.number().optional(),
 });
 
 interface ProdutoRoyaltyFormProps {
@@ -96,6 +100,10 @@ export default function ProdutoRoyaltyForm({
         ? new Date(produto.importadoEm)
         : undefined,
       loteImportacao: produto?.loteImportacao || "",
+      parceiro: produto?.parceiro || "",
+      custo_operativo: produto?.custo_operativo || 0,
+      royalty_min_garantido_dolar: produto?.royalty_min_garantido_dolar || 0,
+      royalty_min_garantido_reais: produto?.royalty_min_garantido_reais || 0,
     },
   });
 
@@ -126,6 +134,10 @@ export default function ProdutoRoyaltyForm({
           ? new Date(produto.importadoEm)
           : undefined,
         loteImportacao: produto.loteImportacao || "",
+        parceiro: produto.parceiro || "",
+        custo_operativo: produto.custo_operativo || 0,
+        royalty_min_garantido_dolar: produto.royalty_min_garantido_dolar || 0,
+        royalty_min_garantido_reais: produto.royalty_min_garantido_reais || 0,
       });
     }
   }, [produto, form]);
@@ -539,6 +551,90 @@ export default function ProdutoRoyaltyForm({
                         {...field}
                         onChange={(e) =>
                           field.onChange(parseInt(e.target.value) || 0)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Linha 7: Parceiro e Custos Adicionais */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="parceiro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parceiro</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nome do parceiro"
+                        autoComplete="off"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="custo_operativo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custo Operativo</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="royalty_min_garantido_dolar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Royalty Mín. Garantido (USD)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="royalty_min_garantido_reais"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Royalty Mín. Garantido (BRL)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
                         }
                       />
                     </FormControl>

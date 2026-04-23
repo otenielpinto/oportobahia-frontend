@@ -188,6 +188,21 @@ function mapRowToProduto(
       numeroFaixas: getNum("Número de Faixas"),
       gravadora: getStr("Gravadora"),
       peso: getNum("Peso"),
+      // Campos opcionais — lidos se presentes na planilha
+      parceiro: getStr("Parceiro") || undefined,
+      custo_operativo: headerIndexMap.has("Custo Operativo")
+        ? getNum("Custo Operativo")
+        : undefined,
+      royalty_min_garantido_dolar: headerIndexMap.has(
+        "Royalty Mín. Garantido (USD)",
+      )
+        ? getNum("Royalty Mín. Garantido (USD)")
+        : undefined,
+      royalty_min_garantido_reais: headerIndexMap.has(
+        "Royalty Mín. Garantido (BRL)",
+      )
+        ? getNum("Royalty Mín. Garantido (BRL)")
+        : undefined,
       importadoEm: new Date(),
       loteImportacao,
       id_tenant: idTenant,
@@ -264,14 +279,12 @@ export async function importProdutoRoyalties(
   const { client, clientdb } = await TMongo.connectToDatabase();
 
   try {
-    const collection = clientdb.collection(COLLECTION_NAME);
+    const planilhaCollection = clientdb.collection(COLLECTION_NAME);
 
     for (let i = 0; i < produtos.length; i += BATCH_SIZE) {
       const batch = produtos.slice(i, i + BATCH_SIZE);
       try {
-        const result = await collection.insertMany(batch, {
-          ordered: false, // Continua inserindo mesmo com erros
-        });
+        const result = await planilhaCollection.insertMany(batch, { ordered: false });
         insertedRows += result.insertedCount;
       } catch (batchError: any) {
         // ordered:false pode ter erros parciais

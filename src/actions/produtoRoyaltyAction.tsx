@@ -255,6 +255,11 @@ export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
       peso: data.peso || 0,
       importadoEm: data.importadoEm || now,
       loteImportacao: data.loteImportacao || "",
+      // Campos exclusivos de novos produtos
+      parceiro: data.parceiro ?? "",
+      custo_operativo: data.custo_operativo ?? 0,
+      royalty_min_garantido_dolar: data.royalty_min_garantido_dolar ?? 0,
+      royalty_min_garantido_reais: data.royalty_min_garantido_reais ?? 0,
     };
 
     const result = await clientdb
