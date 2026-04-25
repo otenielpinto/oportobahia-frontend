@@ -25,7 +25,16 @@ const formSchema = z
       required_error: "Data final é obrigatória",
       invalid_type_error: "Data inválida",
     }),
-    cotacaoDollar: z.coerce.number().min(0, "Cotação deve ser positiva"),
+    cotacaoDollar: z.preprocess(
+      (val) => {
+        if (val === "" || val === null || val === undefined || Number.isNaN(val)) return undefined;
+        return Number(val);
+      },
+      z.number({
+        required_error: "Cotação é obrigatória",
+        invalid_type_error: "Informe um valor numérico",
+      }).gt(0, "Cotação deve ser maior que zero"),
+    ),
     observacao: z.string().optional(),
   })
   .refine((data) => data.dataFinal >= data.dataInicial, {
@@ -59,7 +68,6 @@ export function ApuracaoRoyaltiesCabForm({
     defaultValues: {
       dataInicial: startOfMonth(new Date()),
       dataFinal: new Date(),
-      cotacaoDollar: 0,
       observacao: "",
     },
   });
@@ -79,7 +87,6 @@ export function ApuracaoRoyaltiesCabForm({
           form.reset({
             dataInicial: startOfMonth(new Date()),
             dataFinal: new Date(),
-            cotacaoDollar: 0,
             observacao: "",
           });
           onSuccess?.();
@@ -157,7 +164,6 @@ export function ApuracaoRoyaltiesCabForm({
                 id="cotacaoDollar"
                 type="number"
                 step="0.01"
-                min="0"
                 {...form.register("cotacaoDollar", {
                   valueAsNumber: true,
                 })}
