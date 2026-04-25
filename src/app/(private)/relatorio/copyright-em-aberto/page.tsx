@@ -59,11 +59,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Interface para os dados retornados pela função consultarRoyalties
-// Usamos tipagem dinâmica (any) para evitar problemas com a estrutura dos dados
-// que pode variar dependendo da fonte
-
-export default function RoyaltiesEmAbertoPage() {
+export default function CopyrightEmAbertoPage() {
   // Estados para filtros e ordenação
   const [filtroEditora, setFiltroEditora] = useState("");
   const [filtroDocumento, setFiltroDocumento] = useState("");

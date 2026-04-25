@@ -101,6 +101,10 @@ export const navigationData = {
           title: "Produto Royalty",
           url: "/relatorio/exportar-produto-royalty",
         },
+        {
+          title: "Apurar Royalties",
+          url: "/relatorio/apuracao-royalties",
+        },
       ],
     },
 
