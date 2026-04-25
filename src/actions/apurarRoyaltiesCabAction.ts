@@ -161,7 +161,7 @@ export async function listarApuracoesRoyaltiesCab({
 }
 
 /**
- * Exclui uma apuração de royalties
+ * Exclui uma apuração de royalties e seus registros filhos
  */
 export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApuracaoRoyaltiesCabResponse> {
   try {
@@ -172,11 +172,10 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    const { ObjectId } = await import("mongodb");
-
+    // Busca pelo campo id (UUID string), não pelo _id do MongoDB
     const record = await clientdb
       .collection(COLLECTION)
-      .findOne({ _id: new ObjectId(id), id_tenant: session.id_tenant, id_empresa: session.id_empresa });
+      .findOne({ id, id_tenant: session.id_tenant, id_empresa: session.id_empresa });
 
     if (!record) {
       await TMongo.mongoDisconnect(client);
@@ -188,9 +187,15 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
       return { success: false, error: "Não é possível excluir apuração em processamento" };
     }
 
+    // Exclui registros filhos da collection de movimentos
+    await clientdb
+      .collection("tmp_apuracao_royalties_movto")
+      .deleteMany({ id_royalty_cab: id, id_tenant: session.id_tenant });
+
+    // Exclui o registro principal pelo campo id (string)
     await clientdb
       .collection(COLLECTION)
-      .deleteOne({ _id: new ObjectId(id) });
+      .deleteOne({ id });
 
     await TMongo.mongoDisconnect(client);
 

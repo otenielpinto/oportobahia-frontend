@@ -189,7 +189,7 @@ export function ApuracaoRoyaltiesCabGrid() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Link href={`/apuracao-royalties/${item._id}`}>
+                        <Link href={`/apuracao-royalties/${item.id}`}>
                           <Button variant="ghost" size="sm">
                             Ver detalhes
                           </Button>
@@ -199,7 +199,7 @@ export function ApuracaoRoyaltiesCabGrid() {
                           size="sm"
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           disabled={item.status === "processando"}
-                          onClick={() => setDeleteId(item._id)}
+                          onClick={() => setDeleteId(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
