@@ -34,6 +34,18 @@ import { listarApuracoesRoyaltiesCab, excluirApuracaoRoyaltiesCab } from "@/acti
 
 const PAGE_SIZE = 10;
 
+/**
+ * Parseia data ISO para Date em timezone local.
+ * new Date("2026-03-01T03:00:00.000Z") trata como UTC → no Brasil vira dia anterior.
+ * Extraímos apenas ano/mês/dia da string ISO e criamos Date local.
+ */
+function parseDateLocal(value: string): Date {
+  // value pode vir como "2026-03-01" ou "2026-03-01T03:00:00.000Z"
+  const [datePart] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function SkeletonRows() {
   return Array.from({ length: 5 }).map((_, i) => (
     <TableRow key={i}>
@@ -157,8 +169,8 @@ export function ApuracaoRoyaltiesCabGrid() {
                 {paginatedData.map((item) => (
                   <TableRow key={item._id}>
                     <TableCell className="font-medium">
-                      {format(new Date(item.dataInicial), "dd/MM/yyyy")} —{" "}
-                      {format(new Date(item.dataFinal), "dd/MM/yyyy")}
+                      {format(parseDateLocal(item.dataInicial), "dd/MM/yyyy")} —{" "}
+                      {format(parseDateLocal(item.dataFinal), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell>
                       {item.cotacaoDollar.toLocaleString("pt-BR", {

@@ -4,7 +4,8 @@ import { useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { startOfMonth, format } from "date-fns";
+import { startOfMonth, format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Loader2, Play } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,6 +37,16 @@ export type ApuracaoRoyaltiesCabFormValues = z.infer<typeof formSchema>;
 
 export interface ApuracaoRoyaltiesCabFormProps {
   onSuccess?: () => void;
+}
+
+/**
+ * Converte string yyyy-MM-dd (input type="date") para Date em timezone local.
+ * new Date("2026-03-01") cria meia-noite UTC → no Brasil vira 21:00 do dia anterior.
+ * Usamos split para garantir data local correta.
+ */
+function parseDateLocal(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 export function ApuracaoRoyaltiesCabForm({
@@ -101,7 +112,7 @@ export function ApuracaoRoyaltiesCabForm({
                     type="date"
                     value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
                     onChange={(e) => {
-                      field.onChange(e.target.value ? new Date(e.target.value) : undefined);
+                      field.onChange(e.target.value ? parseDateLocal(e.target.value) : undefined);
                     }}
                   />
                 )}
@@ -125,7 +136,7 @@ export function ApuracaoRoyaltiesCabForm({
                     type="date"
                     value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
                     onChange={(e) => {
-                      field.onChange(e.target.value ? new Date(e.target.value) : undefined);
+                      field.onChange(e.target.value ? parseDateLocal(e.target.value) : undefined);
                     }}
                   />
                 )}

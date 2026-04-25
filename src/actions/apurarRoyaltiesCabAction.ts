@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { TMongo } from "@/infra/mongoClient";
 import { getUser } from "@/actions/sessionAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
@@ -9,6 +10,7 @@ import { revalidatePath } from "next/cache";
 
 export interface ApuracaoRoyaltiesCab {
   _id: string;
+  id: string; // UUID único
   id_tenant: number;
   id_empresa: number;
   dataInicial: string; // ISO
@@ -62,11 +64,25 @@ export async function criarApuracaoRoyaltiesCab(
 
     const now = new Date();
 
+    // Ajusta para timezone BR (UTC-3) para que o MongoDB grave com +3h
+    // new Date(2026, 2, 1) em servidor UTC → 2026-03-01T00:00:00Z
+    // +3h → 2026-03-01T03:00:00Z (reflete meia-noite BR)
+    const toBRTimezone = (d: Date) => new Date(d.getTime() + 3 * 60 * 60 * 1000);
+
     await clientdb.collection(COLLECTION).insertOne({
+      id: randomUUID(),
       id_tenant: session.id_tenant,
       id_empresa: session.id_empresa,
-      dataInicial: new Date(input.dataInicial),
-      dataFinal: new Date(input.dataFinal),
+      dataInicial: toBRTimezone(new Date(
+        input.dataInicial.getFullYear(),
+        input.dataInicial.getMonth(),
+        input.dataInicial.getDate(),
+      )),
+      dataFinal: toBRTimezone(new Date(
+        input.dataFinal.getFullYear(),
+        input.dataFinal.getMonth(),
+        input.dataFinal.getDate(),
+      )),
       cotacaoDollar: input.cotacaoDollar,
       observacao: input.observacao || null,
       status: "pendente",
