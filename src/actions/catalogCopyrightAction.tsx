@@ -12,7 +12,7 @@ import { generateId } from "./generatorAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 
 const collection = "tmp_catalog";
-const collection_produto = "product";
+const collection_produto = "tmp_produto";
 const collection_log = "tmp_catalog_log";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
