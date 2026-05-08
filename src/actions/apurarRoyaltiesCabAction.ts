@@ -17,6 +17,7 @@ export interface ApuracaoRoyaltiesCab {
   dataFinal: string; // ISO
   cotacaoDollar: number;
   observacao?: string;
+  gravadora?: string | null;
   status: "pendente" | "processando" | "completada" | "erro";
   totalMovimentos?: number;
   erroMessage?: string;
@@ -36,6 +37,7 @@ export interface CriarApuracaoRoyaltiesCabInput {
   dataFinal: Date;
   cotacaoDollar: number;
   observacao?: string;
+  gravadora?: string | null;
 }
 
 export interface CriarApuracaoRoyaltiesCabResponse {
@@ -44,7 +46,60 @@ export interface CriarApuracaoRoyaltiesCabResponse {
   error?: string;
 }
 
+export interface ApuracaoRoyaltiesMovto {
+  _id: string;
+  id_royalty_cab: string;
+  id_tenant: number;
+  data_movto: string;
+  clienteCpfCnpj?: string;
+  clienteNome?: string;
+  clienteMunicipio?: string;
+  clienteUf?: string;
+  natureza?: string;
+  numeroNota?: string;
+  serie?: string;
+  dataEmissao?: string;
+  itemCfop?: string;
+  catalogo?: string;
+  barraCode?: string;
+  itemDescricao?: string;
+  serieAlbum?: string;
+  quantFaturada?: number;
+  valorUnitLista?: number;
+  totalLista?: number;
+  valorUnitMercadoria?: number;
+  valorMercadoria?: number;
+  desconto?: number;
+  percentualDesconto?: number;
+  icms?: number;
+  cofins?: number;
+  pis?: number;
+  ipi?: number;
+  valorSemImpostos?: number;
+  custoOperativo?: number;
+  percentualCustoOperativo?: number;
+  baseCalculoRoyalties?: number;
+  nivelRoyalties?: string;
+  percentualRoyalties?: number;
+  valorRoyalties?: number;
+  tipo?: string;
+  numDiscos?: number;
+  numFaixas?: number;
+  limiteFaixas?: number;
+  baseCalculoLista?: number;
+  copyrightNormal?: number;
+  percentual?: number;
+  gravadora?: string;
+}
+
+export interface ExportarRoyaltiesMovtoResponse {
+  success: boolean;
+  data?: ApuracaoRoyaltiesMovto[];
+  error?: string;
+}
+
 const COLLECTION = "tmp_apuracao_royalties_cab";
+const COLLECTION_MOVTO = "tmp_apuracao_royalties_movto";
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
@@ -85,6 +140,7 @@ export async function criarApuracaoRoyaltiesCab(
       )),
       cotacaoDollar: input.cotacaoDollar,
       observacao: input.observacao || null,
+      gravadora: input.gravadora ?? null,
       status: "pendente",
       totalMovimentos: 0,
       erroMessage: null,
@@ -208,6 +264,104 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
       success: false,
       error:
         error instanceof Error ? error.message : "Erro desconhecido ao excluir apuração",
+    };
+  }
+}
+
+/**
+ * Exporta os movimentos de uma apuração de royalties para Excel
+ */
+export async function exportarRoyaltiesMovto(
+  cabId: string,
+): Promise<ExportarRoyaltiesMovtoResponse> {
+  try {
+    const session = await getUser();
+    if (!session) {
+      return { success: false, error: "Não autenticado" };
+    }
+
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    // Busca o cabeçalho para obter o período
+    const cab = await clientdb
+      .collection(COLLECTION)
+      .findOne({
+        id: cabId,
+        id_tenant: session.id_tenant,
+        id_empresa: session.id_empresa,
+      });
+
+    if (!cab) {
+      await TMongo.mongoDisconnect(client);
+      return { success: false, error: "Apuração não encontrada" };
+    }
+
+    // Busca os movimentos (id_royalty_cab já garante dados exatos)
+    const movtos = await clientdb
+      .collection(COLLECTION_MOVTO)
+      .find({
+        id_royalty_cab: cabId,
+      })
+      .toArray();
+
+    await TMongo.mongoDisconnect(client);
+
+    const serialized = serializeMongoData(movtos) as ApuracaoRoyaltiesMovto[];
+
+    return { success: true, data: serialized };
+  } catch (error) {
+    console.error("Erro ao exportar movimentos de royalties:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido ao exportar movimentos",
+    };
+  }
+}
+
+// ─── Gravadora ──────────────────────────────────────────────────────────────
+
+export interface GravadoraListResponse {
+  success: boolean;
+  data?: string[];
+  error?: string;
+}
+
+/**
+ * Lista gravadoras disponíveis para o tenant do usuário autenticado
+ */
+export async function listarGravadoras(): Promise<GravadoraListResponse> {
+  try {
+    const session = await getUser();
+    if (!session) {
+      return { success: false, error: "Não autenticado" };
+    }
+
+    const { client, clientdb } = await TMongo.connectToDatabase();
+
+    const records = await clientdb
+      .collection("tmp_royalty_gravadora")
+      .find({
+        id_tenant: session.id_tenant,
+        id_empresa: session.id_empresa,
+      })
+      .project({ nome: 1, _id: 0 })
+      .sort({ nome: 1 })
+      .toArray();
+
+    await TMongo.mongoDisconnect(client);
+
+    const serialized = serializeMongoData(records) as { nome: string }[];
+    const gravadoras = serialized.map((r) => r.nome).filter(Boolean);
+
+    return { success: true, data: gravadoras };
+  } catch (error) {
+    console.error("Erro ao carregar gravadoras:", error);
+    return {
+      success: false,
+      error: "Erro ao carregar gravadoras",
     };
   }
 }

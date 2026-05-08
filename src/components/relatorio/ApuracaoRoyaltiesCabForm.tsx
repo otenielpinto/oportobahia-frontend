@@ -1,11 +1,10 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { startOfMonth, format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { startOfMonth, format } from "date-fns";
 import { Loader2, Play } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { criarApuracaoRoyaltiesCab } from "@/actions/apurarRoyaltiesCabAction";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { criarApuracaoRoyaltiesCab, listarGravadoras } from "@/actions/apurarRoyaltiesCabAction";
 
 const formSchema = z
   .object({
@@ -36,6 +42,7 @@ const formSchema = z
       }).gt(0, "Cotação deve ser maior que zero"),
     ),
     observacao: z.string().optional(),
+    gravadora: z.string().default("todos"),
   })
   .refine((data) => data.dataFinal >= data.dataInicial, {
     message: "Data final deve ser igual ou posterior à data inicial",
@@ -62,6 +69,8 @@ export function ApuracaoRoyaltiesCabForm({
   onSuccess,
 }: ApuracaoRoyaltiesCabFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [gravadoraOptions, setGravadoraOptions] = useState<string[]>([]);
+  const [loadingGravadoras, setLoadingGravadoras] = useState(true);
 
   const form = useForm<ApuracaoRoyaltiesCabFormValues>({
     resolver: zodResolver(formSchema),
@@ -69,8 +78,36 @@ export function ApuracaoRoyaltiesCabForm({
       dataInicial: startOfMonth(new Date()),
       dataFinal: new Date(),
       observacao: "",
+      gravadora: "todos",
     },
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchGravadoras() {
+      setLoadingGravadoras(true);
+      try {
+        const result = await listarGravadoras();
+        if (!cancelled) {
+          if (result.success && result.data) {
+            setGravadoraOptions(result.data);
+          } else {
+            toast.error(result.error || "Erro ao carregar gravadoras");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error("Erro inesperado ao carregar gravadoras");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingGravadoras(false);
+        }
+      }
+    }
+    fetchGravadoras();
+    return () => { cancelled = true; };
+  }, []);
 
   const onSubmit = (values: ApuracaoRoyaltiesCabFormValues) => {
     startTransition(async () => {
@@ -80,6 +117,7 @@ export function ApuracaoRoyaltiesCabForm({
           dataFinal: values.dataFinal,
           cotacaoDollar: values.cotacaoDollar,
           observacao: values.observacao,
+          gravadora: values.gravadora === "todos" ? null : values.gravadora,
         });
 
         if (result.success) {
@@ -88,6 +126,7 @@ export function ApuracaoRoyaltiesCabForm({
             dataInicial: startOfMonth(new Date()),
             dataFinal: new Date(),
             observacao: "",
+            gravadora: "todos",
           });
           onSuccess?.();
         } else {
@@ -154,6 +193,40 @@ export function ApuracaoRoyaltiesCabForm({
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Gravadora */}
+          <div className="space-y-2">
+            <Label htmlFor="gravadora">Gravadora</Label>
+            <Controller
+              name="gravadora"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger id="gravadora">
+                    {loadingGravadoras ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Carregando...</span>
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Selecione a gravadora" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    {gravadoraOptions.map((nome) => (
+                      <SelectItem key={nome} value={nome}>
+                        {nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
