@@ -14,6 +14,18 @@ import {
 export const navigationData = {
   navMain: [
     {
+      title: "Venda",
+      url: "#",
+      icon: ShoppingCart,
+      items: [
+        {
+          title: "Notas Fiscais",
+          url: "/notas-fiscais",
+        },
+      ],
+    },
+
+    {
       title: "Cadastro",
       url: "#",
       icon: PlusIcon,
