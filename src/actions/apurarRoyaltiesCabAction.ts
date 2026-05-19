@@ -119,25 +119,28 @@ export async function criarApuracaoRoyaltiesCab(
 
     const now = new Date();
 
-    // Ajusta para timezone BR (UTC-3) para que o MongoDB grave com +3h
-    // new Date(2026, 2, 1) em servidor UTC → 2026-03-01T00:00:00Z
-    // +3h → 2026-03-01T03:00:00Z (reflete meia-noite BR)
-    const toBRTimezone = (d: Date) => new Date(d.getTime() + 3 * 60 * 60 * 1000);
-
     await clientdb.collection(COLLECTION).insertOne({
       id: randomUUID(),
       id_tenant: session.id_tenant,
       id_empresa: session.id_empresa,
-      dataInicial: toBRTimezone(new Date(
+      dataInicial: new Date(
         input.dataInicial.getFullYear(),
         input.dataInicial.getMonth(),
         input.dataInicial.getDate(),
-      )),
-      dataFinal: toBRTimezone(new Date(
+        3,
+        0,
+        0,
+        0,
+      ),
+      dataFinal: new Date(
         input.dataFinal.getFullYear(),
         input.dataFinal.getMonth(),
         input.dataFinal.getDate(),
-      )),
+        23,
+        59,
+        59,
+        999,
+      ),
       cotacaoDollar: input.cotacaoDollar,
       observacao: input.observacao || null,
       gravadora: input.gravadora ?? null,
@@ -158,7 +161,9 @@ export async function criarApuracaoRoyaltiesCab(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Erro desconhecido ao criar apuração",
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido ao criar apuração",
     };
   }
 }
@@ -186,9 +191,7 @@ export async function listarApuracoesRoyaltiesCab({
       id_empresa: session.id_empresa,
     };
 
-    const total = await clientdb
-      .collection(COLLECTION)
-      .countDocuments(filter);
+    const total = await clientdb.collection(COLLECTION).countDocuments(filter);
 
     const records = await clientdb
       .collection(COLLECTION)
@@ -219,7 +222,9 @@ export async function listarApuracoesRoyaltiesCab({
 /**
  * Exclui uma apuração de royalties e seus registros filhos
  */
-export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApuracaoRoyaltiesCabResponse> {
+export async function excluirApuracaoRoyaltiesCab(
+  id: string,
+): Promise<CriarApuracaoRoyaltiesCabResponse> {
   try {
     const session = await getUser();
     if (!session) {
@@ -229,9 +234,11 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
     const { client, clientdb } = await TMongo.connectToDatabase();
 
     // Busca pelo campo id (UUID string), não pelo _id do MongoDB
-    const record = await clientdb
-      .collection(COLLECTION)
-      .findOne({ id, id_tenant: session.id_tenant, id_empresa: session.id_empresa });
+    const record = await clientdb.collection(COLLECTION).findOne({
+      id,
+      id_tenant: session.id_tenant,
+      id_empresa: session.id_empresa,
+    });
 
     if (!record) {
       await TMongo.mongoDisconnect(client);
@@ -240,7 +247,10 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
 
     if (record.status === "processando") {
       await TMongo.mongoDisconnect(client);
-      return { success: false, error: "Não é possível excluir apuração em processamento" };
+      return {
+        success: false,
+        error: "Não é possível excluir apuração em processamento",
+      };
     }
 
     // Exclui registros filhos da collection de movimentos
@@ -249,9 +259,7 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
       .deleteMany({ id_royalty_cab: id, id_tenant: session.id_tenant });
 
     // Exclui o registro principal pelo campo id (string)
-    await clientdb
-      .collection(COLLECTION)
-      .deleteOne({ id });
+    await clientdb.collection(COLLECTION).deleteOne({ id });
 
     await TMongo.mongoDisconnect(client);
 
@@ -263,7 +271,9 @@ export async function excluirApuracaoRoyaltiesCab(id: string): Promise<CriarApur
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Erro desconhecido ao excluir apuração",
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido ao excluir apuração",
     };
   }
 }
@@ -283,13 +293,11 @@ export async function exportarRoyaltiesMovto(
     const { client, clientdb } = await TMongo.connectToDatabase();
 
     // Busca o cabeçalho para obter o período
-    const cab = await clientdb
-      .collection(COLLECTION)
-      .findOne({
-        id: cabId,
-        id_tenant: session.id_tenant,
-        id_empresa: session.id_empresa,
-      });
+    const cab = await clientdb.collection(COLLECTION).findOne({
+      id: cabId,
+      id_tenant: session.id_tenant,
+      id_empresa: session.id_empresa,
+    });
 
     if (!cab) {
       await TMongo.mongoDisconnect(client);
