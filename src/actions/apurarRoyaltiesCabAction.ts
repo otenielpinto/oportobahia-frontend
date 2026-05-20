@@ -117,29 +117,31 @@ export async function criarApuracaoRoyaltiesCab(
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
+    // Ajusta para timezone BR (UTC-3) para que o MongoDB grave com +3h
+    // new Date(2026, 2, 1) em servidor UTC → 2026-03-01T00:00:00Z
+    // +3h → 2026-03-01T03:00:00Z (reflete meia-noite BR)
+    const toBRTimezone = (d: Date) =>
+      new Date(d.getTime() + 3 * 60 * 60 * 1000);
+
     const now = new Date();
 
     await clientdb.collection(COLLECTION).insertOne({
       id: randomUUID(),
       id_tenant: session.id_tenant,
       id_empresa: session.id_empresa,
-      dataInicial: new Date(
-        input.dataInicial.getFullYear(),
-        input.dataInicial.getMonth(),
-        input.dataInicial.getDate(),
-        3,
-        0,
-        0,
-        0,
+      dataInicial: toBRTimezone(
+        new Date(
+          input.dataInicial.getFullYear(),
+          input.dataInicial.getMonth(),
+          input.dataInicial.getDate(),
+        ),
       ),
-      dataFinal: new Date(
-        input.dataFinal.getFullYear(),
-        input.dataFinal.getMonth(),
-        input.dataFinal.getDate(),
-        23,
-        59,
-        59,
-        999,
+      dataFinal: toBRTimezone(
+        new Date(
+          input.dataFinal.getFullYear(),
+          input.dataFinal.getMonth(),
+          input.dataFinal.getDate(),
+        ),
       ),
       cotacaoDollar: input.cotacaoDollar,
       observacao: input.observacao || null,
