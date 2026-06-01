@@ -36,24 +36,34 @@ const FILTER_FIELDS = [
 const EXPORT_COLUMNS = [
   { label: "SKU", value: "sku" },
   { label: "GTIN/EAN", value: "gtinEan" },
-  { label: "Descrição/Título", value: "descricaoTitulo" },
-  { label: "Lista de Preço", value: "listaPreco" },
-  { label: "Preço Oporto", value: "precoOporto" },
-  { label: "Preço Distribuidora", value: "precoDistribuidora" },
+  { label: "Descricao/Titulo", value: "descricaoTitulo" },
+  { label: "Preco de Custo", value: "precoCusto" },
+  { label: "Preco Oporto", value: "precoOporto" },
+  { label: "Preco Distribuidora", value: "precoDistribuidora" },
+  { label: "Lista de Preco", value: "listaPreco" },
   { label: "NCM", value: "ncm" },
   { label: "Origem", value: "origem" },
-  { label: "Preço de Custo", value: "precoCusto" },
   { label: "Fornecedor", value: "fornecedor" },
   { label: "Categoria Produto", value: "categoriaProduto" },
   { label: "Marca", value: "marca" },
-  { label: "Nível Royalty", value: "nivelRoyalty" },
+  { label: "Nivel Royalty", value: "nivelRoyalty" },
   { label: "Percentual", value: "percentual" },
   { label: "Tipo", value: "tipo" },
-  { label: "Número Discos", value: "numeroDiscos" },
-  { label: "Número Faixas", value: "numeroFaixas" },
+  { label: "Numero Discos", value: "numeroDiscos" },
+  { label: "Numero Faixas", value: "numeroFaixas" },
   { label: "Gravadora", value: "gravadora" },
   { label: "Peso", value: "peso" },
-  { label: "Lote Importação", value: "loteImportacao" },
+  { label: "Parceiro", value: "parceiro" },
+  { label: "Custo Operativo", value: "custo_operativo" },
+  {
+    label: "Royalty Minimo Garantido (Dolar)",
+    value: "royalty_min_garantido_dolar",
+  },
+  {
+    label: "Royalty Minimo Garantido (Real)",
+    value: "royalty_min_garantido_real",
+  },
+  { label: "Lote Importacao", value: "loteImportacao" },
 ];
 
 export function ExportProdutoRoyaltyForm() {
@@ -150,7 +160,9 @@ export function ExportProdutoRoyaltyForm() {
             <div key={key} className="space-y-2">
               <label className="text-sm font-medium">{label}</label>
               <Select
-                value={filters[key as keyof ProdutoRoyaltyExportFilters] || "Todos"}
+                value={
+                  filters[key as keyof ProdutoRoyaltyExportFilters] || "Todos"
+                }
                 onValueChange={(value) => handleFilterChange(key, value)}
               >
                 <SelectTrigger>
