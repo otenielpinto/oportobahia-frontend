@@ -63,7 +63,6 @@ const EXPORT_COLUMNS = [
     label: "Royalty Minimo Garantido (Real)",
     value: "royalty_min_garantido_real",
   },
-  { label: "Lote Importacao", value: "loteImportacao" },
 ];
 
 export function ExportProdutoRoyaltyForm() {
