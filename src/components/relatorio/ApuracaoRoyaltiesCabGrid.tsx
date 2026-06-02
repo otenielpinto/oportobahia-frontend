@@ -4,7 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, FileSpreadsheet, Loader2, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  FileSpreadsheet,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -30,7 +38,12 @@ import {
 import { toast } from "sonner";
 import { ApuracaoRoyaltiesCabStatusBadge } from "@/components/relatorio/ApuracaoRoyaltiesCabStatusBadge";
 import { usePagination } from "@/hooks/usePagination";
-import { ApuracaoRoyaltiesCab, listarApuracoesRoyaltiesCab, excluirApuracaoRoyaltiesCab, exportarRoyaltiesMovto } from "@/actions/apurarRoyaltiesCabAction";
+import {
+  ApuracaoRoyaltiesCab,
+  listarApuracoesRoyaltiesCab,
+  excluirApuracaoRoyaltiesCab,
+  exportarRoyaltiesMovto,
+} from "@/actions/apurarRoyaltiesCabAction";
 import { reportToExcel } from "@/lib/reportToExcel";
 
 const PAGE_SIZE = 10;
@@ -55,14 +68,18 @@ const ROYALTIES_MOVTO_COLUMNS = [
   { label: "Valor Unit. Mercadoria", value: "valorUnitMercadoria" },
   { label: "Valor de Mercadoria", value: "valorMercadoria" },
   { label: "Desconto", value: "desconto" },
-  { label: "Desconto %", value: "percentualDesconto" },
+  { label: "% Desconto", value: "percentualDesconto" },
+  { label: "% ICMS", value: "percentualIcms" },
   { label: "ICMS", value: "icms" },
+  { label: "% COFINS", value: "percentualCofins" },
   { label: "COFINS", value: "cofins" },
+  { label: "% PIS", value: "percentualPis" },
   { label: "PIS", value: "pis" },
+  { label: "% IPI", value: "percentualIpi" },
   { label: "IPI", value: "ipi" },
   { label: "Valor sem Impostos", value: "valorSemImpostos" },
+  { label: "% Custo Operativo", value: "percentualCustoOperativo" },
   { label: "Custo Operativo", value: "custoOperativo" },
-  { label: "Custo Operativo %", value: "percentualCustoOperativo" },
   { label: "Base de Cálculo Royalties", value: "baseCalculoRoyalties" },
   { label: "Nível de Royalties", value: "nivelRoyalties" },
   { label: "Valor de Royalties", value: "valorRoyalties" },
@@ -71,8 +88,9 @@ const ROYALTIES_MOVTO_COLUMNS = [
   { label: "Nº de Faixas", value: "numFaixas" },
   { label: "Limite Faixas", value: "limiteFaixas" },
   { label: "Base de Cálculo Lista", value: "baseCalculoLista" },
+  { label: "% Percentual", value: "percentual" },
   { label: "Copyright Normal", value: "copyrightNormal" },
-  { label: "Percentual", value: "percentual" },
+  { label: "Marca", value: "marca" },
   { label: "Gravadora", value: "gravadora" },
 ];
 
@@ -91,12 +109,24 @@ function parseDateLocal(value: string): Date {
 function SkeletonRows() {
   return Array.from({ length: 5 }).map((_, i) => (
     <TableRow key={i}>
-      <TableCell><Skeleton className="h-4 w-36" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-36" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-20" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-24" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-20" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-28" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-16" />
+      </TableCell>
     </TableRow>
   ));
 }
@@ -109,15 +139,11 @@ export function ApuracaoRoyaltiesCabGrid() {
     retry: 2,
   });
 
-  const {
-    currentPage,
-    totalPages,
-    paginatedData,
-    handlePageChange,
-  } = usePagination({
-    data: data?.data ?? [],
-    initialPageSize: PAGE_SIZE,
-  });
+  const { currentPage, totalPages, paginatedData, handlePageChange } =
+    usePagination({
+      data: data?.data ?? [],
+      initialPageSize: PAGE_SIZE,
+    });
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -180,11 +206,15 @@ export function ApuracaoRoyaltiesCabGrid() {
         totalLista: row.totalLista ?? 0,
         valorUnitMercadoria: row.valorUnitMercadoria ?? 0,
         valorMercadoria: row.valorMercadoria ?? 0,
-        desconto: row.desconto ?? 0,
         percentualDesconto: row.percentualDesconto ?? 0,
+        desconto: row.desconto ?? 0,
+        percentualIcms: row.percentualIcms ?? 0,
         icms: row.icms ?? 0,
+        percentualCofins: row.percentualCofins ?? 0,
         cofins: row.cofins ?? 0,
+        percentualPis: row.percentualPis ?? 0,
         pis: row.pis ?? 0,
+        percentualIpi: row.percentualIpi ?? 0,
         ipi: row.ipi ?? 0,
         valorSemImpostos: row.valorSemImpostos ?? 0,
         custoOperativo: row.custoOperativo ?? 0,
@@ -197,8 +227,9 @@ export function ApuracaoRoyaltiesCabGrid() {
         numFaixas: row.numFaixas ?? 0,
         limiteFaixas: row.limiteFaixas ?? 0,
         baseCalculoLista: row.baseCalculoLista ?? 0,
-        copyrightNormal: row.copyrightNormal ?? 0,
         percentual: row.percentual ?? 0,
+        copyrightNormal: row.copyrightNormal ?? 0,
+        marca: row.marca ?? "—",
         gravadora: row.gravadora ?? "—",
       }));
 
@@ -251,7 +282,9 @@ export function ApuracaoRoyaltiesCabGrid() {
         {error && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Erro ao carregar dados</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Erro ao carregar dados
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">
               Não foi possível carregar as apurações.
             </p>
@@ -295,9 +328,7 @@ export function ApuracaoRoyaltiesCabGrid() {
                       {format(parseDateLocal(item.dataInicial), "dd/MM/yyyy")} —{" "}
                       {format(parseDateLocal(item.dataFinal), "dd/MM/yyyy")}
                     </TableCell>
-                    <TableCell>
-                      {item.gravadora ?? "Todos"}
-                    </TableCell>
+                    <TableCell>{item.gravadora ?? "Todos"}</TableCell>
                     <TableCell>
                       {item.cotacaoDollar.toLocaleString("pt-BR", {
                         style: "currency",
@@ -323,9 +354,16 @@ export function ApuracaoRoyaltiesCabGrid() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={item.status !== "completada" || isExporting === item.id}
+                          disabled={
+                            item.status !== "completada" ||
+                            isExporting === item.id
+                          }
                           onClick={() => handleExportExcel(item)}
-                          title={item.status !== "completada" ? "Exportação disponível apenas para apurações completadas" : "Exportar para Excel"}
+                          title={
+                            item.status !== "completada"
+                              ? "Exportação disponível apenas para apurações completadas"
+                              : "Exportar para Excel"
+                          }
                         >
                           {isExporting === item.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -380,16 +418,22 @@ export function ApuracaoRoyaltiesCabGrid() {
       </CardContent>
 
       {/* AlertDialog de confirmação de exclusão */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta apuração? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir esta apuração? Esta ação não pode
+              ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={handleDeleteConfirm}

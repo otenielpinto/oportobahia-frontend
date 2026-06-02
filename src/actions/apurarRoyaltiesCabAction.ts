@@ -71,9 +71,13 @@ export interface ApuracaoRoyaltiesMovto {
   valorMercadoria?: number;
   desconto?: number;
   percentualDesconto?: number;
+  percentualIcms?: number;
   icms?: number;
+  percentualCofins?: number;
   cofins?: number;
+  percentualPis?: number;
   pis?: number;
+  percentualIpi?: number;
   ipi?: number;
   valorSemImpostos?: number;
   custoOperativo?: number;
@@ -87,8 +91,9 @@ export interface ApuracaoRoyaltiesMovto {
   numFaixas?: number;
   limiteFaixas?: number;
   baseCalculoLista?: number;
-  copyrightNormal?: number;
   percentual?: number;
+  copyrightNormal?: number;
+  marca: string;
   gravadora?: string;
 }
 
