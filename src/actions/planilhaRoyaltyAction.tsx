@@ -114,7 +114,7 @@ function mapRowToProduto(
   loteImportacao: string,
   idTenant: number,
   idEmpresa: number,
-): { produto: ProdutoRoyaltyExcel | null; releaseError?: string } {
+): { produto: ProdutoRoyaltyExcel | null } {
   const getStr = (col: string): string => {
     const idx = headerIndexMap.get(col);
     if (idx === undefined || idx >= row.length) return "";
@@ -149,66 +149,42 @@ function mapRowToProduto(
   const sku = getStr("SKU");
   if (!sku) return { produto: null }; // Linha sem SKU é ignorada
 
-  const descricaoTitulo = getStr("Descrição/título");
+  const descricaoTitulo = getStr("Descricao/Titulo");
   if (descricaoTitulo.length < 3) {
     return { produto: null }; // Ignora registros sem título válido
   }
-
-  const releaseIndex = headerIndexMap.get("Release");
-  const releaseRaw =
-    releaseIndex !== undefined && releaseIndex < row.length
-      ? row[releaseIndex]
-      : null;
-  const releaseDate = parseExcelDate(releaseRaw);
-
-  const releaseError =
-    releaseRaw != null && releaseRaw !== "" && !releaseDate
-      ? `Release inválido: ${String(releaseRaw)}`
-      : undefined;
 
   return {
     produto: {
       sku,
       gtinEan: getStr("GTIN/EAN"),
       descricaoTitulo,
-      release: releaseDate,
-      listaPreco: getStr("Lista de preço"),
-      precoOporto: getNum("Preço Oporto"),
-      precoDistribuidora: getNum("Preço Distribuidora"),
+      listaPreco: getStr("Lista de Preco"),
+      precoOporto: getNum("Preco Oporto"),
+      precoDistribuidora: getNum("Preco Distribuidora"),
       ncm: getStr("NCM"),
-      origem: getStr("Oigem"),
-      precoCusto: getNum("Preço de Custo"),
+      origem: getStr("Origem"),
+      precoCusto: getNum("Preco de Custo"),
       fornecedor: getStr("Fornecedor"),
-      categoriaProduto: getStr("Categoria do produto"),
+      categoriaProduto: getStr("Categoria Produto"),
       marca: getStr("Marca"),
-      nivelRoyalty: getStr("Nível de Royalty"),
+      nivelRoyalty: getStr("Nivel Royalty"),
       percentual: getPercentual("Percentual"),
       tipo: getStr("Tipo"),
-      numeroDiscos: getNum("Número de Discos"),
-      numeroFaixas: getNum("Número de Faixas"),
+      numeroDiscos: getNum("Numero Discos"),
+      numeroFaixas: getNum("Numero Faixas"),
       gravadora: getStr("Gravadora"),
       peso: getNum("Peso"),
       // Campos opcionais — lidos se presentes na planilha
       parceiro: getStr("Parceiro") || undefined,
-      custo_operativo: headerIndexMap.has("Custo Operativo")
-        ? getNum("Custo Operativo")
-        : undefined,
-      royalty_min_garantido_dolar: headerIndexMap.has(
-        "Royalty Mín. Garantido (USD)",
-      )
-        ? getNum("Royalty Mín. Garantido (USD)")
-        : undefined,
-      royalty_min_garantido_reais: headerIndexMap.has(
-        "Royalty Mín. Garantido (BRL)",
-      )
-        ? getNum("Royalty Mín. Garantido (BRL)")
-        : undefined,
+      custo_operativo: getNum("Custo Operativo"),
+      royalty_min_garantido_dolar: getNum("Royalty Minimo Garantido (Dolar)"),
+      royalty_min_garantido_reais: getNum("Royalty Minimo Garantido (Real)"),
       importadoEm: new Date(),
       loteImportacao,
       id_tenant: idTenant,
       id_empresa: idEmpresa,
     },
-    releaseError,
   };
 }
 
@@ -246,7 +222,7 @@ export async function importProdutoRoyalties(
   const produtos: ProdutoRoyaltyExcel[] = [];
   for (let i = 0; i < rows.length; i++) {
     try {
-      const { produto, releaseError } = mapRowToProduto(
+      const { produto } = mapRowToProduto(
         rows[i],
         headerIndexMap,
         loteImportacao,
@@ -255,9 +231,6 @@ export async function importProdutoRoyalties(
       );
       if (produto) {
         produtos.push(produto);
-      }
-      if (releaseError) {
-        errors.push(`Linha ${i + 2}: ${releaseError}`);
       }
     } catch {
       errors.push(`Linha ${i + 2}: erro ao processar dados`);

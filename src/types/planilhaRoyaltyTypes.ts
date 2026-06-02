@@ -3,32 +3,31 @@
 export const EXCEL_REQUIRED_COLUMNS = [
   "SKU",
   "GTIN/EAN",
-  "Descrição/título",
-  "Release",
-  "Lista de preço",
-  "Preço Oporto",
-  "Preço Distribuidora",
+  "Descricao/Titulo",
+  "Lista de Preco",
+  "Preco Oporto",
+  "Preco Distribuidora",
   "NCM",
-  "Oigem",
-  "Preço de Custo",
+  "Origem",
+  "Preco de Custo",
   "Fornecedor",
-  "Categoria do produto",
+  "Categoria Produto",
   "Marca",
-  "Nível de Royalty",
+  "Nivel Royalty",
   "Percentual",
   "Tipo",
-  "Número de Discos",
-  "Número de Faixas",
+  "Numero Discos",
+  "Numero Faixas",
   "Gravadora",
   "Peso",
+  "Custo Operativo",
+  "Royalty Minimo Garantido (Dolar)",
+  "Royalty Minimo Garantido (Real)",
 ] as const;
 
 // Colunas opcionais que serão lidas se presentes na planilha
 export const EXCEL_OPTIONAL_COLUMNS = [
   "Parceiro",
-  "Custo Operativo",
-  "Royalty Mín. Garantido (USD)",
-  "Royalty Mín. Garantido (BRL)",
 ] as const;
 
 export type ExcelColumnName = (typeof EXCEL_REQUIRED_COLUMNS)[number];
@@ -37,31 +36,32 @@ export type ExcelColumnName = (typeof EXCEL_REQUIRED_COLUMNS)[number];
 export const COLUMN_TO_FIELD: Record<ExcelColumnName, string> = {
   SKU: "sku",
   "GTIN/EAN": "gtinEan",
-  "Descrição/título": "descricaoTitulo",
-  Release: "release",
-  "Lista de preço": "listaPreco",
-  "Preço Oporto": "precoOporto",
-  "Preço Distribuidora": "precoDistribuidora",
+  "Descricao/Titulo": "descricaoTitulo",
+  "Lista de Preco": "listaPreco",
+  "Preco Oporto": "precoOporto",
+  "Preco Distribuidora": "precoDistribuidora",
   NCM: "ncm",
-  Oigem: "origem",
-  "Preço de Custo": "precoCusto",
+  Origem: "origem",
+  "Preco de Custo": "precoCusto",
   Fornecedor: "fornecedor",
-  "Categoria do produto": "categoriaProduto",
+  "Categoria Produto": "categoriaProduto",
   Marca: "marca",
-  "Nível de Royalty": "nivelRoyalty",
+  "Nivel Royalty": "nivelRoyalty",
   Percentual: "percentual",
   Tipo: "tipo",
-  "Número de Discos": "numeroDiscos",
-  "Número de Faixas": "numeroFaixas",
+  "Numero Discos": "numeroDiscos",
+  "Numero Faixas": "numeroFaixas",
   Gravadora: "gravadora",
   Peso: "peso",
+  "Custo Operativo": "custo_operativo",
+  "Royalty Minimo Garantido (Dolar)": "royalty_min_garantido_dolar",
+  "Royalty Minimo Garantido (Real)": "royalty_min_garantido_reais",
 };
 
 export interface ProdutoRoyaltyExcel {
   sku: string;
   gtinEan: string;
   descricaoTitulo: string;
-  release: Date | null;
   listaPreco: string;
   precoOporto: number;
   precoDistribuidora: number;

@@ -61,7 +61,7 @@ const EXPORT_COLUMNS = [
   },
   {
     label: "Royalty Minimo Garantido (Real)",
-    value: "royalty_min_garantido_real",
+    value: "royalty_min_garantido_reais",
   },
 ];
 
