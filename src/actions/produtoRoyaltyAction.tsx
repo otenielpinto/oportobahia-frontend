@@ -188,9 +188,9 @@ export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    // Validação de unicidade para sku, gtinEan e descricaoTitulo
+    // Validação de unicidade para SKU e GTIN/EAN
     const duplicates: string[] = [];
-    
+
     if (data.sku && data.sku.trim()) {
       const existingSku = await clientdb.collection(COLLECTION_NAME).findOne({
         sku: data.sku,
@@ -205,14 +205,6 @@ export async function createProdutoRoyalty(data: ProdutoRoyaltyCreateInput) {
         id_tenant: user.id_tenant,
       });
       if (existingGtin) duplicates.push(`GTIN/EAN "${data.gtinEan}"`);
-    }
-
-    if (data.descricaoTitulo && data.descricaoTitulo.trim()) {
-      const existingTitulo = await clientdb.collection(COLLECTION_NAME).findOne({
-        descricaoTitulo: data.descricaoTitulo,
-        id_tenant: user.id_tenant,
-      });
-      if (existingTitulo) duplicates.push(`Título "${data.descricaoTitulo}"`);
     }
 
     if (duplicates.length > 0) {
@@ -297,7 +289,7 @@ export async function updateProdutoRoyalty(data: ProdutoRoyaltyUpdateInput) {
 
     const { client, clientdb } = await TMongo.connectToDatabase();
 
-    // Validação de unicidade para sku, gtinEan e descricaoTitulo (exclui registro atual)
+    // Validação de unicidade para SKU e GTIN/EAN (exclui registro atual)
     const duplicates: string[] = [];
 
     if (updateFields.sku && updateFields.sku.trim()) {
@@ -316,15 +308,6 @@ export async function updateProdutoRoyalty(data: ProdutoRoyaltyUpdateInput) {
         id: { $ne: id },
       });
       if (existingGtin) duplicates.push(`GTIN/EAN "${updateFields.gtinEan}"`);
-    }
-
-    if (updateFields.descricaoTitulo && updateFields.descricaoTitulo.trim()) {
-      const existingTitulo = await clientdb.collection(COLLECTION_NAME).findOne({
-        descricaoTitulo: updateFields.descricaoTitulo,
-        id_tenant: user.id_tenant,
-        id: { $ne: id },
-      });
-      if (existingTitulo) duplicates.push(`Título "${updateFields.descricaoTitulo}"`);
     }
 
     if (duplicates.length > 0) {
