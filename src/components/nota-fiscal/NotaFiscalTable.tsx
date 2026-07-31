@@ -41,7 +41,7 @@ function getDefaultFilter(): NotaFiscalFilter {
   return {
     dateFrom: start,
     dateTo: end,
-    natOp: "VENDA DE MERCADORIA",
+    natOp: "",
     page: 1,
     limit: 100,
   };
