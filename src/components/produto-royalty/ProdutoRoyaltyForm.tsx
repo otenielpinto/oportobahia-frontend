@@ -47,6 +47,7 @@ const OPCOES_VAZIAS: ProdutoRoyaltyOpcoes = {
   origem: [],
   tipo: [],
   categoriaProduto: [],
+  nivelRoyalty: [],
 };
 
 // Garante que o valor já salvo continue visível e selecionado,
@@ -199,6 +200,10 @@ export default function ProdutoRoyaltyForm({
 
   const origemOpcoes = opcoesComValorAtual(opcoes.origem, produto?.origem);
   const tipoOpcoes = opcoesComValorAtual(opcoes.tipo, produto?.tipo);
+  const nivelOpcoes = opcoesComValorAtual(
+    opcoes.nivelRoyalty,
+    produto?.nivelRoyalty,
+  );
   const categoriaOpcoes = opcoesComValorAtual(
     opcoes.categoriaProduto,
     produto?.categoriaProduto,
@@ -548,13 +553,24 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nível Royalty</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Nível de royalty"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={loadingOpcoes}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o nível" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {nivelOpcoes.map((nome) => (
+                          <SelectItem key={nome} value={nome}>
+                            {nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -655,13 +671,11 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Parceiro</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Nome do parceiro"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <OpcoesRoyaltyCombobox
+                      fonte="parceiro"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

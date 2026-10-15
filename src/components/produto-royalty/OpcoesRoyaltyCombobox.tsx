@@ -48,6 +48,12 @@ const ROTULOS: Record<
     descricao: "Digite parte do nome para filtrar as gravadoras disponíveis.",
     botao: "Pesquisar gravadora",
   },
+  parceiro: {
+    placeholder: "Digite ou pesquise o parceiro",
+    titulo: "Pesquisar Parceiro",
+    descricao: "Digite parte do nome para filtrar os parceiros disponíveis.",
+    botao: "Pesquisar parceiro",
+  },
 };
 
 interface OpcoesRoyaltyComboboxProps {

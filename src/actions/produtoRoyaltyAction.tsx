@@ -508,6 +508,7 @@ const OPCOES_ROYALTY_COLLECTIONS = {
   origem: "tmp_royalty_origem",
   tipo: "tmp_royalty_tipo",
   categoriaProduto: "tmp_royalty_categoriaProduto",
+  nivelRoyalty: "tmp_royalty_nivelRoyalty",
 } as const;
 
 export async function listarOpcoesProdutoRoyalty(): Promise<{
@@ -535,10 +536,11 @@ export async function listarOpcoesProdutoRoyalty(): Promise<{
         .sort({ nome: 1 })
         .toArray();
 
-    const [origemDocs, tipoDocs, categoriaDocs] = await Promise.all([
+    const [origemDocs, tipoDocs, categoriaDocs, nivelDocs] = await Promise.all([
       buscarNomes(OPCOES_ROYALTY_COLLECTIONS.origem),
       buscarNomes(OPCOES_ROYALTY_COLLECTIONS.tipo),
       buscarNomes(OPCOES_ROYALTY_COLLECTIONS.categoriaProduto),
+      buscarNomes(OPCOES_ROYALTY_COLLECTIONS.nivelRoyalty),
     ]);
 
     await TMongo.mongoDisconnect(client);
@@ -559,6 +561,7 @@ export async function listarOpcoesProdutoRoyalty(): Promise<{
         origem: extrairNomes(origemDocs),
         tipo: extrairNomes(tipoDocs),
         categoriaProduto: extrairNomes(categoriaDocs),
+        nivelRoyalty: extrairNomes(nivelDocs),
       },
     };
   } catch (error: any) {
@@ -577,6 +580,7 @@ const FONTES_BUSCA_ROYALTY: Record<OpcaoRoyaltyFonte, string> = {
   fornecedor: "tmp_royalty_fornecedor",
   marca: "tmp_royalty_marca",
   gravadora: "tmp_royalty_gravadora",
+  parceiro: "tmp_royalty_parceiro",
 };
 const BUSCA_LIMITE_MAX = 100;
 const BUSCA_TERMO_MAX = 100;

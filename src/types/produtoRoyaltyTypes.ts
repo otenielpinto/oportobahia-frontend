@@ -77,13 +77,15 @@ export type OpcaoRoyaltyFonte =
   | "listaPreco"
   | "fornecedor"
   | "marca"
-  | "gravadora";
+  | "gravadora"
+  | "parceiro";
 
 // Opções dos seletores do formulário (vindas das collections tmp_royalty_*)
 export interface ProdutoRoyaltyOpcoes {
   origem: string[];
   tipo: string[];
   categoriaProduto: string[];
+  nivelRoyalty: string[];
 }
 
 // Tipos para exportação com filtros
