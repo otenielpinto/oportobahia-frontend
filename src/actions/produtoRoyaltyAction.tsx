@@ -6,6 +6,7 @@ import {
   ProdutoRoyaltyFormData,
   ProdutoRoyaltyFilterOptions,
   ProdutoRoyaltyExportFilters,
+  ProdutoRoyaltyOpcoes,
 } from "@/types/produtoRoyaltyTypes";
 import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/sessionAction";
@@ -497,6 +498,74 @@ export async function getProdutoRoyaltyFilterOptions(): Promise<{
       success: false,
       error:
         error.message || "Não foi possível carregar as opções de filtro.",
+    };
+  }
+}
+
+// Whitelist: o cliente nunca informa o nome da collection
+const OPCOES_ROYALTY_COLLECTIONS = {
+  origem: "tmp_royalty_origem",
+  tipo: "tmp_royalty_tipo",
+  categoriaProduto: "tmp_royalty_categoriaProduto",
+} as const;
+
+export async function listarOpcoesProdutoRoyalty(): Promise<{
+  success: boolean;
+  data?: ProdutoRoyaltyOpcoes;
+  error?: string;
+}> {
+  try {
+    const user: any = await getUser();
+    if (!user || !user?.id_tenant) {
+      return { success: false, error: "Não autorizado" };
+    }
+
+    const { client, clientdb } = await TMongo.connectToDatabase();
+    const filtro = {
+      id_tenant: user.id_tenant,
+      ...(user.id_empresa && { id_empresa: user.id_empresa }),
+    };
+
+    const buscarNomes = (collection: string) =>
+      clientdb
+        .collection(collection)
+        .find(filtro)
+        .project({ nome: 1, _id: 0 })
+        .sort({ nome: 1 })
+        .toArray();
+
+    const [origemDocs, tipoDocs, categoriaDocs] = await Promise.all([
+      buscarNomes(OPCOES_ROYALTY_COLLECTIONS.origem),
+      buscarNomes(OPCOES_ROYALTY_COLLECTIONS.tipo),
+      buscarNomes(OPCOES_ROYALTY_COLLECTIONS.categoriaProduto),
+    ]);
+
+    await TMongo.mongoDisconnect(client);
+
+    const extrairNomes = (docs: unknown[]): string[] => {
+      const nomes: unknown[] = serializeMongoData(docs).map(
+        (doc: any) => doc.nome,
+      );
+      const validos = nomes.filter(
+        (nome): nome is string => typeof nome === "string" && nome.trim() !== "",
+      );
+      return Array.from(new Set<string>(validos));
+    };
+
+    return {
+      success: true,
+      data: {
+        origem: extrairNomes(origemDocs),
+        tipo: extrairNomes(tipoDocs),
+        categoriaProduto: extrairNomes(categoriaDocs),
+      },
+    };
+  } catch (error: any) {
+    console.error("Erro ao carregar opções de produto royalty:", error);
+    return {
+      success: false,
+      error:
+        error.message || "Não foi possível carregar as opções de produto royalty.",
     };
   }
 }

@@ -72,6 +72,13 @@ export interface ProdutoRoyaltyFormData {
   royalty_min_garantido_reais?: number;
 }
 
+// Opções dos seletores do formulário (vindas das collections tmp_royalty_*)
+export interface ProdutoRoyaltyOpcoes {
+  origem: string[];
+  tipo: string[];
+  categoriaProduto: string[];
+}
+
 // Tipos para exportação com filtros
 export interface ProdutoRoyaltyFilterOptions {
   listaPreco: string[];

@@ -18,9 +18,13 @@ import {
 } from "@/components/ui/card";
 import {
   createProdutoRoyalty,
+  listarOpcoesProdutoRoyalty,
   updateProdutoRoyalty,
 } from "@/actions/produtoRoyaltyAction";
-import { ProdutoRoyalty } from "@/types/produtoRoyaltyTypes";
+import {
+  ProdutoRoyalty,
+  ProdutoRoyaltyOpcoes,
+} from "@/types/produtoRoyaltyTypes";
 import {
   Form,
   FormControl,
@@ -30,6 +34,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const OPCOES_VAZIAS: ProdutoRoyaltyOpcoes = {
+  origem: [],
+  tipo: [],
+  categoriaProduto: [],
+};
+
+// Garante que o valor já salvo continue visível e selecionado,
+// mesmo que não exista mais na collection de opções.
+function opcoesComValorAtual(opcoes: string[], valorAtual?: string): string[] {
+  if (!valorAtual || opcoes.includes(valorAtual)) return opcoes;
+  return [...opcoes, valorAtual].sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
 
 // Schema de validação
 const formSchema = z.object({
@@ -141,6 +165,43 @@ export default function ProdutoRoyaltyForm({
       });
     }
   }, [produto, form]);
+
+  const [opcoes, setOpcoes] = useState<ProdutoRoyaltyOpcoes>(OPCOES_VAZIAS);
+  const [loadingOpcoes, setLoadingOpcoes] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function carregarOpcoes() {
+      try {
+        const result = await listarOpcoesProdutoRoyalty();
+        if (cancelled) return;
+        if (result.success && result.data) {
+          setOpcoes(result.data);
+        } else {
+          toast.error(result.error || "Erro ao carregar as opções do produto.");
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error("Erro inesperado ao carregar as opções do produto.");
+        }
+      } finally {
+        if (!cancelled) setLoadingOpcoes(false);
+      }
+    }
+
+    carregarOpcoes();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const origemOpcoes = opcoesComValorAtual(opcoes.origem, produto?.origem);
+  const tipoOpcoes = opcoesComValorAtual(opcoes.tipo, produto?.tipo);
+  const categoriaOpcoes = opcoesComValorAtual(
+    opcoes.categoriaProduto,
+    produto?.categoriaProduto,
+  );
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -389,13 +450,24 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Origem</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Origem do produto"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={loadingOpcoes}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a origem" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {origemOpcoes.map((nome) => (
+                          <SelectItem key={nome} value={nome}>
+                            {nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -406,13 +478,24 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Tipo de produto"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={loadingOpcoes}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {tipoOpcoes.map((nome) => (
+                          <SelectItem key={nome} value={nome}>
+                            {nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -444,13 +527,24 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Categoria do produto"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={loadingOpcoes}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categoriaOpcoes.map((nome) => (
+                          <SelectItem key={nome} value={nome}>
+                            {nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
