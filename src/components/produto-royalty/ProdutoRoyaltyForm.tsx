@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OpcoesRoyaltyCombobox } from "@/components/produto-royalty/OpcoesRoyaltyCombobox";
 
 const OPCOES_VAZIAS: ProdutoRoyaltyOpcoes = {
   origem: [],
@@ -311,13 +312,11 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marca</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Marca"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <OpcoesRoyaltyCombobox
+                      fonte="marca"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -328,13 +327,11 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gravadora</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Gravadora"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <OpcoesRoyaltyCombobox
+                      fonte="gravadora"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -412,13 +409,11 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Lista Preço</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Lista de preço"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <OpcoesRoyaltyCombobox
+                      fonte="listaPreco"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -506,13 +501,11 @@ export default function ProdutoRoyaltyForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Fornecedor</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Fornecedor"
-                        autoComplete="off"
-                        {...field}
-                      />
-                    </FormControl>
+                    <OpcoesRoyaltyCombobox
+                      fonte="fornecedor"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

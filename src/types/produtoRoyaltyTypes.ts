@@ -72,6 +72,13 @@ export interface ProdutoRoyaltyFormData {
   royalty_min_garantido_reais?: number;
 }
 
+// Campos de busca por autocomplete (cada um mapeia para uma collection tmp_royalty_* no servidor)
+export type OpcaoRoyaltyFonte =
+  | "listaPreco"
+  | "fornecedor"
+  | "marca"
+  | "gravadora";
+
 // Opções dos seletores do formulário (vindas das collections tmp_royalty_*)
 export interface ProdutoRoyaltyOpcoes {
   origem: string[];

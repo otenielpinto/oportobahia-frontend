@@ -7,6 +7,7 @@ import {
   ProdutoRoyaltyFilterOptions,
   ProdutoRoyaltyExportFilters,
   ProdutoRoyaltyOpcoes,
+  OpcaoRoyaltyFonte,
 } from "@/types/produtoRoyaltyTypes";
 import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/sessionAction";
@@ -566,6 +567,81 @@ export async function listarOpcoesProdutoRoyalty(): Promise<{
       success: false,
       error:
         error.message || "Não foi possível carregar as opções de produto royalty.",
+    };
+  }
+}
+
+// Whitelist de fontes de busca: o cliente informa só a chave, nunca a collection
+const FONTES_BUSCA_ROYALTY: Record<OpcaoRoyaltyFonte, string> = {
+  listaPreco: "tmp_royalty_listaPreco",
+  fornecedor: "tmp_royalty_fornecedor",
+  marca: "tmp_royalty_marca",
+  gravadora: "tmp_royalty_gravadora",
+};
+const BUSCA_LIMITE_MAX = 100;
+const BUSCA_TERMO_MAX = 100;
+
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Busca valores do campo `nome` da fonte informada, por trecho, sem duplicados.
+ * Termo vazio retorna as primeiras opções em ordem alfabética.
+ */
+export async function buscarOpcoesProdutoRoyalty(
+  fonte: OpcaoRoyaltyFonte,
+  termo: string,
+  limite: number = 5,
+): Promise<{ success: boolean; data?: string[]; error?: string }> {
+  try {
+    const user: any = await getUser();
+    if (!user || !user?.id_tenant) {
+      return { success: false, error: "Não autorizado" };
+    }
+
+    const collection = FONTES_BUSCA_ROYALTY[fonte];
+    if (!collection) {
+      return { success: false, error: "Fonte de busca inválida." };
+    }
+
+    const limiteSeguro = Math.min(
+      Math.max(Math.trunc(limite) || 5, 1),
+      BUSCA_LIMITE_MAX,
+    );
+    const texto = termo.trim().slice(0, BUSCA_TERMO_MAX);
+
+    const filtro: Record<string, unknown> = {
+      id_tenant: user.id_tenant,
+      ...(user.id_empresa && { id_empresa: user.id_empresa }),
+    };
+    if (texto) {
+      filtro.nome = { $regex: escapeRegex(texto), $options: "i" };
+    }
+
+    const { client, clientdb } = await TMongo.connectToDatabase();
+    const docs = await clientdb
+      .collection(collection)
+      .aggregate([
+        { $match: filtro },
+        { $group: { _id: "$nome" } },
+        { $sort: { _id: 1 } },
+        { $limit: limiteSeguro },
+      ])
+      .toArray();
+    await TMongo.mongoDisconnect(client);
+
+    const nomes = docs
+      .map((doc) => doc._id)
+      .filter(
+        (nome): nome is string => typeof nome === "string" && nome.trim() !== "",
+      );
+
+    return { success: true, data: nomes };
+  } catch (error: any) {
+    console.error("Erro ao buscar opções de produto royalty:", error);
+    return {
+      success: false,
+      error: error.message || "Não foi possível realizar a busca.",
     };
   }
 }
