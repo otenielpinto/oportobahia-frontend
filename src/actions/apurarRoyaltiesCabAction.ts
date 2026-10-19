@@ -86,6 +86,7 @@ export interface ApuracaoRoyaltiesMovto {
   nivelRoyalties?: string;
   percentualRoyalties?: number;
   valorRoyalties?: number;
+  tipoVenda?: string | null;
   tipo?: string;
   numDiscos?: number;
   numFaixas?: number;

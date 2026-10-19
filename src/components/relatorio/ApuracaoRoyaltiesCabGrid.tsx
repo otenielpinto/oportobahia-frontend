@@ -45,6 +45,7 @@ import {
   exportarRoyaltiesMovto,
 } from "@/actions/apurarRoyaltiesCabAction";
 import { reportToExcel } from "@/lib/reportToExcel";
+import { royaltiesExcelRows } from "@/lib/royaltiesExcelRows";
 
 const PAGE_SIZE = 10;
 
@@ -189,6 +190,7 @@ export function ApuracaoRoyaltiesCabGrid() {
 
       // Formata datas e aplica fallbacks para nulos
       const formattedData = result.data.map((row) => ({
+        tipoVenda: row.tipoVenda,
         clienteCpfCnpj: row.clienteCpfCnpj ?? "—",
         clienteNome: row.clienteNome ?? "—",
         clienteMunicipio: row.clienteMunicipio ?? "—",
@@ -241,7 +243,7 @@ export function ApuracaoRoyaltiesCabGrid() {
       const fileName = `Royalties_${periodoStr}_${dateSuffix}`;
 
       reportToExcel({
-        data: formattedData,
+        data: royaltiesExcelRows(formattedData),
         columns: ROYALTIES_MOVTO_COLUMNS,
         sheetName: "Royalties",
         fileName,
