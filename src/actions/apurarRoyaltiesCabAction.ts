@@ -5,6 +5,7 @@ import { TMongo } from "@/infra/mongoClient";
 import { getUser } from "@/actions/sessionAction";
 import { serializeMongoData } from "@/lib/serializeMongoData";
 import { revalidatePath } from "next/cache";
+import { royaltiesDeletionError } from "@/lib/royaltiesDeletionPolicy";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -259,6 +260,12 @@ export async function excluirApuracaoRoyaltiesCab(
         success: false,
         error: "Não é possível excluir apuração em processamento",
       };
+    }
+
+    const deletionError = royaltiesDeletionError(record.createdAt);
+    if (deletionError) {
+      await TMongo.mongoDisconnect(client);
+      return { success: false, error: deletionError };
     }
 
     // Exclui registros filhos da collection de movimentos

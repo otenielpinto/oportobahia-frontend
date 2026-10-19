@@ -46,6 +46,7 @@ import {
 } from "@/actions/apurarRoyaltiesCabAction";
 import { reportToExcel } from "@/lib/reportToExcel";
 import { royaltiesExcelRows } from "@/lib/royaltiesExcelRows";
+import { royaltiesDeletionError } from "@/lib/royaltiesDeletionPolicy";
 
 const PAGE_SIZE = 10;
 
@@ -326,7 +327,12 @@ export function ApuracaoRoyaltiesCabGrid() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedData.map((item) => (
+                {paginatedData.map((item) => {
+                  const deletionError = item.status === "processando"
+                    ? "Não é possível excluir apuração em processamento"
+                    : royaltiesDeletionError(item.createdAt);
+                  const createdAt = new Date(item.createdAt);
+                  return (
                   <TableRow key={item._id}>
                     <TableCell className="font-medium">
                       {format(parseDateLocal(item.dataInicial), "dd/MM/yyyy")} —{" "}
@@ -346,7 +352,9 @@ export function ApuracaoRoyaltiesCabGrid() {
                       />
                     </TableCell>
                     <TableCell>
-                      {format(new Date(item.createdAt), "dd/MM/yyyy HH:mm")}
+                      {item.createdAt && Number.isFinite(createdAt.getTime())
+                        ? format(createdAt, "dd/MM/yyyy HH:mm")
+                        : "Data indisponível"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -375,19 +383,26 @@ export function ApuracaoRoyaltiesCabGrid() {
                             <FileSpreadsheet className="h-4 w-4 text-green-600 dark:text-green-400" />
                           )}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          disabled={item.status === "processando"}
-                          onClick={() => setDeleteId(item.id)}
+                        <span
+                          title={deletionError ?? "Excluir apuração"}
+                          tabIndex={deletionError ? 0 : undefined}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            disabled={!!deletionError}
+                            aria-label={deletionError ? `Excluir apuração: ${deletionError}` : "Excluir apuração"}
+                            onClick={() => setDeleteId(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          </Button>
+                        </span>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
 

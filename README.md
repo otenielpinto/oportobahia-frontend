@@ -8,6 +8,22 @@ values) first, then 5 blank rows, then bonuses (`tipoVenda = B`). Records keep
 their original order within each group. No separator is added when either group
 is empty. No records are discarded; non-B records stay in the sales group.
 
+## Exclusão de apurações de royalties
+
+A exclusão é bloqueada quando passaram **mais de 60 dias de 24 horas** desde
+`createdAt`, considerando também o horário. Exatamente 60 dias ainda permite
+excluir. O período do relatório e `updatedAt` não influenciam essa regra.
+Datas de criação ausentes ou inválidas bloqueiam a exclusão com mensagem em
+português. O ícone de lixeira fica desabilitado e seu título explica o motivo;
+apurações em processamento continuam bloqueadas. O servidor confere a regra
+antes de excluir os movimentos ou o cabeçalho, mesmo em chamadas diretas.
+
+Testes isolados, sem acesso ao MongoDB (Node.js 24+):
+
+```sh
+node --test tests/royaltiesDeletionPolicy.test.mjs tests/royaltiesDeletionAction.test.mjs
+```
+
 ## Royalties summary
 
 Click **Ver detalhes** at `/relatorio/apuracao-royalties` to open the summary
